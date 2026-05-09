@@ -1,0 +1,10 @@
+# Ignorar la carpeta de configuración de Obsidian (ajustes locales)
+.obsidian/
+
+# Ignorar archivos temporales del sistema
+.DS_Store
+Thumbs.db
+
+# Ignorar archivos temporales de editores
+*.tmp
+*.swp
