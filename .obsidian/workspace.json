@@ -11,10 +11,14 @@
             "id": "6adaf683f02145cd",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "Moure/md_files/guia_bash_mouredev_pro.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "Nueva pestaña"
+              "title": "guia_bash_mouredev_pro"
             }
           }
         ]
@@ -74,7 +78,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 429.5
   },
   "right": {
     "id": "ac10a4b66ed2bb93",
@@ -90,6 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
+                "file": "Moure/md_files/guia_bash_mouredev_pro.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -99,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Enlaces entrantes"
+              "title": "Enlaces entrantes de guia_bash_mouredev_pro"
             }
           },
           {
@@ -108,11 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
+                "file": "Moure/md_files/guia_bash_mouredev_pro.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Enlaces salientes"
+              "title": "Enlaces salientes de guia_bash_mouredev_pro"
             }
           },
           {
@@ -150,12 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
+                "file": "Moure/md_files/guia_bash_mouredev_pro.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Esquema"
+              "title": "Esquema de guia_bash_mouredev_pro"
             }
           }
         ]
@@ -177,5 +184,19 @@
     }
   },
   "active": "6adaf683f02145cd",
-  "lastOpenFiles": []
+  "lastOpenFiles": [
+    "cs50/week1-c/03_code/src1/mario5.c",
+    "cs50/week1-c/03_code/src1/mario4.c",
+    "cs50/week1-c/03_code/src1/mario3.c",
+    "cs50/week1-c/03_code/src1/mario2.c",
+    "cs50/week1-c/03_code/src1/mario1.c",
+    "cs50/week1-c/03_code/src1/mario0.c",
+    "cs50/week1-c/03_code/src1/hello2.c",
+    "cs50/week1-c/03_code/src1/hello1.c",
+    "cs50/week1-c/03_code/src1/hello0.c",
+    "cs50/week1-c/03_code/src1/compare4.c",
+    "cs50/week1-c/03_code/src1/compare3.c",
+    "cs50/week1-c/01_sources/transcripcion_video.md",
+    "cs50/week1-c/01_sources/lecture_notes.md"
+  ]
 }
