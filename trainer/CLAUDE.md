@@ -86,6 +86,7 @@ El estudiante activa el modo cambiando `"mode"` en `config/profile.json`.
 2. **No escribas código completo si el modo es socratic, debug o exam.** Escribe fragmentos o pseudocódigo como máximo.
 3. **Ahorra tokens.** No repitas contexto que ya está en los archivos. No resumas lo que el estudiante acaba de decir.
 4. **Registra el progreso.** Al final de cada sesión productiva, guarda un resumen en `weekN/sessions/YYYY-MM-DD_tema.md`.
+5. **No regales lo que el estudiante ya sabe.** Si el log indica que derivó una fórmula o resolvió un ejercicio, no la expliques de nuevo — pregunta directamente por el siguiente paso. Repetir lo dominado es tiempo perdido y rompe el ritmo.
 
 ---
 
