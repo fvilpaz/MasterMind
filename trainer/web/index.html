@@ -7,9 +7,10 @@
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  :root {
+  :root, [data-theme="light"] {
     --primary:    #1a6fc4;
     --primary-dk: #1557a0;
+    --primary-text: #ffffff;
     --accent:     #e8a020;
     --bg:         #f0f2f5;
     --surface:    #ffffff;
@@ -23,25 +24,92 @@
     --navbar-h:   52px;
   }
   [data-theme="dark"] {
-    --primary:    #1e293b;
-    --primary-dk: #0f172a;
+    --primary:    #3b82f6;
+    --primary-dk: #2563eb;
+    --primary-text: #ffffff;
     --accent:     #f59e0b;
     --bg:         #0f172a;
     --surface:    #1e293b;
     --surface2:   #334155;
     --border:     rgba(255,255,255,0.08);
-    --text:       #e2e8f0;
+    --text:       #f1f5f9;
     --muted:      #94a3b8;
-    --green:      #34d399;
-    --red:        #f87171;
-    --nav-accent: #4a9eff;
+    --green:      #22c55e;
+    --red:        #ef4444;
+    color-scheme: dark;
+  }
+  [data-theme="mint"] {
+    --primary:    #1abc9c;
+    --primary-dk: #148f77;
+    --primary-text: #ffffff;
+    --accent:     #f39c12;
+    --bg:         #f6fdfc;
+    --surface:    #ffffff;
+    --surface2:   #edfaf7;
+    --border:     rgba(0,0,0,0.06);
+    --text:       #2f4f4f;
+    --muted:      #7f8c8d;
+    --green:      #27ae60;
+    --red:        #e74c3c;
+    --radius:     10px;
+    --navbar-h:   52px;
+  }
+  [data-theme="barbie"] {
+    --primary:    #ff4081;
+    --primary-dk: #c2185b;
+    --primary-text: #ffffff;
+    --accent:     #ff80ab;
+    --bg:         #fff0f6;
+    --surface:    #ffffff;
+    --surface2:   #ffe4f0;
+    --border:     rgba(255,64,129,0.12);
+    --text:       #5f1027;
+    --muted:      #c2748a;
+    --green:      #e91e8c;
+    --red:        #ad1457;
+    --radius:     10px;
+    --navbar-h:   52px;
+  }
+  [data-theme="dracula"] {
+    --primary:    #bd93f9;
+    --primary-dk: #9d74d9;
+    --primary-text: #ffffff;
+    --accent:     #ffb86c;
+    --bg:         #282a36;
+    --surface:    #44475a;
+    --surface2:   #383a4a;
+    --border:     rgba(255,255,255,0.1);
+    --text:       #f8f8f2;
+    --muted:      #6272a4;
+    --green:      #50fa7b;
+    --red:        #ff5555;
+    --radius:     10px;
+    --navbar-h:   52px;
+    color-scheme: dark;
+  }
+  [data-theme="cyberpunk"] {
+    --primary:    #f0e040;
+    --primary-dk: #c4b800;
+    --primary-text: #000000;
+    --accent:     #00fff9;
+    --bg:         #0d0f12;
+    --surface:    #161920;
+    --surface2:   #1e2130;
+    --border:     rgba(240,224,64,0.15);
+    --text:       #e0e0e0;
+    --muted:      #6b7280;
+    --green:      #39ff14;
+    --red:        #ff003c;
+    --radius:     10px;
+    --navbar-h:   52px;
+    color-scheme: dark;
   }
 
   body { font-family: system-ui, -apple-system, sans-serif; font-size: 14px; background: var(--bg); color: var(--text); height: 100dvh; display: flex; flex-direction: column; transition: background 0.2s, color 0.2s; }
 
   /* NAVBAR */
   nav { background: var(--primary); height: var(--navbar-h); display: flex; align-items: center; padding: 0 16px; gap: 10px; flex-shrink: 0; border-bottom: 1px solid var(--border); }
-  .nav-brand { color: #fff; font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .nav-brand { color: var(--primary-text); font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
   .nav-brand span { background: rgba(255,255,255,0.2); border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 500; }
   .nav-badges { display: flex; gap: 6px; flex: 1; flex-wrap: wrap; }
   .badge { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.9); }
@@ -106,7 +174,14 @@
       <option value="gemini-3-flash-preview">3 Flash 🔬</option>
       <option value="gemini-3-pro-preview">3 Pro 🚀</option>
     </select>
-    <button class="btn-icon" id="theme-toggle">🌙</button>
+    <select id="theme-select">
+      <option value="light">☀️ Light</option>
+      <option value="dark">🌙 Dark</option>
+      <option value="mint">🌿 Mint</option>
+      <option value="barbie">🩷 Barbie</option>
+      <option value="dracula">🧛 Dracula</option>
+      <option value="cyberpunk">⚡ Cyberpunk</option>
+    </select>
   </div>
 </nav>
 
@@ -211,11 +286,13 @@ document.getElementById('input').addEventListener('input', function() {
   this.style.height = Math.min(this.scrollHeight, 120) + 'px';
 });
 
-const toggle = document.getElementById('theme-toggle');
-toggle.addEventListener('click', () => {
-  const dark = document.documentElement.getAttribute('data-theme') === 'dark';
-  document.documentElement.setAttribute('data-theme', dark ? 'light' : 'dark');
-  toggle.textContent = dark ? '🌙' : '☀️';
+const themeSelect = document.getElementById('theme-select');
+const savedTheme = localStorage.getItem('trainer-theme') || 'light';
+document.documentElement.setAttribute('data-theme', savedTheme);
+themeSelect.value = savedTheme;
+themeSelect.addEventListener('change', () => {
+  document.documentElement.setAttribute('data-theme', themeSelect.value);
+  localStorage.setItem('trainer-theme', themeSelect.value);
 });
 
 loadProfile();
