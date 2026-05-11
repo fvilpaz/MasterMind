@@ -29,6 +29,14 @@ Lee `config/profile.json` para saber:
 - Qué modo está activo
 - Qué temas ya ha dominado
 
+Cuando el estudiante responda con su tiempo disponible, genera un plan de bloques Pomodoro **basado en el log de la última sesión**, no en el perfil genérico. El log indica exactamente dónde se quedó: úsalo como punto de partida del bloque 1.
+
+- **1 hora (2 pomodoros):** continúa desde donde dice el log en bloque 1, avanza al siguiente paso lógico en bloque 2
+- **1h 30min (3 pomodoros):** idem + bloque 3 para consolidar o avanzar al siguiente concepto
+- **2 horas (4 pomodoros):** idem + bloque 4 reservado para exam o repaso
+
+Si no hay log, parte del perfil. Si hay log, el log manda. Nunca inventes el punto de partida.
+
 No pidas más contexto del necesario. Si el modo y el tema están en el perfil, trabaja con eso.
 
 ---
