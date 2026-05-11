@@ -197,24 +197,25 @@
     .bubble { max-width: 85%; }
   }
 
-  /* Móvil portrait (≤600px): navbar en 2 filas */
+  /* Móvil (≤600px): estructura navbar en 2 filas — aplica en portrait y landscape */
   @media (max-width: 600px) {
-    nav {
-      height: auto;
-      flex-wrap: wrap;
-      padding: 8px 12px;
-      row-gap: 4px;
-    }
-    .nav-brand { font-size: 17px; font-weight: 700; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    nav { height: auto; flex-wrap: wrap; padding: 8px 12px; row-gap: 4px; }
+    .nav-brand { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .nav-controls { margin-left: auto; flex-shrink: 0; }
-    .nav-controls .cs-trigger { font-size: 12px; padding: 5px 8px; }
     .nav-badges { order: 3; flex: 0 0 100%; padding-bottom: 2px; }
-    .badge { font-size: 12px; padding: 3px 10px; }
     .bubble { max-width: 92%; }
     #messages { padding: 14px 10px; gap: 12px; }
     footer { padding: 10px 10px; }
     .site-footer-links { display: none; }
-    .site-footer { justify-content: center; font-size: 13px; padding: 10px 16px; }
+    .site-footer { justify-content: center; }
+  }
+
+  /* Móvil portrait (≤600px): tamaños visuales solo en vertical */
+  @media (max-width: 600px) and (orientation: portrait) {
+    .nav-brand { font-size: 17px; font-weight: 700; }
+    .nav-controls .cs-trigger { font-size: 12px; padding: 5px 8px; }
+    .badge { font-size: 12px; padding: 3px 10px; }
+    .site-footer { font-size: 13px; padding: 10px 16px; }
   }
 
   /* Móvil landscape (altura ≤ 500px): navbar compacta, badges ocultos */
