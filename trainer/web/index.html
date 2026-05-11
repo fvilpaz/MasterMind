@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="light">
+<html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -51,8 +51,6 @@
     --muted:      #7f8c8d;
     --green:      #27ae60;
     --red:        #e74c3c;
-    --radius:     10px;
-    --navbar-h:   52px;
   }
   [data-theme="barbie"] {
     --primary:    #ff4081;
@@ -67,8 +65,6 @@
     --muted:      #c2748a;
     --green:      #e91e8c;
     --red:        #ad1457;
-    --radius:     10px;
-    --navbar-h:   52px;
   }
   [data-theme="dracula"] {
     --primary:    #bd93f9;
@@ -83,8 +79,6 @@
     --muted:      #6272a4;
     --green:      #50fa7b;
     --red:        #ff5555;
-    --radius:     10px;
-    --navbar-h:   52px;
     color-scheme: dark;
   }
   [data-theme="cyberpunk"] {
@@ -100,8 +94,6 @@
     --muted:      #6b7280;
     --green:      #39ff14;
     --red:        #ff003c;
-    --radius:     10px;
-    --navbar-h:   52px;
     color-scheme: dark;
   }
 
@@ -116,10 +108,14 @@
   .badge.topic { color: #fde68a; }
   .badge.mode  { color: #a5f3fc; }
   .nav-controls { display: flex; align-items: center; gap: 6px; }
-  select, .btn-icon { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 4px 8px; font-size: 11px; cursor: pointer; outline: none; }
-  select option { background: var(--surface); color: var(--text); }
-  .btn-icon { padding: 4px 8px; font-size: 14px; line-height: 1; }
-  .btn-icon:hover, select:hover { background: rgba(255,255,255,0.25); }
+  .cs-wrap { position: relative; }
+  .cs-trigger { background: rgba(255,255,255,0.15); color: var(--primary-text); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 4px 8px; font-size: 11px; cursor: pointer; outline: none; display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+  .cs-trigger:hover { background: rgba(255,255,255,0.25); }
+  .cs-arrow { font-size: 9px; opacity: 0.75; }
+  .cs-list { display: none; position: absolute; top: calc(100% + 4px); right: 0; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); z-index: 200; min-width: 130px; list-style: none; padding: 4px 0; box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+  .cs-wrap.open .cs-list { display: block; }
+  .cs-item { padding: 7px 12px; font-size: 12px; color: var(--text); cursor: pointer; white-space: nowrap; }
+  .cs-item:hover, .cs-item.cs-active { background: var(--primary); color: var(--primary-text); }
 
   /* MESSAGES */
   #messages { flex: 1; overflow-y: auto; padding: 20px 16px; display: flex; flex-direction: column; gap: 16px; }
@@ -128,12 +124,12 @@
   .msg-row.user { flex-direction: row-reverse; }
 
   .avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; flex-shrink: 0; }
-  .avatar.bot { background: var(--nav-accent, var(--primary)); color: #fff; }
+  .avatar.bot { background: var(--primary); color: var(--primary-text); }
   .avatar.user { background: var(--accent); color: #fff; }
 
   .bubble { max-width: 75%; padding: 10px 14px; border-radius: var(--radius); line-height: 1.6; font-size: 14px; white-space: pre-wrap; word-break: break-word; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
   .msg-row.bot  .bubble { background: var(--surface); border: 1px solid var(--border); border-top-left-radius: 3px; }
-  .msg-row.user .bubble { background: var(--primary); color: #fff; border-top-right-radius: 3px; }
+  .msg-row.user .bubble { background: var(--primary); color: var(--primary-text); border-top-right-radius: 3px; }
 
   .typing .bubble { background: var(--surface); border: 1px solid var(--border); }
   .typing span { display: inline-block; width: 6px; height: 6px; background: var(--muted); border-radius: 50%; animation: bounce 1.2s infinite; margin: 0 2px; }
@@ -147,20 +143,140 @@
   footer { background: var(--surface); border-top: 1px solid var(--border); padding: 12px 16px; display: flex; gap: 8px; flex-shrink: 0; }
   textarea { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); padding: 10px 12px; font-size: 14px; resize: none; outline: none; min-height: 42px; max-height: 120px; font-family: inherit; transition: border 0.15s; }
   textarea:focus { border-color: var(--primary); }
-  .btn-send { background: var(--primary); color: #fff; border: none; border-radius: var(--radius); padding: 0 20px; font-weight: 600; cursor: pointer; font-size: 14px; transition: background 0.15s; white-space: nowrap; }
+  .btn-send { background: var(--primary); color: var(--primary-text); border: none; border-radius: var(--radius); padding: 0 20px; font-weight: 600; cursor: pointer; font-size: 14px; transition: background 0.15s; white-space: nowrap; }
   .btn-send:hover { background: var(--primary-dk); }
   .btn-send:disabled { background: var(--surface2); color: var(--muted); cursor: not-allowed; border: 1px solid var(--border); }
+
+  #quick-replies { background: var(--surface); border-top: 1px solid var(--border); padding: 8px 16px; display: none; gap: 8px; flex-wrap: wrap; flex-shrink: 0; }
+  .qr-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 999px; color: var(--primary); font-size: 12px; padding: 6px 14px; cursor: pointer; font-family: inherit; transition: background 0.15s, color 0.15s; }
+  .qr-btn:hover { background: var(--primary); color: var(--primary-text); }
 
   .site-footer { background: var(--surface); border-top: 1px solid var(--border); padding: 8px 16px; display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--muted); flex-shrink: 0; }
   .site-footer-links { display: flex; gap: 12px; }
   .site-footer-links a { color: var(--muted); text-decoration: none; transition: color 0.15s; }
   .site-footer-links a:hover { color: var(--primary); }
+
+  [data-theme="cyberpunk"] .badge       { color: rgba(0,0,0,0.75); background: rgba(0,0,0,0.12); }
+  [data-theme="cyberpunk"] .badge.topic { color: #2a1f00; }
+  [data-theme="cyberpunk"] .badge.mode  { color: #002a2a; }
+  [data-theme="cyberpunk"] select       { border-color: rgba(0,0,0,0.25); }
+
+  [data-theme="harvard"] {
+    --primary:    #a51c30;
+    --primary-dk: #8b1525;
+    --primary-text: #ffffff;
+    --accent:     #c9a84c;
+    --bg:         #f8f4f4;
+    --surface:    #ffffff;
+    --surface2:   #fdf0f0;
+    --border:     rgba(165,28,48,0.12);
+    --text:       #1a0508;
+    --muted:      #8a6670;
+    --green:      #2e7d32;
+    --red:        #c62828;
+  }
+  [data-theme="oldschool"] {
+    --primary:    #111111;
+    --primary-dk: #000000;
+    --primary-text: #ffffff;
+    --accent:     #555555;
+    --bg:         #f2efe8;
+    --surface:    #faf8f3;
+    --surface2:   #ebe8e0;
+    --border:     rgba(0,0,0,0.14);
+    --text:       #111111;
+    --muted:      #777777;
+    --green:      #333333;
+    --red:        #222222;
+  }
+
+  /* ── RESPONSIVE ─────────────────────────────────── */
+
+  /* Tablet (≤768px): bubbles más anchos */
+  @media (max-width: 768px) {
+    .bubble { max-width: 85%; }
+  }
+
+  /* Móvil portrait (≤600px): navbar en 2 filas */
+  @media (max-width: 600px) {
+    nav {
+      height: auto;
+      flex-wrap: wrap;
+      padding: 8px 12px;
+      row-gap: 4px;
+    }
+    .nav-brand { font-size: 15px; font-weight: 700; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .nav-controls { margin-left: auto; flex-shrink: 0; }
+    .nav-controls .cs-trigger { font-size: 10px; padding: 3px 5px; }
+    .nav-badges { order: 3; flex: 0 0 100%; padding-bottom: 2px; }
+    .bubble { max-width: 92%; }
+    #messages { padding: 14px 10px; gap: 12px; }
+    footer { padding: 10px 10px; }
+    .site-footer-links { display: none; }
+    .site-footer { justify-content: center; }
+  }
+
+  /* Móvil landscape (altura ≤ 500px): navbar compacta, badges ocultos */
+  @media (orientation: landscape) and (max-height: 500px) {
+    nav { height: 40px; padding: 0 12px; flex-wrap: nowrap; }
+    .nav-badges { display: none; }
+    #messages { padding: 10px 12px; }
+  }
+
+  /* ── POMODORO ────────────────────────────────────── */
+  #pomodoro {
+    position: fixed; bottom: 112px; right: 16px;
+    width: 88px; height: 88px;
+    background: var(--surface); border-radius: 50%;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 14px rgba(0,0,0,0.13);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 150;
+  }
+  .pomo-ring { position: absolute; inset: 0; transform: rotate(-90deg); }
+  .pomo-track { fill: none; stroke: var(--border); stroke-width: 4; }
+  .pomo-arc   { fill: none; stroke: var(--primary); stroke-width: 4; stroke-linecap: round;
+                stroke-dasharray: 213.6; stroke-dashoffset: 0;
+                transition: stroke-dashoffset 0.8s linear; }
+  .pomo-inner { display: flex; flex-direction: column; align-items: center; gap: 1px; z-index: 1; }
+  .pomo-emoji { font-size: 18px; line-height: 1; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15)); }
+  #pomo-time  { font-size: 13px; font-weight: 700; color: var(--primary);
+                font-variant-numeric: tabular-nums; letter-spacing: -0.5px; }
+  .pomo-btns  { display: flex; gap: 8px; }
+  .pomo-btns button { background: none; border: none; color: var(--primary);
+                      cursor: pointer; font-size: 13px; padding: 0; line-height: 1; }
+  .pomo-btns button:hover { opacity: 0.65; }
+  #pomodoro.pomo-break .pomo-arc { stroke: var(--green); }
+  #pomodoro.pomo-break #pomo-time, #pomodoro.pomo-break .pomo-btns button { color: var(--green); }
+  #pomodoro.pomo-done  .pomo-arc { stroke: var(--red); }
+  #pomodoro.pomo-done { animation: pomo-pulse 0.8s ease-in-out 4; }
+  @keyframes pomo-pulse {
+    0%,100% { box-shadow: 0 2px 14px rgba(0,0,0,0.13); transform: scale(1); }
+    50%      { box-shadow: 0 0 22px 6px var(--primary); transform: scale(1.07); }
+  }
+  [data-theme="cyberpunk"] #pomo-time {
+    font-family: 'Courier New', monospace;
+    text-shadow: 0 0 6px var(--primary);
+    letter-spacing: 1px;
+  }
+  [data-theme="oldschool"] #pomo-time {
+    font-family: 'Courier New', monospace;
+    letter-spacing: 2px;
+    font-size: 11px;
+  }
+
+  @media (max-width: 600px) {
+    #pomodoro { width: 74px; height: 74px; bottom: 120px; right: 10px; }
+    .pomo-emoji { font-size: 15px; }
+    #pomo-time { font-size: 11px; }
+    .pomo-btns button { font-size: 11px; }
+  }
 </style>
 </head>
 <body>
 
 <nav>
-  <div class="nav-brand">CS50 Trainer</div>
+  <div class="nav-brand" id="nav-brand">MasterMind</div>
   <div class="nav-badges">
     <span class="badge" id="b-week">Week ?</span>
     <span class="badge topic" id="b-topic">...</span>
@@ -175,6 +291,8 @@
       <option value="gemini-3-pro-preview">3 Pro 🚀</option>
     </select>
     <select id="theme-select">
+      <option value="harvard">🎓 Harvard</option>
+      <option value="oldschool">📺 Old School</option>
       <option value="light">☀️ Light</option>
       <option value="dark">🌙 Dark</option>
       <option value="mint">🌿 Mint</option>
@@ -186,6 +304,12 @@
 </nav>
 
 <div id="messages"></div>
+
+<div id="quick-replies">
+  <button class="qr-btn" data-msg="Tengo 1 hora — 2 pomodoros">⏱ 1 hora</button>
+  <button class="qr-btn" data-msg="Tengo hora y media — 3 pomodoros">⏱ 1h 30min</button>
+  <button class="qr-btn" data-msg="Tengo 2 horas — 4 pomodoros">⏱ 2 horas</button>
+</div>
 
 <footer>
   <textarea id="input" placeholder="Escribe tu mensaje..." rows="1"></textarea>
@@ -201,6 +325,21 @@
   </div>
 </div>
 
+<div id="pomodoro">
+  <svg class="pomo-ring" viewBox="0 0 80 80">
+    <circle class="pomo-track" cx="40" cy="40" r="34"/>
+    <circle class="pomo-arc" id="pomo-arc" cx="40" cy="40" r="34"/>
+  </svg>
+  <div class="pomo-inner">
+    <span id="pomo-emoji" class="pomo-emoji"></span>
+    <span id="pomo-time">25:00</span>
+    <div class="pomo-btns">
+      <button id="pomo-toggle" title="Iniciar / Pausar">▶</button>
+      <button id="pomo-reset"  title="Reiniciar">↺</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const messages = [];
 
@@ -208,6 +347,7 @@ async function loadProfile() {
   try {
     const r = await fetch('/profile');
     const p = await r.json();
+    document.getElementById('nav-brand').textContent = p.course ? `MasterMind · ${p.course}` : 'MasterMind';
     document.getElementById('b-week').textContent = `Week ${p.current_week}`;
     document.getElementById('b-topic').textContent = p.current_topic;
     document.getElementById('b-mode').textContent = p.mode;
@@ -273,9 +413,24 @@ async function greet() {
   try {
     const data = await callChat([{ role: 'user', content: '__greet__' }]);
     removeTyping();
-    if (!data.error) { messages.push({ role: 'assistant', content: data.reply }); addMessage('bot', data.reply); }
+    if (!data.error) {
+      messages.push({ role: 'assistant', content: data.reply });
+      addMessage('bot', data.reply);
+      const qr = document.getElementById('quick-replies');
+      qr.style.display = 'flex';
+      pomoReposition();
+    }
   } catch {}
 }
+
+document.querySelectorAll('.qr-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.getElementById('quick-replies').style.display = 'none';
+    pomoReposition();
+    document.getElementById('input').value = btn.dataset.msg;
+    send();
+  });
+});
 
 document.getElementById('send').addEventListener('click', send);
 document.getElementById('input').addEventListener('keydown', e => {
@@ -286,14 +441,159 @@ document.getElementById('input').addEventListener('input', function() {
   this.style.height = Math.min(this.scrollHeight, 120) + 'px';
 });
 
+function makeCustomSelect(selectEl) {
+  const wrap = document.createElement('div');
+  wrap.className = 'cs-wrap';
+  const trigger = document.createElement('button');
+  trigger.className = 'cs-trigger';
+  trigger.type = 'button';
+  const labelEl = document.createElement('span');
+  labelEl.className = 'cs-label';
+  const arrow = document.createElement('span');
+  arrow.className = 'cs-arrow';
+  arrow.textContent = '▾';
+  trigger.appendChild(labelEl);
+  trigger.appendChild(arrow);
+  const list = document.createElement('ul');
+  list.className = 'cs-list';
+  const opts = Array.from(selectEl.options);
+  const items = opts.map(opt => {
+    const li = document.createElement('li');
+    li.className = 'cs-item';
+    li.dataset.value = opt.value;
+    li.textContent = opt.text;
+    li.addEventListener('click', () => {
+      selectEl.value = opt.value;
+      selectEl.dispatchEvent(new Event('change'));
+      sync(opt.value);
+      wrap.classList.remove('open');
+    });
+    list.appendChild(li);
+    return li;
+  });
+  function sync(value) {
+    const opt = opts.find(o => o.value === value);
+    if (opt) labelEl.textContent = opt.text;
+    items.forEach(li => li.classList.toggle('cs-active', li.dataset.value === value));
+  }
+  sync(selectEl.value);
+  trigger.addEventListener('click', e => { e.stopPropagation(); wrap.classList.toggle('open'); });
+  document.addEventListener('click', () => wrap.classList.remove('open'));
+  selectEl.style.display = 'none';
+  wrap.appendChild(trigger);
+  wrap.appendChild(list);
+  selectEl.parentNode.insertBefore(wrap, selectEl);
+  wrap.appendChild(selectEl);
+  return { sync };
+}
+
+makeCustomSelect(document.getElementById('model'));
+const themeCS = makeCustomSelect(document.getElementById('theme-select'));
+
 const themeSelect = document.getElementById('theme-select');
-const savedTheme = localStorage.getItem('trainer-theme') || 'light';
+const savedTheme = localStorage.getItem('trainer-theme') || 'harvard';
 document.documentElement.setAttribute('data-theme', savedTheme);
 themeSelect.value = savedTheme;
+themeCS.sync(savedTheme);
 themeSelect.addEventListener('change', () => {
   document.documentElement.setAttribute('data-theme', themeSelect.value);
   localStorage.setItem('trainer-theme', themeSelect.value);
+  pomoSetEmoji();
 });
+
+// ── POMODORO ──────────────────────────────────────────
+const POMO_EMOJIS = {
+  harvard: '🎓', oldschool: '📟', light: '☀️',
+  dark: '🌙', mint: '🌿', barbie: '💅',
+  dracula: '🧛', cyberpunk: '⚡'
+};
+
+function pomoSetEmoji() {
+  const theme = document.documentElement.getAttribute('data-theme') || 'harvard';
+  const el = document.getElementById('pomo-emoji');
+  el.textContent = pomoMode === 'break' ? '☕' : (POMO_EMOJIS[theme] || '⏱️');
+}
+
+function pomoBeep() {
+  try {
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 660;
+    gain.gain.setValueAtTime(0.25, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.6);
+  } catch {}
+}
+
+const POMO_WORK  = 25 * 60;
+const POMO_BREAK =  5 * 60;
+const CIRC = 213.6;
+let pomoMode      = 'work';
+let pomoRemaining = POMO_WORK;
+let pomoRunning   = false;
+let pomoInterval  = null;
+
+function pomoRender() {
+  pomoSetEmoji();
+  const total = pomoMode === 'work' ? POMO_WORK : POMO_BREAK;
+  const mins  = String(Math.floor(pomoRemaining / 60)).padStart(2, '0');
+  const secs  = String(pomoRemaining % 60).padStart(2, '0');
+  document.getElementById('pomo-time').textContent = `${mins}:${secs}`;
+  document.getElementById('pomo-arc').style.strokeDashoffset = CIRC * (1 - pomoRemaining / total);
+  const w = document.getElementById('pomodoro');
+  w.classList.toggle('pomo-break', pomoMode === 'break');
+  w.classList.toggle('pomo-done',  pomoRemaining === 0);
+}
+
+document.getElementById('pomo-toggle').addEventListener('click', () => {
+  if (pomoRunning) {
+    clearInterval(pomoInterval);
+    pomoRunning = false;
+    document.getElementById('pomo-toggle').textContent = '▶';
+  } else {
+    if (pomoRemaining === 0) {
+      pomoMode = pomoMode === 'work' ? 'break' : 'work';
+      pomoRemaining = pomoMode === 'work' ? POMO_WORK : POMO_BREAK;
+    }
+    pomoRunning = true;
+    document.getElementById('pomo-toggle').textContent = '⏸';
+    pomoInterval = setInterval(() => {
+      pomoRemaining--;
+      pomoRender();
+      if (pomoRemaining === 0) {
+        clearInterval(pomoInterval);
+        pomoRunning = false;
+        document.getElementById('pomo-toggle').textContent = '▶';
+        pomoBeep();
+        pomoRender();
+      }
+    }, 1000);
+  }
+});
+
+document.getElementById('pomo-reset').addEventListener('click', () => {
+  clearInterval(pomoInterval);
+  pomoRunning   = false;
+  pomoMode      = 'work';
+  pomoRemaining = POMO_WORK;
+  document.getElementById('pomo-toggle').textContent = '▶';
+  pomoRender();
+});
+
+pomoRender();
+
+function pomoReposition() {
+  const fh = document.querySelector('footer').offsetHeight +
+             document.querySelector('.site-footer').offsetHeight;
+  document.getElementById('pomodoro').style.bottom = (fh + 12) + 'px';
+}
+window.addEventListener('resize', pomoReposition);
+document.getElementById('input').addEventListener('input', pomoReposition);
+pomoReposition();
 
 loadProfile();
 greet();

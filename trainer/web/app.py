@@ -9,8 +9,8 @@ app = Flask(__name__, static_folder='.')
 ROOT = Path(__file__).parent.parent
 
 
-def get_last_session_log():
-    sessions_dir = ROOT / f"week1-c/sessions"
+def get_last_session_log(current_week):
+    sessions_dir = ROOT / f"week{current_week}-c/sessions"
     if not sessions_dir.exists():
         return ""
     logs = sorted(sessions_dir.glob("*.md"), reverse=True)
@@ -30,7 +30,7 @@ def build_system_prompt():
         notes_path = mm / f"cs50/week0{profile['current_week']}-c/sources/lecture_notes.md"
         if notes_path.exists():
             topic_notes = f"\n\n## Notas del tema actual\n{notes_path.read_text()[:3000]}"
-    session_log = get_last_session_log()
+    session_log = get_last_session_log(profile['current_week'])
     return (
         f"{claude_md}\n\n"
         f"## Estado del estudiante\n```json\n{json.dumps(profile, indent=2)}\n```"
@@ -76,7 +76,7 @@ def index():
 GREET_PROMPT = (
     "Arranca la sesión con energía. Saluda al estudiante por su nombre, "
     "recuérdale exactamente en qué punto quedamos la última sesión (usa el log), "
-    "y pregúntale cuánto tiempo tiene hoy para darle caña. "
+    "y pregúntale cuánto tiempo tiene hoy: 1 hora (2 pomodoros), hora y media (3 pomodoros) o 2 horas (4 pomodoros). "
     "Sé motivador y directo, estilo entrenador personal. Máximo 3 frases."
 )
 
