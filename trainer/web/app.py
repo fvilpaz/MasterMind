@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory, session
+from flask import Flask, request, jsonify, send_from_directory, session, Response, stream_with_context
 import json, os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -101,6 +101,50 @@ def call_gemini(messages, system, model_name='gemini-2.5-flash'):
     return response.text
 
 
+def _resolve_greet(messages, is_admin, guest_name_val):
+    if messages and messages[-1]['content'] == '__greet__':
+        if is_admin:
+            messages[-1]['content'] = GREET_ADMIN
+        elif guest_name_val:
+            messages[-1]['content'] = GREET_GUEST.replace(
+                "llámale 'aprendiz'", f"llámale '{guest_name_val}', que es su nombre real"
+            )
+        else:
+            messages[-1]['content'] = GREET_GUEST
+    return messages
+
+
+def stream_claude(messages, system):
+    import anthropic
+    client = anthropic.Anthropic(api_key=os.environ['ANTHROPIC_API_KEY'])
+    with client.messages.stream(
+        model="claude-sonnet-4-6",
+        max_tokens=4096,
+        system=system,
+        messages=messages
+    ) as stream:
+        for text in stream.text_stream:
+            yield f"data: {json.dumps(text)}\n\n"
+
+
+def stream_gemini(messages, system, model_name='gemini-2.5-flash'):
+    from google import genai
+    from google.genai import types
+    client = genai.Client(api_key=os.environ['GEMINI_API_KEY'])
+    history = [
+        types.Content(role=m['role'].replace('assistant', 'model'),
+                      parts=[types.Part(text=m['content'])])
+        for m in messages[:-1]
+    ]
+    for chunk in client.models.generate_content_stream(
+        model=model_name,
+        contents=history + [types.Content(role='user', parts=[types.Part(text=messages[-1]['content'])])],
+        config=types.GenerateContentConfig(system_instruction=system, max_output_tokens=4096)
+    ):
+        if chunk.text:
+            yield f"data: {json.dumps(chunk.text)}\n\n"
+
+
 @app.route('/')
 def index():
     return send_from_directory('.', 'index.html')
@@ -153,20 +197,40 @@ def chat():
     model = data.get('model', 'gemini-2.5-flash')
     provider = os.environ.get('AI_PROVIDER', 'gemini')
     is_admin = session.get('is_admin', False)
-    guest_name = session.get('guest_name', '')
     system = build_system_prompt(is_admin=is_admin)
-    if messages and messages[-1]['content'] == '__greet__':
-        if is_admin:
-            messages[-1]['content'] = GREET_ADMIN
-        elif guest_name:
-            messages[-1]['content'] = GREET_GUEST.replace("llámale 'aprendiz'", f"llámale '{guest_name}', que es su nombre real")
-        else:
-            messages[-1]['content'] = GREET_GUEST
+    messages = _resolve_greet(messages, is_admin, session.get('guest_name', ''))
     try:
         reply = call_claude(messages, system) if provider == 'claude' else call_gemini(messages, system, model)
         return jsonify({'reply': reply})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@app.route('/chat/stream', methods=['POST'])
+def chat_stream():
+    data = request.json
+    messages = data['messages']
+    model = data.get('model', 'gemini-2.5-flash')
+    provider = os.environ.get('AI_PROVIDER', 'gemini')
+    is_admin = session.get('is_admin', False)
+    system = build_system_prompt(is_admin=is_admin)
+    messages = _resolve_greet(messages, is_admin, session.get('guest_name', ''))
+
+    def generate():
+        try:
+            if provider == 'claude':
+                yield from stream_claude(messages, system)
+            else:
+                yield from stream_gemini(messages, system, model)
+        except Exception as e:
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+        yield "data: [DONE]\n\n"
+
+    return Response(
+        stream_with_context(generate()),
+        mimetype='text/event-stream',
+        headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'}
+    )
 
 
 @app.route('/profile')

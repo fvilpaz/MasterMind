@@ -139,6 +139,9 @@
 
   .msg-row.error .bubble { background: #fee2e2; border: 1px solid #fca5a5; color: var(--red); }
 
+  .bubble.streaming::after { content: '▋'; animation: blink 0.7s step-end infinite; color: var(--primary); margin-left: 1px; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
   /* FOOTER */
   footer { background: var(--surface); border-top: 1px solid var(--border); padding: 12px 16px; display: flex; gap: 8px; flex-shrink: 0; }
   textarea { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); padding: 10px 12px; font-size: 14px; resize: none; outline: none; min-height: 42px; max-height: 120px; font-family: inherit; transition: border 0.15s; }
@@ -453,13 +456,62 @@ function showTyping() {
 }
 function removeTyping() { document.getElementById('typing')?.remove(); }
 
-async function callChat(msgList) {
-  const r = await fetch('/chat', {
+async function streamChat(msgList) {
+  const r = await fetch('/chat/stream', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ messages: msgList, model: document.getElementById('model').value })
   });
-  return r.json();
+
+  removeTyping();
+
+  const row = document.createElement('div');
+  row.className = 'msg-row bot';
+  const av = document.createElement('div');
+  av.className = 'avatar bot';
+  av.textContent = '🎓';
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble streaming';
+  row.appendChild(av);
+  row.appendChild(bubble);
+  document.getElementById('messages').appendChild(row);
+  row.scrollIntoView({ behavior: 'smooth' });
+
+  const reader = r.body.getReader();
+  const decoder = new TextDecoder();
+  let fullText = '';
+  let buf = '';
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split('\n');
+      buf = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const payload = line.slice(6).trim();
+        if (payload === '[DONE]') break;
+        try {
+          const parsed = JSON.parse(payload);
+          if (typeof parsed === 'string') {
+            fullText += parsed;
+            bubble.textContent = fullText;
+            row.scrollIntoView({ behavior: 'smooth' });
+          } else if (parsed && parsed.error) {
+            bubble.textContent = `Error: ${parsed.error}`;
+            row.className = 'msg-row error';
+            bubble.classList.remove('streaming');
+            return '';
+          }
+        } catch {}
+      }
+    }
+  } finally {
+    bubble.classList.remove('streaming');
+  }
+  return fullText;
 }
 
 async function send() {
@@ -473,10 +525,8 @@ async function send() {
   addMessage('user', text);
   showTyping();
   try {
-    const data = await callChat(messages);
-    removeTyping();
-    if (data.error) { addMessage('error', `Error: ${data.error}`); }
-    else { messages.push({ role: 'assistant', content: data.reply }); addMessage('bot', data.reply); }
+    const reply = await streamChat(messages);
+    if (reply) messages.push({ role: 'assistant', content: reply });
   } catch (e) { removeTyping(); addMessage('error', `Error de conexión: ${e.message}`); }
   document.getElementById('send').disabled = false;
   input.focus();
@@ -485,11 +535,9 @@ async function send() {
 async function greet() {
   showTyping();
   try {
-    const data = await callChat([{ role: 'user', content: '__greet__' }]);
-    removeTyping();
-    if (!data.error) {
-      messages.push({ role: 'assistant', content: data.reply });
-      addMessage('bot', data.reply);
+    const reply = await streamChat([{ role: 'user', content: '__greet__' }]);
+    if (reply) {
+      messages.push({ role: 'assistant', content: reply });
       const qr = document.getElementById('quick-replies');
       qr.style.display = 'flex';
       pomoReposition();
