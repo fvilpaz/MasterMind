@@ -272,9 +272,81 @@
     #pomo-time { font-size: 11px; }
     .pomo-btns button { font-size: 11px; }
   }
+
+  /* LOGIN */
+  #login-overlay {
+    position: fixed; inset: 0; background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 999;
+  }
+  #login-overlay.hidden { display: none; }
+  .login-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 52px 44px; width: 380px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.14); text-align: center;
+    display: flex; flex-direction: column; gap: 0;
+  }
+  .login-box h2 { font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+  .login-box p  { font-size: 14px; color: var(--muted); margin-bottom: 28px; line-height: 1.5; }
+  .login-box input {
+    width: 100%; padding: 13px 14px; border-radius: var(--radius);
+    border: 1px solid var(--border); background: var(--surface2);
+    color: var(--text); font-size: 14px; outline: none;
+    transition: border 0.15s; font-family: inherit; margin-bottom: 14px;
+  }
+  .login-box input:focus { border-color: var(--primary); }
+  .login-box .btn-primary {
+    width: 100%; padding: 13px; background: var(--primary);
+    color: var(--primary-text); border: none; border-radius: var(--radius);
+    font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.15s;
+    margin-bottom: 16px;
+  }
+  .login-box .btn-primary:hover { background: var(--primary-dk); }
+  .login-box .btn-guest {
+    background: none; border: none; color: var(--muted);
+    font-size: 13px; cursor: pointer; text-decoration: underline;
+    font-family: inherit; padding: 4px 0;
+  }
+  .login-box .btn-guest:hover { color: var(--text); }
+  .login-error { color: var(--red); font-size: 12px; display: none; margin-bottom: 10px; }
 </style>
 </head>
 <body>
+
+<div id="login-overlay" style="flex-direction:column;gap:20px;">
+  <div class="login-box">
+    <div id="step-name">
+      <div style="font-size:52px;line-height:1;margin-bottom:12px;">🧠</div>
+      <h2>MasterMind</h2>
+      <p style="font-size:12px;letter-spacing:0.05em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Aprende · Domina · Repite</p>
+      <hr style="border:none;border-top:1px solid var(--border);margin:16px 0 24px;">
+      <p>¿Cómo te llamas?</p>
+      <input type="text" id="login-name" placeholder="Tu nombre" autocomplete="off" />
+      <button class="btn-primary" id="next-btn">Siguiente →</button>
+    </div>
+    <div id="step-password" style="display:none;flex-direction:column;gap:0;">
+      <div style="font-size:52px;line-height:1;margin-bottom:12px;">🧠</div>
+      <h2>MasterMind</h2>
+      <hr style="border:none;border-top:1px solid var(--border);margin:16px 0 24px;">
+      <p id="welcome-msg" style="margin-bottom:24px;font-size:15px;font-weight:600;color:var(--text);"></p>
+      <div id="step-choice" style="display:flex;flex-direction:column;gap:10px;">
+        <button class="btn-primary" id="choice-pw-btn">🔑 Tengo contraseña</button>
+        <button class="btn-guest" id="guest-btn">Entrar como invitado →</button>
+      </div>
+      <div id="step-pw-input" style="display:none;flex-direction:column;gap:10px;">
+        <input type="password" id="login-password" placeholder="Contraseña" />
+        <span class="login-error" id="login-error">Contraseña incorrecta</span>
+        <button class="btn-primary" id="login-btn">Entrar</button>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:20px;font-size:12px;color:var(--muted);">
+    <span>MasterMind · Nando</span>
+    <a href="https://github.com/fvilpaz" target="_blank" style="color:var(--muted);text-decoration:none;">GitHub</a>
+    <a href="https://linkedin.com/in/fvilpaz" target="_blank" style="color:var(--muted);text-decoration:none;">LinkedIn</a>
+    <a href="https://fvilpaz.github.io/cv/" target="_blank" style="color:var(--muted);text-decoration:none;">CV</a>
+  </div>
+</div>
 
 <nav>
   <div class="nav-brand" id="nav-brand">MasterMind</div>
@@ -284,6 +356,7 @@
     <span class="badge mode" id="b-mode">...</span>
   </div>
   <div class="nav-controls">
+    <button id="logout-btn" title="Salir" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.2);color:var(--primary-text);border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;">⏻</button>
     <select id="model">
       <option value="gemini-2.5-flash">2.5 Flash ⚡</option>
       <option value="gemini-2.5-flash-lite">2.5 Lite 🪶</option>
@@ -318,7 +391,7 @@
 </footer>
 
 <div class="site-footer">
-  <span>MasterMind · fvilpaz</span>
+  <span>MasterMind · Nando</span>
   <div class="site-footer-links">
     <a href="https://github.com/fvilpaz" target="_blank">GitHub</a>
     <a href="https://linkedin.com/in/fvilpaz" target="_blank">LinkedIn</a>
@@ -596,8 +669,71 @@ window.addEventListener('resize', pomoReposition);
 document.getElementById('input').addEventListener('input', pomoReposition);
 pomoReposition();
 
-loadProfile();
-greet();
+// ── LOGIN ─────────────────────────────────────────────
+async function startApp() {
+  document.getElementById('login-overlay').classList.add('hidden');
+  await loadProfile();
+  greet();
+}
+
+function showStep2() {
+  const name = document.getElementById('login-name').value.trim() || 'aprendiz';
+  document.getElementById('step-name').style.display = 'none';
+  const step2 = document.getElementById('step-password');
+  step2.style.display = 'flex';
+  document.getElementById('welcome-msg').textContent = `¡Hola, ${name}! ¿Tienes cuenta?`;
+  document.getElementById('login-password').focus();
+}
+
+document.getElementById('next-btn').addEventListener('click', showStep2);
+document.getElementById('login-name').addEventListener('keydown', e => {
+  if (e.key === 'Enter') showStep2();
+});
+
+document.getElementById('choice-pw-btn').addEventListener('click', () => {
+  document.getElementById('step-choice').style.display = 'none';
+  const pwInput = document.getElementById('step-pw-input');
+  pwInput.style.display = 'flex';
+  document.getElementById('login-password').focus();
+});
+
+document.getElementById('login-btn').addEventListener('click', async () => {
+  const name = document.getElementById('login-name').value.trim();
+  const pw = document.getElementById('login-password').value;
+  const err = document.getElementById('login-error');
+  err.style.display = 'none';
+  const r = await fetch('/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password: pw, name })
+  });
+  if (r.ok) { startApp(); }
+  else { err.style.display = 'block'; }
+});
+
+document.getElementById('login-password').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('login-btn').click();
+});
+
+document.getElementById('guest-btn').addEventListener('click', async () => {
+  await fetch('/logout', { method: 'POST' });
+  const name = document.getElementById('login-name').value.trim();
+  if (name) {
+    await fetch('/guest-name', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name })
+    });
+  }
+  startApp();
+});
+
+document.getElementById('logout-btn').addEventListener('click', async () => {
+  await fetch('/logout', { method: 'POST' });
+  location.reload();
+});
+
+// No auto-start — wait for login choice
 </script>
 </body>
 </html>
