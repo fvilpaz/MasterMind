@@ -20,20 +20,40 @@ def get_last_session_log(current_week):
 
 
 def build_system_prompt():
-    claude_md = (ROOT / 'CLAUDE.md').read_text()
+    claude_md = (ROOT / 'agent/AGENT.md').read_text()
     profile = json.loads((ROOT / 'config/profile.json').read_text())
     local_path = ROOT / 'config/local.json'
     topic_notes = ""
+    transcription = ""
+    default_mm = str(ROOT.parent / 'brain')
     if local_path.exists():
         local = json.loads(local_path.read_text())
-        mm = Path(local.get('mastermind_path', ''))
-        notes_path = mm / f"cs50/week0{profile['current_week']}-c/sources/lecture_notes.md"
+        mm = Path(local.get('mastermind_path', os.environ.get('MASTERMIND_PATH', default_mm)))
+    else:
+        mm = Path(os.environ.get('MASTERMIND_PATH', default_mm))
+    if mm.exists():
+        week_dir = mm / f"cs50/week0{profile['current_week']}-c"
+        notes_path = week_dir / "sources/lecture_notes.md"
+        trans_path = week_dir / "sources/transcripcion_video.md"
+        if trans_path.exists():
+            trans_text = trans_path.read_text()
+            start = trans_text.find("## Source Code")
+            if start == -1:
+                start = 0
+            transcription = f"\n\n## Transcripción del vídeo (fuente principal — sigue este orden exacto)\n{trans_text[start:start+15000]}"
         if notes_path.exists():
-            topic_notes = f"\n\n## Notas del tema actual\n{notes_path.read_text()[:3000]}"
+            topic_notes = f"\n\n## Lecture notes\n{notes_path.read_text()[:3000]}"
     session_log = get_last_session_log(profile['current_week'])
+    has_sessions = bool(session_log)
+    student_status = (
+        "## Estado del estudiante (NUEVO — sin sesiones previas)\n"
+        if not has_sessions else
+        "## Estado del estudiante\n"
+    )
     return (
         f"{claude_md}\n\n"
-        f"## Estado del estudiante\n```json\n{json.dumps(profile, indent=2)}\n```"
+        f"{student_status}```json\n{json.dumps(profile, indent=2)}\n```"
+        f"{transcription}"
         f"{topic_notes}"
         f"{session_log}"
     )
@@ -44,7 +64,7 @@ def call_claude(messages, system):
     client = anthropic.Anthropic(api_key=os.environ['ANTHROPIC_API_KEY'])
     response = client.messages.create(
         model="claude-sonnet-4-6",
-        max_tokens=1024,
+        max_tokens=4096,
         system=system,
         messages=messages
     )
@@ -63,7 +83,7 @@ def call_gemini(messages, system, model_name='gemini-2.5-flash'):
     response = client.models.generate_content(
         model=model_name,
         contents=history + [types.Content(role='user', parts=[types.Part(text=messages[-1]['content'])])],
-        config=types.GenerateContentConfig(system_instruction=system, max_output_tokens=1024)
+        config=types.GenerateContentConfig(system_instruction=system, max_output_tokens=4096)
     )
     return response.text
 
@@ -102,4 +122,5 @@ def profile():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
