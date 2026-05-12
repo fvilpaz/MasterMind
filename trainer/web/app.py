@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, session
 import json, os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -6,7 +6,20 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__, static_folder='.')
+app.secret_key = os.environ.get('SECRET_KEY', 'mastermind-dev-key')
 ROOT = Path(__file__).parent.parent
+
+GUEST_PROFILE = {
+    "student": "invitado",
+    "course": "cs50",
+    "current_week": 1,
+    "current_topic": "",
+    "mode": "explain",
+    "language": "es",
+    "weeks_completed": [],
+    "topics_mastered": {"week1": []},
+    "notes": ""
+}
 
 
 def get_last_session_log(current_week):
@@ -19,9 +32,9 @@ def get_last_session_log(current_week):
     return f"\n\n## Última sesión registrada\n{logs[0].read_text()}"
 
 
-def build_system_prompt():
+def build_system_prompt(is_admin=False):
     claude_md = (ROOT / 'agent/AGENT.md').read_text()
-    profile = json.loads((ROOT / 'config/profile.json').read_text())
+    profile = json.loads((ROOT / 'config/profile.json').read_text()) if is_admin else GUEST_PROFILE
     local_path = ROOT / 'config/local.json'
     topic_notes = ""
     transcription = ""
@@ -43,7 +56,7 @@ def build_system_prompt():
             transcription = f"\n\n## Transcripción del vídeo (fuente principal — sigue este orden exacto)\n{trans_text[start:start+15000]}"
         if notes_path.exists():
             topic_notes = f"\n\n## Lecture notes\n{notes_path.read_text()[:3000]}"
-    session_log = get_last_session_log(profile['current_week'])
+    session_log = get_last_session_log(profile['current_week']) if is_admin else ""
     has_sessions = bool(session_log)
     student_status = (
         "## Estado del estudiante (NUEVO — sin sesiones previas)\n"
@@ -93,11 +106,44 @@ def index():
     return send_from_directory('.', 'index.html')
 
 
-GREET_PROMPT = (
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.json
+    password = data.get('password', '')
+    admin_password = os.environ.get('ADMIN_PASSWORD', '')
+    if password == admin_password:
+        session['is_admin'] = True
+        return jsonify({'ok': True})
+    return jsonify({'ok': False, 'error': 'Contraseña incorrecta'}), 401
+
+
+@app.route('/logout', methods=['POST'])
+def logout():
+    session.clear()
+    return jsonify({'ok': True})
+
+
+@app.route('/guest-name', methods=['POST'])
+def guest_name():
+    name = request.json.get('name', '').strip()
+    if name:
+        session['guest_name'] = name
+    return jsonify({'ok': True})
+
+
+GREET_ADMIN = (
     "Arranca la sesión con energía. Saluda al estudiante por su nombre, "
     "recuérdale exactamente en qué punto quedamos la última sesión (usa el log), "
     "y pregúntale cuánto tiempo tiene hoy: 1 hora (2 pomodoros), hora y media (3 pomodoros) o 2 horas (4 pomodoros). "
     "Sé motivador y directo, estilo entrenador personal. Máximo 3 frases."
+)
+
+GREET_GUEST = (
+    "Da la bienvenida a un nuevo estudiante que acaba de llegar a CS50. "
+    "No uses su nombre — llámale 'aprendiz'. "
+    "Dile que empieza desde cero y que vas a guiarle paso a paso. "
+    "Pregúntale cuánto tiempo tiene hoy: 1 hora (2 pomodoros), hora y media (3 pomodoros) o 2 horas (4 pomodoros). "
+    "Máximo 3 frases, con energía."
 )
 
 @app.route('/chat', methods=['POST'])
@@ -105,10 +151,17 @@ def chat():
     data = request.json
     messages = data['messages']
     model = data.get('model', 'gemini-2.5-flash')
-    provider = os.environ.get('AI_PROVIDER', 'claude')
-    system = build_system_prompt()
+    provider = os.environ.get('AI_PROVIDER', 'gemini')
+    is_admin = session.get('is_admin', False)
+    guest_name = session.get('guest_name', '')
+    system = build_system_prompt(is_admin=is_admin)
     if messages and messages[-1]['content'] == '__greet__':
-        messages[-1]['content'] = GREET_PROMPT
+        if is_admin:
+            messages[-1]['content'] = GREET_ADMIN
+        elif guest_name:
+            messages[-1]['content'] = GREET_GUEST.replace("llámale 'aprendiz'", f"llámale '{guest_name}', que es su nombre real")
+        else:
+            messages[-1]['content'] = GREET_GUEST
     try:
         reply = call_claude(messages, system) if provider == 'claude' else call_gemini(messages, system, model)
         return jsonify({'reply': reply})
@@ -118,7 +171,10 @@ def chat():
 
 @app.route('/profile')
 def profile():
-    return jsonify(json.loads((ROOT / 'config/profile.json').read_text()))
+    is_admin = session.get('is_admin', False)
+    if is_admin:
+        return jsonify(json.loads((ROOT / 'config/profile.json').read_text()))
+    return jsonify(GUEST_PROFILE)
 
 
 if __name__ == '__main__':
