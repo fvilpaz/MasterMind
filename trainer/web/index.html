@@ -108,6 +108,18 @@
   .badge.topic { color: #fde68a; }
   .badge.mode  { color: #a5f3fc; }
   .nav-controls { display: flex; align-items: center; gap: 6px; }
+  #settings-dropdown { display: none; flex-direction: column; gap: 10px; position: absolute; right: 0; top: calc(100% + 8px); background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px; min-width: 200px; z-index: 999; box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
+  #toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--surface); padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; }
+  #toast.show { opacity: 1; }
+  #settings-dropdown.open { display: flex; }
+  .sd-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+  .sd-select { width: 100%; border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 13px; background: var(--surface2); color: var(--text); cursor: pointer; -webkit-appearance: auto; }
+  @media (max-width: 600px) { .sd-select { font-size: 16px; padding: 8px; } .sd-action { padding: 10px 8px; font-size: 14px; } }
+  .sd-section { display: flex; flex-direction: column; gap: 4px; }
+  .sd-divider { border: none; border-top: 1px solid var(--border); margin: 2px 0; }
+  .sd-action { background: transparent; border: none; color: var(--text); font-size: 13px; font-weight: 500; cursor: pointer; text-align: left; padding: 7px 8px; border-radius: 6px; transition: background 0.15s; width: 100%; }
+  .sd-action:hover { background: var(--surface2); }
+  .sd-danger { color: var(--muted); font-weight: 400; }
   .cs-wrap { position: relative; }
   .cs-trigger { background: rgba(255,255,255,0.15); color: var(--primary-text); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 4px 8px; font-size: 11px; cursor: pointer; outline: none; display: flex; align-items: center; gap: 5px; white-space: nowrap; }
   .cs-trigger:hover { background: rgba(255,255,255,0.25); }
@@ -210,12 +222,12 @@
     #messages { padding: 14px 10px; gap: 12px; }
     footer { padding: 10px 10px; }
     .site-footer { justify-content: center; gap: 12px; flex-wrap: wrap; }
+    #settings-dropdown { right: 0; left: auto; min-width: 0; width: calc(100vw - 24px); max-width: 280px; }
   }
 
   /* Móvil portrait (≤600px): tamaños visuales solo en vertical */
   @media (max-width: 600px) and (orientation: portrait) {
     .nav-brand { font-size: 17px; font-weight: 700; }
-    .nav-controls .cs-trigger { font-size: 12px; padding: 5px 8px; }
     .badge { font-size: 12px; padding: 3px 10px; }
     .site-footer { font-size: 13px; padding: 10px 16px; }
   }
@@ -225,6 +237,7 @@
     nav { height: 40px; padding: 0 12px; flex-wrap: nowrap; }
     .nav-badges { display: none; }
     #messages { padding: 10px 12px; }
+    #settings-dropdown { max-height: calc(100vh - 60px); overflow-y: auto; }
   }
 
   /* ── POMODORO ────────────────────────────────────── */
@@ -360,31 +373,34 @@
   </div>
   <div class="nav-controls">
     <div id="settings-menu" style="position:relative">
-      <button id="settings-btn" title="Ajustes" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.2);color:var(--primary-text);border-radius:6px;padding:4px 10px;font-size:13px;cursor:pointer;">▾</button>
-      <div id="settings-dropdown" style="display:none;position:absolute;right:0;top:calc(100% + 6px);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px;min-width:180px;z-index:999;box-shadow:0 4px 16px rgba(0,0,0,0.15);display:none;flex-direction:column;gap:8px;">
-        <label style="font-size:12px;color:var(--muted)">Tema</label>
-        <select id="theme-select" style="width:100%">
-          <option value="harvard">🎓 Harvard</option>
-          <option value="oldschool">📺 Old School</option>
-          <option value="light">☀️ Light</option>
-          <option value="dark">🌙 Dark</option>
-          <option value="mint">🌿 Mint</option>
-          <option value="barbie">🩷 Barbie</option>
-          <option value="dracula">🧛 Dracula</option>
-          <option value="cyberpunk">⚡ Cyberpunk</option>
-        </select>
-        <div id="model-row" style="display:none;flex-direction:column;gap:4px;">
-          <label style="font-size:12px;color:var(--muted)">Modelo</label>
-          <select id="model" style="width:100%">
-            <option value="gemini-2.5-flash">2.5 Flash ⚡</option>
-            <option value="gemini-2.5-flash-lite">2.5 Lite 🪶</option>
-            <option value="gemini-2.5-pro">2.5 Pro 🧠</option>
+      <button id="settings-btn" title="Ajustes" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.2);color:var(--primary-text);border-radius:6px;padding:6px 12px;font-size:13px;cursor:pointer;line-height:1;">⚙ ▾</button>
+      <div id="settings-dropdown">
+        <div class="sd-section">
+          <div class="sd-label">🎨 Tema</div>
+          <select id="theme-select" class="sd-select">
+            <option value="harvard">🎓 Harvard</option>
+            <option value="oldschool">📺 Old School</option>
+            <option value="light">☀️ Light</option>
+            <option value="dark">🌙 Dark</option>
+            <option value="mint">🌿 Mint</option>
+            <option value="barbie">🩷 Barbie</option>
+            <option value="dracula">🧛 Dracula</option>
+            <option value="cyberpunk">⚡ Cyberpunk</option>
+          </select>
+        </div>
+        <div id="model-row" class="sd-section" style="display:none">
+          <div class="sd-label">🤖 Modelo</div>
+          <select id="model" class="sd-select">
+            <option value="gemini-2.5-flash">Flash ⚡</option>
+            <option value="gemini-2.5-flash-lite">Flash Lite 🪶</option>
+            <option value="gemini-2.5-pro">Pro 🧠</option>
             <option value="gemini-3-flash-preview">3 Flash 🔬</option>
             <option value="gemini-3-pro-preview">3 Pro 🚀</option>
           </select>
         </div>
-        <hr style="border:none;border-top:1px solid var(--border);margin:2px 0">
-        <button id="logout-btn" style="background:transparent;border:none;color:var(--muted);font-size:13px;cursor:pointer;text-align:left;padding:2px 0;">⏻ Cerrar sesión</button>
+        <div class="sd-divider"></div>
+        <button id="save-session-btn" class="sd-action">↓ Guardar sesión</button>
+        <button id="logout-btn" class="sd-action sd-danger">→ Cerrar sesión</button>
       </div>
     </div>
   </div>
@@ -657,14 +673,10 @@ function makeCustomSelect(selectEl) {
   return { sync };
 }
 
-makeCustomSelect(document.getElementById('model'));
-const themeCS = makeCustomSelect(document.getElementById('theme-select'));
-
 const themeSelect = document.getElementById('theme-select');
 const savedTheme = localStorage.getItem('trainer-theme') || 'harvard';
 document.documentElement.setAttribute('data-theme', savedTheme);
 themeSelect.value = savedTheme;
-themeCS.sync(savedTheme);
 themeSelect.addEventListener('change', () => {
   document.documentElement.setAttribute('data-theme', themeSelect.value);
   localStorage.setItem('trainer-theme', themeSelect.value);
@@ -831,11 +843,45 @@ const settingsBtn = document.getElementById('settings-btn');
 const settingsDropdown = document.getElementById('settings-dropdown');
 settingsBtn.addEventListener('click', (e) => {
   e.stopPropagation();
-  const open = settingsDropdown.style.display === 'flex';
-  settingsDropdown.style.display = open ? 'none' : 'flex';
+  settingsDropdown.classList.toggle('open');
 });
-document.addEventListener('click', () => { settingsDropdown.style.display = 'none'; });
+document.addEventListener('click', () => settingsDropdown.classList.remove('open'));
 settingsDropdown.addEventListener('click', (e) => e.stopPropagation());
+
+function showToast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = isError ? '#c0392b' : 'var(--text)';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+document.getElementById('save-session-btn').addEventListener('click', async () => {
+  settingsDropdown.classList.remove('open');
+  if (!isAdmin) return;
+  if (messages.length === 0) { showToast('No hay conversación que guardar.', true); return; }
+  const sessionText = messages.map(m => `**${m.role === 'user' ? 'Estudiante' : 'Trainer'}:** ${m.content}`).join('\n\n');
+  const btn = document.getElementById('save-session-btn');
+  btn.textContent = '↻ Guardando...';
+  btn.disabled = true;
+  try {
+    const r = await fetch('/save-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: sessionText })
+    });
+    const data = await r.json();
+    if (data.ok) {
+      showToast('✓ Sesión guardada en GitHub');
+    } else {
+      showToast(`✗ Error: ${data.error || 'desconocido'}`, true);
+    }
+  } catch (e) {
+    showToast(`✗ Error de conexión: ${e.message}`, true);
+  }
+  btn.textContent = '↓ Guardar sesión';
+  btn.disabled = false;
+});
 
 document.getElementById('logout-btn').addEventListener('click', async () => {
   await fetch('/logout', { method: 'POST' });
@@ -844,5 +890,6 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
 
 // No auto-start — wait for login choice
 </script>
+<div id="toast"></div>
 </body>
 </html>
