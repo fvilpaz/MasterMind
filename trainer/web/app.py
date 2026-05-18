@@ -241,6 +241,49 @@ def profile():
     return jsonify(GUEST_PROFILE)
 
 
+@app.route('/save-session', methods=['POST'])
+def save_session():
+    if not session.get('is_admin', False):
+        return jsonify({'error': 'No autorizado'}), 403
+    import urllib.request, base64
+    data = request.json
+    content = data.get('content', '').strip()
+    if not content:
+        return jsonify({'error': 'Contenido vacío'}), 400
+    profile = json.loads((ROOT / 'config/profile.json').read_text())
+    week = profile.get('current_week', 1)
+    date = __import__('datetime').date.today().isoformat()
+    topic = profile.get('current_topic', 'sesion').replace(' ', '_') or 'sesion'
+    filename = f"{date}_{topic}.md"
+    repo_path = f"trainer/week{week}-c/sessions/{filename}"
+    token = os.environ.get('GITHUB_TOKEN', '')
+    repo = 'fvilpaz/MasterMind'
+    api_url = f"https://api.github.com/repos/{repo}/contents/{repo_path}"
+    headers = {
+        'Authorization': f'Bearer {token}',
+        'Content-Type': 'application/json',
+        'Accept': 'application/vnd.github+json'
+    }
+    encoded = base64.b64encode(content.encode()).decode()
+    # Check if file exists to get its SHA (needed for updates)
+    sha = None
+    try:
+        req = urllib.request.Request(api_url, headers=headers)
+        with urllib.request.urlopen(req) as r:
+            sha = json.loads(r.read())['sha']
+    except Exception:
+        pass
+    body = {'message': f'session: {filename}', 'content': encoded}
+    if sha:
+        body['sha'] = sha
+    req = urllib.request.Request(api_url, data=json.dumps(body).encode(), headers=headers, method='PUT')
+    try:
+        with urllib.request.urlopen(req) as r:
+            return jsonify({'ok': True, 'path': repo_path})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
