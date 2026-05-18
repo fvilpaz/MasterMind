@@ -872,12 +872,12 @@ document.getElementById('save-session-btn').addEventListener('click', async () =
     });
     const data = await r.json();
     if (data.ok) {
-      showToast('✓ Sesión guardada en GitHub');
+      showToast('✓ Sesión guardada correctamente');
     } else {
-      showToast(`✗ Error: ${data.error || 'desconocido'}`, true);
+      showToast('✗ No se pudo guardar. Inténtalo de nuevo.', true);
     }
   } catch (e) {
-    showToast(`✗ Error de conexión: ${e.message}`, true);
+    showToast('✗ No se pudo guardar. Inténtalo de nuevo.', true);
   }
   btn.textContent = '↓ Guardar sesión';
   btn.disabled = false;
