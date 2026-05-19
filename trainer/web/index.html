@@ -243,7 +243,7 @@
   /* ── POMODORO ────────────────────────────────────── */
   #pomodoro {
     position: fixed; bottom: 112px; right: 16px;
-    width: 88px; height: 88px;
+    width: 110px; height: 110px;
     background: var(--surface); border-radius: 50%;
     border: 1px solid var(--border);
     box-shadow: 0 2px 14px rgba(0,0,0,0.13);
@@ -255,13 +255,12 @@
   .pomo-arc   { fill: none; stroke: var(--primary); stroke-width: 4; stroke-linecap: round;
                 stroke-dasharray: 213.6; stroke-dashoffset: 0;
                 transition: stroke-dashoffset 0.8s linear; }
-  .pomo-inner { display: flex; flex-direction: column; align-items: center; gap: 1px; z-index: 1; }
-  .pomo-emoji { font-size: 18px; line-height: 1; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15)); }
-  #pomo-time  { font-size: 13px; font-weight: 700; color: var(--primary);
+  .pomo-inner { display: flex; flex-direction: column; align-items: center; gap: 4px; z-index: 1; }
+  #pomo-time  { font-size: 20px; font-weight: 700; color: var(--primary);
                 font-variant-numeric: tabular-nums; letter-spacing: -0.5px; }
-  .pomo-btns  { display: flex; gap: 8px; }
+  .pomo-btns  { display: flex; gap: 14px; }
   .pomo-btns button { background: none; border: none; color: var(--primary);
-                      cursor: pointer; font-size: 13px; padding: 0; line-height: 1; }
+                      cursor: pointer; font-size: 20px; padding: 4px; line-height: 1; }
   .pomo-btns button:hover { opacity: 0.65; }
   #pomodoro.pomo-break .pomo-arc { stroke: var(--green); }
   #pomodoro.pomo-break #pomo-time, #pomodoro.pomo-break .pomo-btns button { color: var(--green); }
@@ -283,10 +282,10 @@
   }
 
   @media (max-width: 600px) {
-    #pomodoro { width: 74px; height: 74px; bottom: 120px; right: 10px; }
-    .pomo-emoji { font-size: 15px; }
-    #pomo-time { font-size: 11px; }
-    .pomo-btns button { font-size: 11px; }
+    #pomodoro { width: 96px; height: 96px; bottom: 120px; right: 10px; }
+    .pomo-emoji { font-size: 19px; }
+    #pomo-time { font-size: 15px; }
+    .pomo-btns button { font-size: 14px; }
   }
 
   /* LOGIN */
@@ -446,7 +445,6 @@
     <circle class="pomo-arc" id="pomo-arc" cx="40" cy="40" r="34"/>
   </svg>
   <div class="pomo-inner">
-    <span id="pomo-emoji" class="pomo-emoji"></span>
     <span id="pomo-time">25:00</span>
     <div class="pomo-btns">
       <button id="pomo-toggle" title="Iniciar / Pausar">▶</button>
@@ -706,11 +704,7 @@ const POMO_EMOJIS = {
   dracula: '🧛', cyberpunk: '⚡'
 };
 
-function pomoSetEmoji() {
-  const theme = document.documentElement.getAttribute('data-theme') || 'harvard';
-  const el = document.getElementById('pomo-emoji');
-  el.textContent = pomoMode === 'break' ? '☕' : (POMO_EMOJIS[theme] || '⏱️');
-}
+function pomoSetEmoji() {}
 
 function pomoBeep() {
   try {
