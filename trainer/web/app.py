@@ -336,9 +336,11 @@ def save_session():
         return jsonify({'error': 'Contenido vacío'}), 400
     profile = get_admin_profile()
     week = profile.get('current_week', 1)
-    date = __import__('datetime').date.today().isoformat()
-    topic = profile.get('current_topic', 'sesion').replace(' ', '_') or 'sesion'
-    filename = f"{date}_{topic}.md"
+    import datetime
+    now = datetime.datetime.now()
+    timestamp = now.strftime('%Y-%m-%d_%H-%M')
+    topic = profile.get('current_topic', 'sesion').replace(' ', '_').replace(',', '') or 'sesion'
+    filename = f"{timestamp}_{topic}.md"
     repo_path = f"trainer/week{week}-c/sessions/{filename}"
     try:
         github_put(repo_path, content, f"session: {filename}")
