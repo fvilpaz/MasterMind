@@ -22,7 +22,35 @@ GUEST_PROFILE = {
 }
 
 
+def github_get(repo_path):
+    import urllib.request, base64
+    token = os.environ.get('GITHUB_TOKEN', '')
+    if not token:
+        return None
+    api_url = f"https://api.github.com/repos/fvilpaz/MasterMind/contents/{repo_path}"
+    headers = {'Authorization': f'Bearer {token}', 'Accept': 'application/vnd.github+json'}
+    try:
+        req = urllib.request.Request(api_url, headers=headers)
+        with urllib.request.urlopen(req) as r:
+            data = json.loads(r.read())
+            if isinstance(data, list):
+                return data
+            return base64.b64decode(data['content']).decode()
+    except Exception:
+        return None
+
+
 def get_last_session_log(current_week):
+    token = os.environ.get('GITHUB_TOKEN', '')
+    if token:
+        entries = github_get(f"trainer/week{current_week}-c/sessions")
+        if entries and isinstance(entries, list):
+            mds = sorted([e for e in entries if e['name'].endswith('.md')], key=lambda x: x['name'], reverse=True)
+            if mds:
+                content = github_get(f"trainer/week{current_week}-c/sessions/{mds[0]['name']}")
+                if content:
+                    return f"\n\n## Última sesión registrada\n{content}"
+        return ""
     sessions_dir = ROOT / f"week{current_week}-c/sessions"
     if not sessions_dir.exists():
         return ""
@@ -32,9 +60,26 @@ def get_last_session_log(current_week):
     return f"\n\n## Última sesión registrada\n{logs[0].read_text()}"
 
 
+def get_admin_profile():
+    token = os.environ.get('GITHUB_TOKEN', '')
+    if token:
+        content = github_get("trainer/config/profile.json")
+        if content:
+            return json.loads(content)
+    return json.loads((ROOT / 'config/profile.json').read_text())
+
+
 def build_system_prompt(is_admin=False):
-    claude_md = (ROOT / 'agent/AGENT.md').read_text()
-    profile = json.loads((ROOT / 'config/profile.json').read_text()) if is_admin else GUEST_PROFILE
+    profile = get_admin_profile() if is_admin else GUEST_PROFILE
+    course = profile.get('course', '').lower()
+    agent_dir = ROOT / 'agent'
+    course_file = None
+    for name in [f"{course.upper()}.md", f"{course.capitalize()}.md", f"{course}.md"]:
+        candidate = agent_dir / name
+        if candidate.exists():
+            course_file = candidate
+            break
+    claude_md = course_file.read_text() if course_file else (agent_dir / 'AGENT.md').read_text()
     local_path = ROOT / 'config/local.json'
     topic_notes = ""
     transcription = ""
@@ -237,7 +282,7 @@ def chat_stream():
 def profile():
     is_admin = session.get('is_admin', False)
     if is_admin:
-        return jsonify(json.loads((ROOT / 'config/profile.json').read_text()))
+        return jsonify(get_admin_profile())
     return jsonify(GUEST_PROFILE)
 
 
