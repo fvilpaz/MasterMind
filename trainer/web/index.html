@@ -398,6 +398,18 @@
             <option value="gemini-3-pro-preview">3 Pro 🚀</option>
           </select>
         </div>
+        <div id="progress-row" class="sd-section" style="display:none">
+          <div class="sd-label">📍 Progreso</div>
+          <input id="profile-topic" type="text" class="sd-select" placeholder="Tema actual" style="margin-bottom:4px">
+          <select id="profile-week" class="sd-select">
+            <option value="1">Week 1</option>
+            <option value="2">Week 2</option>
+            <option value="3">Week 3</option>
+            <option value="4">Week 4</option>
+            <option value="5">Week 5</option>
+          </select>
+          <button id="save-profile-btn" class="sd-action" style="margin-top:4px">↑ Actualizar progreso</button>
+        </div>
         <div class="sd-divider"></div>
         <button id="save-session-btn" class="sd-action">↓ Guardar sesión</button>
         <button id="logout-btn" class="sd-action sd-danger">→ Cerrar sesión</button>
@@ -454,6 +466,10 @@ async function loadProfile() {
     document.getElementById('b-week').textContent = `Week ${p.current_week}`;
     document.getElementById('b-topic').textContent = p.current_topic;
     document.getElementById('b-mode').textContent = p.mode;
+    if (isAdmin) {
+      document.getElementById('profile-topic').value = p.current_topic || '';
+      document.getElementById('profile-week').value = p.current_week || 1;
+    }
   } catch {}
 }
 
@@ -782,6 +798,7 @@ async function startApp() {
   document.getElementById('login-overlay').classList.add('hidden');
   if (isAdmin) {
     document.getElementById('model-row').style.display = 'flex';
+    document.getElementById('progress-row').style.display = 'flex';
   }
   await loadProfile();
   greet();
@@ -880,6 +897,34 @@ document.getElementById('save-session-btn').addEventListener('click', async () =
     showToast('✗ No se pudo guardar. Inténtalo de nuevo.', true);
   }
   btn.textContent = '↓ Guardar sesión';
+  btn.disabled = false;
+});
+
+document.getElementById('save-profile-btn').addEventListener('click', async () => {
+  settingsDropdown.classList.remove('open');
+  const topic = document.getElementById('profile-topic').value.trim();
+  const week = parseInt(document.getElementById('profile-week').value);
+  const btn = document.getElementById('save-profile-btn');
+  btn.textContent = '↻ Guardando...';
+  btn.disabled = true;
+  try {
+    const r = await fetch('/update-profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ current_topic: topic, current_week: week })
+    });
+    const data = await r.json();
+    if (data.ok) {
+      showToast('✓ Progreso actualizado');
+      document.getElementById('b-topic').textContent = topic;
+      document.getElementById('b-week').textContent = `Week ${week}`;
+    } else {
+      showToast('✗ No se pudo actualizar. Inténtalo de nuevo.', true);
+    }
+  } catch {
+    showToast('✗ No se pudo actualizar. Inténtalo de nuevo.', true);
+  }
+  btn.textContent = '↑ Actualizar progreso';
   btn.disabled = false;
 });
 

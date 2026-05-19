@@ -241,11 +241,36 @@ def profile():
     return jsonify(GUEST_PROFILE)
 
 
+def github_put(repo_path, content_str, commit_msg):
+    import urllib.request, base64
+    token = os.environ.get('GITHUB_TOKEN', '')
+    repo = 'fvilpaz/MasterMind'
+    api_url = f"https://api.github.com/repos/{repo}/contents/{repo_path}"
+    headers = {
+        'Authorization': f'Bearer {token}',
+        'Content-Type': 'application/json',
+        'Accept': 'application/vnd.github+json'
+    }
+    encoded = base64.b64encode(content_str.encode()).decode()
+    sha = None
+    try:
+        req = urllib.request.Request(api_url, headers=headers)
+        with urllib.request.urlopen(req) as r:
+            sha = json.loads(r.read())['sha']
+    except Exception:
+        pass
+    body = {'message': commit_msg, 'content': encoded}
+    if sha:
+        body['sha'] = sha
+    req = urllib.request.Request(api_url, data=json.dumps(body).encode(), headers=headers, method='PUT')
+    with urllib.request.urlopen(req) as r:
+        return json.loads(r.read())
+
+
 @app.route('/save-session', methods=['POST'])
 def save_session():
     if not session.get('is_admin', False):
         return jsonify({'error': 'No autorizado'}), 403
-    import urllib.request, base64
     data = request.json
     content = data.get('content', '').strip()
     if not content:
@@ -256,30 +281,28 @@ def save_session():
     topic = profile.get('current_topic', 'sesion').replace(' ', '_') or 'sesion'
     filename = f"{date}_{topic}.md"
     repo_path = f"trainer/week{week}-c/sessions/{filename}"
-    token = os.environ.get('GITHUB_TOKEN', '')
-    repo = 'fvilpaz/MasterMind'
-    api_url = f"https://api.github.com/repos/{repo}/contents/{repo_path}"
-    headers = {
-        'Authorization': f'Bearer {token}',
-        'Content-Type': 'application/json',
-        'Accept': 'application/vnd.github+json'
-    }
-    encoded = base64.b64encode(content.encode()).decode()
-    # Check if file exists to get its SHA (needed for updates)
-    sha = None
     try:
-        req = urllib.request.Request(api_url, headers=headers)
-        with urllib.request.urlopen(req) as r:
-            sha = json.loads(r.read())['sha']
-    except Exception:
-        pass
-    body = {'message': f'session: {filename}', 'content': encoded}
-    if sha:
-        body['sha'] = sha
-    req = urllib.request.Request(api_url, data=json.dumps(body).encode(), headers=headers, method='PUT')
+        github_put(repo_path, content, f"session: {filename}")
+        return jsonify({'ok': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/update-profile', methods=['POST'])
+def update_profile():
+    if not session.get('is_admin', False):
+        return jsonify({'error': 'No autorizado'}), 403
+    data = request.json
+    profile_path = ROOT / 'config/profile.json'
+    profile = json.loads(profile_path.read_text())
+    allowed = {'current_topic', 'current_week', 'mode', 'topics_mastered', 'weeks_completed', 'notes'}
+    for key, value in data.items():
+        if key in allowed:
+            profile[key] = value
+    profile_path.write_text(json.dumps(profile, indent=2, ensure_ascii=False))
     try:
-        with urllib.request.urlopen(req) as r:
-            return jsonify({'ok': True, 'path': repo_path})
+        github_put('trainer/config/profile.json', json.dumps(profile, indent=2, ensure_ascii=False), 'update: profile.json')
+        return jsonify({'ok': True, 'profile': profile})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
