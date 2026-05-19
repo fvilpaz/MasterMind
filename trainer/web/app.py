@@ -172,7 +172,10 @@ def stream_claude(messages, system):
             yield f"data: {json.dumps(text)}\n\n"
 
 
-def stream_gemini(messages, system, model_name='gemini-2.5-flash'):
+BREVITY_REMINDER = "\n\n(Recuerda: máximo 3 frases. Un concepto. Una pregunta. Sin listas ni subtítulos.)"
+
+
+def stream_gemini(messages, system, model_name='gemini-2.5-flash', max_tokens=4096, is_greet=False):
     from google import genai
     from google.genai import types
     client = genai.Client(api_key=os.environ['GEMINI_API_KEY'])
@@ -181,10 +184,11 @@ def stream_gemini(messages, system, model_name='gemini-2.5-flash'):
                       parts=[types.Part(text=m['content'])])
         for m in messages[:-1]
     ]
+    last_content = messages[-1]['content'] if is_greet else messages[-1]['content'] + BREVITY_REMINDER
     for chunk in client.models.generate_content_stream(
         model=model_name,
-        contents=history + [types.Content(role='user', parts=[types.Part(text=messages[-1]['content'])])],
-        config=types.GenerateContentConfig(system_instruction=system, max_output_tokens=4096)
+        contents=history + [types.Content(role='user', parts=[types.Part(text=last_content)])],
+        config=types.GenerateContentConfig(system_instruction=system, max_output_tokens=max_tokens)
     ):
         if chunk.text:
             yield f"data: {json.dumps(chunk.text)}\n\n"
@@ -192,7 +196,9 @@ def stream_gemini(messages, system, model_name='gemini-2.5-flash'):
 
 @app.route('/')
 def index():
-    return send_from_directory('.', 'index.html')
+    resp = send_from_directory('.', 'index.html')
+    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    return resp
 
 
 @app.route('/login', methods=['POST'])
@@ -255,18 +261,26 @@ def chat():
 def chat_stream():
     data = request.json
     messages = data['messages']
-    model = data.get('model', 'gemini-2.5-flash')
-    provider = os.environ.get('AI_PROVIDER', 'gemini')
     is_admin = session.get('is_admin', False)
+    is_greet = messages and messages[-1]['content'] == '__greet__'
     system = build_system_prompt(is_admin=is_admin)
     messages = _resolve_greet(messages, is_admin, session.get('guest_name', ''))
+
+    if not is_admin:
+        model = 'gemini-2.5-flash'
+        max_tokens = 500 if is_greet else 300
+    else:
+        model = data.get('model', 'gemini-2.5-flash')
+        max_tokens = 4096
+
+    provider = os.environ.get('AI_PROVIDER', 'gemini')
 
     def generate():
         try:
             if provider == 'claude':
                 yield from stream_claude(messages, system)
             else:
-                yield from stream_gemini(messages, system, model)
+                yield from stream_gemini(messages, system, model, max_tokens, is_greet=is_greet)
         except Exception as e:
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
         yield "data: [DONE]\n\n"
@@ -320,7 +334,7 @@ def save_session():
     content = data.get('content', '').strip()
     if not content:
         return jsonify({'error': 'Contenido vacío'}), 400
-    profile = json.loads((ROOT / 'config/profile.json').read_text())
+    profile = get_admin_profile()
     week = profile.get('current_week', 1)
     date = __import__('datetime').date.today().isoformat()
     topic = profile.get('current_topic', 'sesion').replace(' ', '_') or 'sesion'
