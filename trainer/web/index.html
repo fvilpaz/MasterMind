@@ -486,20 +486,6 @@ function addMessage(role, text) {
   row.scrollIntoView({ behavior: 'smooth' });
 }
 
-function showGuestLimitMessage() {
-  const row = document.createElement('div');
-  row.className = 'msg-row error';
-  const av = document.createElement('div');
-  av.className = 'avatar bot';
-  av.textContent = '🎓';
-  const bubble = document.createElement('div');
-  bubble.className = 'bubble';
-  bubble.innerHTML = 'Has alcanzado el límite de mensajes como invitado. Escríbeme a <a href="mailto:fvilpaz@gmail.com">fvilpaz@gmail.com</a> para obtener acceso completo.';
-  row.appendChild(av);
-  row.appendChild(bubble);
-  document.getElementById('messages').appendChild(row);
-  row.scrollIntoView({ behavior: 'smooth' });
-}
 
 function showTyping() {
   const row = document.createElement('div');
@@ -569,19 +555,9 @@ async function streamChat(msgList) {
   return fullText;
 }
 
-const GUEST_LIMIT = 3;
 let isAdmin = false;
 
 async function send() {
-  if (!isAdmin) {
-    const count = parseInt(localStorage.getItem('mm_guest_count') || '0');
-    if (count >= GUEST_LIMIT) {
-      showGuestLimitMessage();
-      document.getElementById('send').disabled = true;
-      document.getElementById('input').disabled = true;
-      return;
-    }
-  }
   const input = document.getElementById('input');
   const text = input.value.trim();
   if (!text) return;
@@ -595,18 +571,9 @@ async function send() {
     const reply = await streamChat(messages);
     if (reply) {
       messages.push({ role: 'assistant', content: reply });
-      if (!isAdmin) {
-        const newCount = parseInt(localStorage.getItem('mm_guest_count') || '0') + 1;
-        localStorage.setItem('mm_guest_count', newCount);
-        if (newCount >= GUEST_LIMIT) {
-          showGuestLimitMessage();
-          document.getElementById('send').disabled = true;
-          document.getElementById('input').disabled = true;
-        }
-      }
     }
   } catch (e) { removeTyping(); addMessage('error', `Error de conexión: ${e.message}`); }
-  if (!document.getElementById('send').disabled || isAdmin) document.getElementById('send').disabled = false;
+  document.getElementById('send').disabled = false;
   input.focus();
 }
 
