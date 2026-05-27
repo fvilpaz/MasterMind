@@ -41,7 +41,7 @@ The router reads the student profile (`config/profile.json`), selects the right 
 | 👤 Two-step login | Name → password (admin) or guest mode |
 | ⏱ Pomodoro timer | 25/5 with beep, integrated in the UI |
 | 🎨 8 themes | Harvard, Dracula, Cyberpunk, Barbie and more |
-| 🤖 Dual AI provider | Gemini (default) or Claude, switchable via env var |
+| 🤖 Triple AI provider | Guests → Groq / Llama 3.3 70B (free, unlimited). Admin → Gemini or Claude via env var |
 | 📓 Session logs | Markdown logs auto-read on next session |
 | 📱 Responsive | Mobile-first, works on any screen |
 
