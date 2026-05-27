@@ -101,6 +101,9 @@ def build_system_prompt(is_admin=False):
             transcription = f"\n\n## Transcripción del vídeo (fuente principal — sigue este orden exacto)\n{trans_text[start:start+15000]}"
         if notes_path.exists():
             topic_notes = f"\n\n## Lecture notes\n{notes_path.read_text()[:3000]}"
+    if not is_admin:
+        transcription = ""
+        topic_notes = ""
     session_log = get_last_session_log(profile['current_week']) if is_admin else ""
     has_sessions = bool(session_log)
     student_status = (
@@ -170,6 +173,24 @@ def stream_claude(messages, system):
     ) as stream:
         for text in stream.text_stream:
             yield f"data: {json.dumps(text)}\n\n"
+
+
+def stream_groq(messages, system, model_name='llama-3.3-70b-versatile'):
+    from groq import Groq
+    client = Groq(api_key=os.environ['GROQ_API_KEY'])
+    groq_messages = [{"role": "system", "content": system}] + [
+        {"role": m['role'], "content": m['content']} for m in messages
+    ]
+    stream = client.chat.completions.create(
+        model=model_name,
+        messages=groq_messages,
+        max_tokens=1024,
+        stream=True
+    )
+    for chunk in stream:
+        delta = chunk.choices[0].delta.content
+        if delta:
+            yield f"data: {json.dumps(delta)}\n\n"
 
 
 BREVITY_REMINDER = "\n\n(Recuerda: máximo 3 frases. Un concepto. Una pregunta. Sin listas ni subtítulos.)"
@@ -277,7 +298,9 @@ def chat_stream():
 
     def generate():
         try:
-            if provider == 'claude':
+            if not is_admin:
+                yield from stream_groq(messages, system)
+            elif provider == 'claude':
                 yield from stream_claude(messages, system)
             else:
                 yield from stream_gemini(messages, system, model, max_tokens, is_greet=is_greet)
