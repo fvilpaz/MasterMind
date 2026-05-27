@@ -47,9 +47,20 @@ The router reads the student profile (`config/profile.json`), selects the right 
 
 ---
 
+## AI models
+
+| Mode | Model | Notes |
+|---|---|---|
+| Guest | **Llama 3.3 70B** via [Groq](https://groq.com) | Free, unlimited, open-source. Fast inference. Slightly less capable than frontier models on complex reasoning — perfectly fine for CS50 Week 1. |
+| Admin | **Gemini 2.5 Flash** (default) or **Claude Sonnet** | Full context: transcripts, lecture notes, session logs. Switchable via `AI_PROVIDER` env var. |
+
+> Guest mode uses open-source AI intentionally — it keeps the platform free and unlimited for anyone to try. If you want the full experience with richer explanations and session memory, request admin access.
+
+---
+
 ## Tech stack
 
-- **Backend** — Python · Flask · Gemini API · Claude API (Anthropic)
+- **Backend** — Python · Flask · Gemini API · Claude API (Anthropic) · Groq API
 - **Frontend** — Vanilla JS · CSS custom properties · SSE streaming
 - **Infrastructure** — Google Cloud Run · Docker · Cloudflare · custom domain
 
