@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MasterMind</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -121,10 +122,11 @@
   .sd-action:hover { background: var(--surface2); }
   .sd-danger { color: var(--muted); font-weight: 400; }
   .cs-wrap { position: relative; }
-  .cs-trigger { background: rgba(255,255,255,0.15); color: var(--primary-text); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 4px 8px; font-size: 11px; cursor: pointer; outline: none; display: flex; align-items: center; gap: 5px; white-space: nowrap; }
-  .cs-trigger:hover { background: rgba(255,255,255,0.25); }
+  .cs-trigger { background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 13px; cursor: pointer; outline: none; display: flex; align-items: center; gap: 5px; white-space: nowrap; width: 100%; justify-content: space-between; }
+  .cs-trigger:hover { background: var(--border); }
+  .cs-label { overflow: hidden; text-overflow: ellipsis; }
   .cs-arrow { font-size: 9px; opacity: 0.75; }
-  .cs-list { display: none; position: absolute; top: calc(100% + 4px); right: 0; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); z-index: 200; min-width: 130px; list-style: none; padding: 4px 0; box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+  .cs-list { display: none; position: absolute; top: calc(100% + 4px); right: 0; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; z-index: 200; min-width: 130px; list-style: none; padding: 4px 0; box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
   .cs-wrap.open .cs-list { display: block; }
   .cs-item { padding: 7px 12px; font-size: 12px; color: var(--text); cursor: pointer; white-space: nowrap; }
   .cs-item:hover, .cs-item.cs-active { background: var(--primary); color: var(--primary-text); }
@@ -337,7 +339,7 @@
       <hr style="border:none;border-top:1px solid var(--border);margin:16px 0 24px;">
       <p>¿Cómo te llamas?</p>
       <input type="text" id="login-name" placeholder="Tu nombre" autocomplete="off" />
-      <button class="btn-primary" id="next-btn">Siguiente →</button>
+      <button class="btn-primary" id="next-btn">Siguiente</button>
     </div>
     <div id="step-password" style="display:none;flex-direction:column;gap:0;">
       <div style="font-size:52px;line-height:1;margin-bottom:12px;">🧠</div>
@@ -346,13 +348,21 @@
       <p id="welcome-msg" style="margin-bottom:24px;font-size:15px;font-weight:600;color:var(--text);"></p>
       <div id="step-choice" style="display:flex;flex-direction:column;gap:10px;">
         <button class="btn-primary" id="choice-pw-btn">🔑 Tengo contraseña</button>
-        <button class="btn-guest" id="guest-btn">Entrar como invitado →</button>
+        <button class="btn-guest" id="guest-btn">Entrar como invitado</button>
       </div>
       <div id="step-pw-input" style="display:none;flex-direction:column;gap:10px;">
         <input type="password" id="login-password" placeholder="Contraseña" />
         <span class="login-error" id="login-error">Contraseña incorrecta</span>
         <button class="btn-primary" id="login-btn">Entrar</button>
       </div>
+    </div>
+    <div id="step-course" style="display:none;flex-direction:column;gap:10px;">
+      <div style="font-size:52px;line-height:1;margin-bottom:12px;">🧠</div>
+      <h2>MasterMind</h2>
+      <hr style="border:none;border-top:1px solid var(--border);margin:16px 0 24px;">
+      <p style="margin-bottom:16px;">¿Qué curso quieres entrenar hoy?</p>
+      <select id="course-select" style="padding:12px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:10px;"></select>
+      <button class="btn-primary" id="course-btn">Empezar</button>
     </div>
   </div>
   <div style="display:flex;align-items:center;gap:20px;font-size:12px;color:var(--muted);">
@@ -371,7 +381,7 @@
     <span class="badge mode" id="b-mode">...</span>
   </div>
   <div class="nav-controls">
-    <div id="settings-menu" style="position:relative">
+    <div id="settings-menu" style="position:relative;z-index:1000;">
       <button id="settings-btn" title="Ajustes" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.2);color:var(--primary-text);border-radius:6px;padding:6px 12px;font-size:13px;cursor:pointer;line-height:1;">⚙ ▾</button>
       <div id="settings-dropdown">
         <div class="sd-section">
@@ -388,13 +398,18 @@
           </select>
         </div>
         <div id="model-row" class="sd-section" style="display:none">
-          <div class="sd-label">🤖 Modelo</div>
+          <div class="sd-label" style="display:flex;align-items:center;gap:6px;">
+            <svg width="16" height="16" viewBox="0 0 48 48" style="flex-shrink:0;">
+              <path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"/>
+              <path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"/>
+              <path fill="#FBBC05" d="M11.69 28.18C11.25 26.86 11 25.45 11 24s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24s.85 6.91 2.34 9.88l7.35-5.7z"/>
+              <path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"/>
+            </svg>
+            Modelo (Gemini)
+          </div>
           <select id="model" class="sd-select">
-            <option value="gemini-2.5-flash">Flash ⚡</option>
-            <option value="gemini-2.5-flash-lite">Flash Lite 🪶</option>
-            <option value="gemini-2.5-pro">Pro 🧠</option>
-            <option value="gemini-3-flash-preview">3 Flash 🔬</option>
-            <option value="gemini-3-pro-preview">3 Pro 🚀</option>
+            <option value="gemini-flash-latest" selected>Flash ⚡</option>
+            <option value="gemini-pro-latest">Pro 🧠</option>
           </select>
         </div>
         <div id="progress-row" class="sd-section" style="display:none">
@@ -407,11 +422,20 @@
             <option value="4">Week 4</option>
             <option value="5">Week 5</option>
           </select>
-          <button id="save-profile-btn" class="sd-action" style="margin-top:4px">↑ Actualizar progreso</button>
+          <button id="save-profile-btn" class="sd-action" style="margin-top:4px;display:flex;align-items:center;gap:6px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+            Actualizar progreso
+          </button>
         </div>
         <div class="sd-divider"></div>
-        <button id="save-session-btn" class="sd-action">↓ Guardar sesión</button>
-        <button id="logout-btn" class="sd-action sd-danger">→ Cerrar sesión</button>
+        <button id="save-session-btn" class="sd-action" style="display:flex;align-items:center;gap:6px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+          Guardar sesión
+        </button>
+        <button id="logout-btn" class="sd-action sd-danger" style="display:flex;align-items:center;gap:6px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+          Cerrar sesión
+        </button>
       </div>
     </div>
   </div>
@@ -471,6 +495,19 @@ async function loadProfile() {
   } catch {}
 }
 
+function escapeHtml(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function renderMarkdown(text) {
+  // Mínimo a propósito: negrita, cursiva y código inline. Escapamos HTML primero para no abrir
+  // XSS en el modo invitado (público), que muestra texto de cualquier visitante.
+  let s = escapeHtml(text);
+  s = s.replace(/`([^`]+?)`/g, '<code>$1</code>');
+  s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/(?<!\*)\*([^*]+?)\*(?!\*)/g, '<em>$1</em>');
+  return s;
+}
+
 function addMessage(role, text) {
   const row = document.createElement('div');
   row.className = `msg-row ${role}`;
@@ -479,7 +516,7 @@ function addMessage(role, text) {
   av.textContent = role === 'user' ? '👤' : '🎓';
   const bubble = document.createElement('div');
   bubble.className = 'bubble';
-  bubble.textContent = text;
+  bubble.innerHTML = renderMarkdown(text);
   row.appendChild(av);
   row.appendChild(bubble);
   document.getElementById('messages').appendChild(row);
@@ -538,10 +575,10 @@ async function streamChat(msgList) {
           const parsed = JSON.parse(payload);
           if (typeof parsed === 'string') {
             fullText += parsed;
-            bubble.textContent = fullText;
+            bubble.innerHTML = renderMarkdown(fullText);
             row.scrollIntoView({ behavior: 'smooth' });
           } else if (parsed && parsed.error) {
-            bubble.textContent = `Error: ${parsed.error}`;
+            bubble.innerHTML = renderMarkdown(`Error: ${parsed.error}`);
             row.className = 'msg-row error';
             bubble.classList.remove('streaming');
             return '';
@@ -609,6 +646,15 @@ document.getElementById('input').addEventListener('input', function() {
 });
 
 function makeCustomSelect(selectEl) {
+  // Idempotente: si ya estaba envuelto (ej. course-select, cuyas opciones llegan por fetch
+  // después de un primer envoltorio), lo deshace y lo reconstruye desde cero con las opciones
+  // actuales, en vez de anidar un wrap dentro de otro.
+  if (selectEl.parentNode && selectEl.parentNode.classList.contains('cs-wrap')) {
+    const oldWrap = selectEl.parentNode;
+    oldWrap.parentNode.insertBefore(selectEl, oldWrap);
+    oldWrap.remove();
+    selectEl.style.display = '';
+  }
   const wrap = document.createElement('div');
   wrap.className = 'cs-wrap';
   const trigger = document.createElement('button');
@@ -663,6 +709,9 @@ themeSelect.addEventListener('change', () => {
   localStorage.setItem('trainer-theme', themeSelect.value);
   pomoSetEmoji();
 });
+makeCustomSelect(themeSelect);
+makeCustomSelect(document.getElementById('model'));
+makeCustomSelect(document.getElementById('profile-week'));
 
 // ── POMODORO ──────────────────────────────────────────
 const POMO_EMOJIS = {
@@ -796,8 +845,31 @@ document.getElementById('login-btn').addEventListener('click', async () => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ password: pw, name })
   });
-  if (r.ok) { isAdmin = true; startApp(); }
+  if (r.ok) { isAdmin = true; showCourseStep(); }
   else { err.style.display = 'block'; }
+});
+
+async function showCourseStep() {
+  document.getElementById('step-password').style.display = 'none';
+  const step = document.getElementById('step-course');
+  step.style.display = 'flex';
+  const r = await fetch('/courses');
+  const { courses } = await r.json();
+  const select = document.getElementById('course-select');
+  select.innerHTML = courses.map(c => `<option value="${c}">${c}</option>`).join('');
+  const p = await (await fetch('/profile')).json();
+  if (p.course && courses.includes(p.course)) select.value = p.course;
+  makeCustomSelect(select);
+}
+
+document.getElementById('course-btn').addEventListener('click', async () => {
+  const course = document.getElementById('course-select').value;
+  await fetch('/update-profile', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ course })
+  });
+  startApp();
 });
 
 document.getElementById('login-password').addEventListener('keydown', e => {
@@ -840,7 +912,8 @@ document.getElementById('save-session-btn').addEventListener('click', async () =
   if (messages.length === 0) { showToast('No hay conversación que guardar.', true); return; }
   const sessionText = messages.map(m => `**${m.role === 'user' ? 'Estudiante' : 'Trainer'}:** ${m.content}`).join('\n\n');
   const btn = document.getElementById('save-session-btn');
-  btn.textContent = '↻ Guardando...';
+  const btnOriginal = btn.innerHTML;
+  btn.textContent = 'Guardando...';
   btn.disabled = true;
   try {
     const r = await fetch('/save-session', {
@@ -857,7 +930,7 @@ document.getElementById('save-session-btn').addEventListener('click', async () =
   } catch (e) {
     showToast('✗ No se pudo guardar. Inténtalo de nuevo.', true);
   }
-  btn.textContent = '↓ Guardar sesión';
+  btn.innerHTML = btnOriginal;
   btn.disabled = false;
 });
 
@@ -866,7 +939,8 @@ document.getElementById('save-profile-btn').addEventListener('click', async () =
   const topic = document.getElementById('profile-topic').value.trim();
   const week = parseInt(document.getElementById('profile-week').value);
   const btn = document.getElementById('save-profile-btn');
-  btn.textContent = '↻ Guardando...';
+  const btnOriginal = btn.innerHTML;
+  btn.textContent = 'Guardando...';
   btn.disabled = true;
   try {
     const r = await fetch('/update-profile', {
@@ -885,7 +959,7 @@ document.getElementById('save-profile-btn').addEventListener('click', async () =
   } catch {
     showToast('✗ No se pudo actualizar. Inténtalo de nuevo.', true);
   }
-  btn.textContent = '↑ Actualizar progreso';
+  btn.innerHTML = btnOriginal;
   btn.disabled = false;
 });
 

@@ -40,24 +40,28 @@ def github_get(repo_path):
         return None
 
 
-def get_last_session_log(current_week):
+def get_last_session_log(sessions_folder):
+    """`sessions_folder` identifica el curso/tema (ej. 'week4-c' para CS50,
+    'Moure_java_ex2_VariablesAndConstants' para MoureDev). Todos los logs viven bajo
+    trainer/sessions/<sessions_folder>/, para no ensuciar la raíz de trainer/ con una carpeta por
+    tema."""
     token = os.environ.get('GITHUB_TOKEN', '')
     if token:
-        entries = github_get(f"trainer/week{current_week}-c/sessions")
+        entries = github_get(f"trainer/sessions/{sessions_folder}")
         if entries and isinstance(entries, list):
             mds = sorted([e for e in entries if e['name'].endswith('.md')], key=lambda x: x['name'], reverse=True)
             if mds:
-                content = github_get(f"trainer/week{current_week}-c/sessions/{mds[0]['name']}")
+                content = github_get(f"trainer/sessions/{sessions_folder}/{mds[0]['name']}")
                 if content:
                     return f"\n\n## Última sesión registrada\n{content}"
         return ""
-    sessions_dir = ROOT / f"week{current_week}-c/sessions"
+    sessions_dir = ROOT / "sessions" / sessions_folder
     if not sessions_dir.exists():
         return ""
     logs = sorted(sessions_dir.glob("*.md"), reverse=True)
     if not logs:
         return ""
-    return f"\n\n## Última sesión registrada\n{logs[0].read_text()}"
+    return f"\n\n## Última sesión registrada\n{logs[0].read_text(encoding='utf-8')}"
 
 
 def get_admin_profile():
@@ -66,7 +70,22 @@ def get_admin_profile():
         content = github_get("trainer/config/profile.json")
         if content:
             return json.loads(content)
-    return json.loads((ROOT / 'config/profile.json').read_text())
+    return json.loads((ROOT / 'config/profile.json').read_text(encoding='utf-8'))
+
+
+# Carpeta raíz dentro de brain/ para cada curso, cuando no coincide con el nombre del curso tal cual.
+COURSE_ROOTS = {'cs50': 'cs50', 'mouredev': 'Moure/java'}
+
+
+def _topic_folder(course, profile):
+    """Nombre de la carpeta del tema en curso dentro de la raíz del curso. Si el perfil ya trae
+    'current_folder' explícito, manda eso (es lo que usa MoureDev, con nombres tipo ex2_Tema que no
+    se pueden derivar de un número). Si no, cae al patrón antiguo de CS50 para no romper nada."""
+    if profile.get('current_folder'):
+        return profile['current_folder']
+    if course == 'cs50':
+        return f"week0{profile.get('current_week', 1)}-c"
+    return None
 
 
 def build_system_prompt(is_admin=False):
@@ -79,32 +98,41 @@ def build_system_prompt(is_admin=False):
         if candidate.exists():
             course_file = candidate
             break
-    claude_md = course_file.read_text() if course_file else (agent_dir / 'AGENT.md').read_text()
+    claude_md = course_file.read_text(encoding='utf-8') if course_file else (agent_dir / 'AGENT.md').read_text(encoding='utf-8')
     local_path = ROOT / 'config/local.json'
-    topic_notes = ""
-    transcription = ""
+    sources_text = ""
     default_mm = str(ROOT.parent / 'brain')
     if local_path.exists():
-        local = json.loads(local_path.read_text())
+        local = json.loads(local_path.read_text(encoding='utf-8'))
         mm = Path(local.get('mastermind_path', os.environ.get('MASTERMIND_PATH', default_mm)))
     else:
         mm = Path(os.environ.get('MASTERMIND_PATH', default_mm))
-    if mm.exists():
-        week_dir = mm / f"cs50/week0{profile['current_week']}-c"
-        notes_path = week_dir / "sources/lecture_notes.md"
-        trans_path = week_dir / "sources/transcripcion_video.md"
-        if trans_path.exists():
-            trans_text = trans_path.read_text()
-            start = trans_text.find("## Source Code")
-            if start == -1:
-                start = 0
-            transcription = f"\n\n## Transcripción del vídeo (fuente principal — sigue este orden exacto)\n{trans_text[start:start+15000]}"
-        if notes_path.exists():
-            topic_notes = f"\n\n## Lecture notes\n{notes_path.read_text()[:3000]}"
+    course_root = COURSE_ROOTS.get(course, course)
+    topic_folder = _topic_folder(course, profile)
+    if mm.exists() and topic_folder:
+        sources_dir = mm / course_root / topic_folder / "sources"
+        if sources_dir.exists():
+            parts = []
+            for md_file in sorted(sources_dir.glob("*.md")):
+                text = md_file.read_text(encoding='utf-8')
+                if md_file.name == "transcripcion_video.md":
+                    start = text.find("## Source Code")
+                    text = text[start if start != -1 else 0:][:15000]
+                    label = "Transcripción del vídeo (fuente principal — sigue este orden exacto)"
+                elif md_file.name == "lecture_notes.md":
+                    text = text[:3000]
+                    label = "Lecture notes"
+                else:
+                    label = md_file.stem.replace("_", " ")
+                parts.append(f"\n\n## {label}\n{text}")
+            sources_text = "".join(parts)
     if not is_admin:
-        transcription = ""
-        topic_notes = ""
-    session_log = get_last_session_log(profile['current_week']) if is_admin else ""
+        sources_text = ""
+    session_folder = f"{course_root.replace('/', '_')}_{topic_folder}" if topic_folder else None
+    if course == 'cs50' and topic_folder:
+        # Compatibilidad exacta con el formato de sesiones ya guardadas de CS50 (trainer/week{N}-c/sessions).
+        session_folder = f"week{profile.get('current_week', 1)}-c"
+    session_log = get_last_session_log(session_folder) if is_admin and session_folder else ""
     has_sessions = bool(session_log)
     student_status = (
         "## Estado del estudiante (NUEVO — sin sesiones previas)\n"
@@ -114,8 +142,7 @@ def build_system_prompt(is_admin=False):
     return (
         f"{claude_md}\n\n"
         f"{student_status}```json\n{json.dumps(profile, indent=2)}\n```"
-        f"{transcription}"
-        f"{topic_notes}"
+        f"{sources_text}"
         f"{session_log}"
     )
 
@@ -132,7 +159,7 @@ def call_claude(messages, system):
     return response.content[0].text
 
 
-def call_gemini(messages, system, model_name='gemini-2.5-flash'):
+def call_gemini(messages, system, model_name='gemini-flash-latest'):
     from google import genai
     from google.genai import types
     client = genai.Client(api_key=os.environ['GEMINI_API_KEY'])
@@ -175,7 +202,7 @@ def stream_claude(messages, system):
             yield f"data: {json.dumps(text)}\n\n"
 
 
-def stream_groq(messages, system, model_name='llama-3.3-70b-versatile'):
+def stream_groq(messages, system, model_name='openai/gpt-oss-20b'):
     from groq import Groq
     client = Groq(api_key=os.environ['GROQ_API_KEY'])
     groq_messages = [{"role": "system", "content": system}] + [
@@ -196,7 +223,7 @@ def stream_groq(messages, system, model_name='llama-3.3-70b-versatile'):
 BREVITY_REMINDER = "\n\n(Recuerda: máximo 3 frases. Un concepto. Una pregunta. Sin listas ni subtítulos.)"
 
 
-def stream_gemini(messages, system, model_name='gemini-2.5-flash', max_tokens=4096, is_greet=False):
+def stream_gemini(messages, system, model_name='gemini-flash-latest', max_tokens=4096, is_greet=False):
     from google import genai
     from google.genai import types
     client = genai.Client(api_key=os.environ['GEMINI_API_KEY'])
@@ -266,7 +293,7 @@ GREET_GUEST = (
 def chat():
     data = request.json
     messages = data['messages']
-    model = data.get('model', 'gemini-2.5-flash')
+    model = data.get('model', 'gemini-flash-latest')
     provider = os.environ.get('AI_PROVIDER', 'gemini')
     is_admin = session.get('is_admin', False)
     system = build_system_prompt(is_admin=is_admin)
@@ -288,10 +315,10 @@ def chat_stream():
     messages = _resolve_greet(messages, is_admin, session.get('guest_name', ''))
 
     if not is_admin:
-        model = 'gemini-2.5-flash'
+        model = 'gemini-flash-latest'
         max_tokens = 500 if is_greet else 300
     else:
-        model = data.get('model', 'gemini-2.5-flash')
+        model = data.get('model', 'gemini-flash-latest')
         max_tokens = 4096
 
     provider = os.environ.get('AI_PROVIDER', 'gemini')
@@ -313,6 +340,19 @@ def chat_stream():
         mimetype='text/event-stream',
         headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'}
     )
+
+
+@app.route('/courses')
+def courses():
+    if not session.get('is_admin', False):
+        return jsonify({'courses': ['cs50']})
+    agent_dir = ROOT / 'agent'
+    found = []
+    for f in sorted(agent_dir.glob('*.md')):
+        if f.stem.upper() == 'AGENT':
+            continue
+        found.append(f.stem.lower())
+    return jsonify({'courses': found})
 
 
 @app.route('/profile')
@@ -358,18 +398,24 @@ def save_session():
     if not content:
         return jsonify({'error': 'Contenido vacío'}), 400
     profile = get_admin_profile()
-    week = profile.get('current_week', 1)
+    course = profile.get('course', '').lower()
+    topic_folder = _topic_folder(course, profile)
+    session_folder = f"week{profile.get('current_week', 1)}-c" if course == 'cs50' and topic_folder \
+        else (f"{COURSE_ROOTS.get(course, course).replace('/', '_')}_{topic_folder}" if topic_folder else 'sesiones_sueltas')
     import datetime
     now = datetime.datetime.now()
     timestamp = now.strftime('%Y-%m-%d_%H-%M')
     topic = profile.get('current_topic', 'sesion').replace(' ', '_').replace(',', '') or 'sesion'
     filename = f"{timestamp}_{topic}.md"
-    repo_path = f"trainer/week{week}-c/sessions/{filename}"
-    try:
-        github_put(repo_path, content, f"session: {filename}")
-        return jsonify({'ok': True})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    local_dir = ROOT / "sessions" / session_folder
+    local_dir.mkdir(parents=True, exist_ok=True)
+    (local_dir / filename).write_text(content, encoding="utf-8")
+    if os.environ.get('GITHUB_TOKEN', ''):
+        try:
+            github_put(f"trainer/sessions/{session_folder}/{filename}", content, f"session: {filename}")
+        except Exception as e:
+            print(f"[WARN] No se pudo sincronizar la sesión con GitHub: {e}")
+    return jsonify({'ok': True})
 
 
 @app.route('/update-profile', methods=['POST'])
@@ -378,17 +424,20 @@ def update_profile():
         return jsonify({'error': 'No autorizado'}), 403
     data = request.json
     profile_path = ROOT / 'config/profile.json'
-    profile = json.loads(profile_path.read_text())
-    allowed = {'current_topic', 'current_week', 'mode', 'topics_mastered', 'weeks_completed', 'notes'}
+    profile = json.loads(profile_path.read_text(encoding='utf-8'))
+    allowed = {'course', 'current_topic', 'current_week', 'mode', 'topics_mastered', 'weeks_completed', 'notes'}
     for key, value in data.items():
         if key in allowed:
             profile[key] = value
     profile_path.write_text(json.dumps(profile, indent=2, ensure_ascii=False))
-    try:
-        github_put('trainer/config/profile.json', json.dumps(profile, indent=2, ensure_ascii=False), 'update: profile.json')
-        return jsonify({'ok': True, 'profile': profile})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    if os.environ.get('GITHUB_TOKEN', ''):
+        try:
+            github_put('trainer/config/profile.json', json.dumps(profile, indent=2, ensure_ascii=False), 'update: profile.json')
+        except Exception as e:
+            # El guardado local ya se hizo bien; que falle la sincronización con GitHub (sin
+            # token, o sin red) no debe tumbar la petición entera.
+            print(f"[WARN] No se pudo sincronizar profile.json con GitHub: {e}")
+    return jsonify({'ok': True, 'profile': profile})
 
 
 if __name__ == '__main__':

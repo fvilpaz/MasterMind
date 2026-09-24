@@ -1,13 +1,12 @@
 {
   "student": "Nando",
-  "course": "cs50",
+  "course": "mouredev",
   "current_week": 1,
-  "current_topic": "hello, you",
+  "current_folder": "ex1_HelloWorld",
+  "current_topic": "Hello World",
   "mode": "explain",
   "language": "es",
   "weeks_completed": [],
-  "topics_mastered": {
-    "week1": []
-  },
+  "topics_mastered": {},
   "notes": ""
 }
