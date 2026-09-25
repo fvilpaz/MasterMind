@@ -259,6 +259,11 @@ def app_js():
     return send_from_directory('.', 'app.js')
 
 
+@app.route('/code-editor.js')
+def code_editor_js():
+    return send_from_directory('.', 'code-editor.js', mimetype='application/javascript')
+
+
 # --- PWA ---
 # Mimetypes puestos a mano: en Windows el registro puede mapear .js a text/plain, y el
 # navegador rechaza registrar un service worker que no llegue como JavaScript.

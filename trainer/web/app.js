@@ -504,73 +504,10 @@ if ('serviceWorker' in navigator) {
     .catch(e => console.warn('[PWA] No se pudo registrar el service worker:', e));
 }
 
-// Editor de código (CodeMirror 6)
-let cmEditor = null;
-
-async function initCodeEditor() {
-  if (cmEditor) return;
-  const { EditorView, keymap, lineNumbers, highlightActiveLineGutter, highlightActiveLine } = await import('@codemirror/view');
-  const { EditorState, Compartment } = await import('@codemirror/state');
-  const { defaultKeymap, indentWithTab, history, historyKeymap, indentOnInput, bracketMatching, syntaxHighlighting, defaultHighlightStyle } = await import('codemirror');
-  const { oneDark } = await import('@codemirror/theme-one-dark');
-  const { python } = await import('@codemirror/lang-python');
-  const { javascript } = await import('@codemirror/lang-javascript');
-  const { html } = await import('@codemirror/lang-html');
-  const { css } = await import('@codemirror/lang-css');
-
-  const langCompartment = new Compartment();
-
-  function getLang(name) {
-    if (name === 'python') return python();
-    if (name === 'javascript') return javascript();
-    if (name === 'html') return html();
-    if (name === 'css') return css();
-    return [];
-  }
-
-  const sendOnEnter = keymap.of([{
-    key: 'Enter',
-    run: () => { document.getElementById('code-send').click(); return true; }
-  }]);
-
-  const state = EditorState.create({
-    doc: '',
-    extensions: [
-      history(),
-      lineNumbers(),
-      highlightActiveLineGutter(),
-      highlightActiveLine(),
-      indentOnInput(),
-      bracketMatching(),
-      syntaxHighlighting(defaultHighlightStyle),
-      oneDark,
-      langCompartment.of(getLang('python')),
-      keymap.of([indentWithTab, ...historyKeymap, ...defaultKeymap]),
-      sendOnEnter,
-      EditorView.lineWrapping,
-    ]
-  });
-
-  cmEditor = new EditorView({ state, parent: document.getElementById('code-editor-wrap') });
-
-  document.getElementById('code-lang').addEventListener('change', e => {
-    cmEditor.dispatch({ effects: langCompartment.reconfigure(getLang(e.target.value)) });
-  });
-}
-
-document.getElementById('code-mode-btn').addEventListener('click', async () => {
-  const panel = document.getElementById('code-panel');
-  const footer = document.querySelector('footer');
-  const isOpen = panel.style.display === 'flex';
-  if (isOpen) {
-    panel.style.display = 'none';
-    footer.style.display = 'flex';
-  } else {
-    await initCodeEditor();
-    panel.style.display = 'flex';
-    footer.style.display = 'none';
-    cmEditor.focus();
-  }
+// Editor de código — la lógica real está en code-editor.js (módulo ES)
+// Este archivo expone openCodeEditor() y closeCodeEditor() como globales
+document.getElementById('code-mode-btn').addEventListener('click', () => {
+  if (typeof window.toggleCodeEditor === 'function') window.toggleCodeEditor();
 });
 
 document.getElementById('code-cancel').addEventListener('click', () => {
@@ -580,14 +517,13 @@ document.getElementById('code-cancel').addEventListener('click', () => {
 });
 
 document.getElementById('code-send').addEventListener('click', () => {
-  if (!cmEditor) return;
-  const code = cmEditor.state.doc.toString().trim();
+  if (!window.cmEditor) return;
+  const code = window.cmEditor.state.doc.toString().trim();
   if (!code) return;
   const lang = document.getElementById('code-lang').value === 'text' ? '' : document.getElementById('code-lang').value;
-  const input = document.getElementById('input');
-  input.value = '```' + lang + '\n' + code + '\n```';
+  document.getElementById('input').value = '```' + lang + '\n' + code + '\n```';
   document.getElementById('code-panel').style.display = 'none';
   document.querySelector('footer').style.display = 'flex';
-  cmEditor.dispatch({ changes: { from: 0, to: cmEditor.state.doc.length, insert: '' } });
+  window.cmEditor.dispatch({ changes: { from: 0, to: window.cmEditor.state.doc.length, insert: '' } });
   send();
 });
