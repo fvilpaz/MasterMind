@@ -224,9 +224,17 @@ const themeSelect = document.getElementById('theme-select');
 const savedTheme = localStorage.getItem('trainer-theme') || 'harvard';
 document.documentElement.setAttribute('data-theme', savedTheme);
 themeSelect.value = savedTheme;
+
+function syncThemeColor() {
+  const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
+  document.getElementById('meta-theme-color').setAttribute('content', primary);
+}
+syncThemeColor();
+
 themeSelect.addEventListener('change', () => {
   document.documentElement.setAttribute('data-theme', themeSelect.value);
   localStorage.setItem('trainer-theme', themeSelect.value);
+  syncThemeColor();
   pomoSetEmoji();
 });
 makeCustomSelect(themeSelect);
