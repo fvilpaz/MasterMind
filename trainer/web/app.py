@@ -249,6 +249,16 @@ def index():
     return resp
 
 
+@app.route('/styles.css')
+def styles():
+    return send_from_directory('.', 'styles.css')
+
+
+@app.route('/app.js')
+def app_js():
+    return send_from_directory('.', 'app.js')
+
+
 @app.route('/login', methods=['POST'])
 def login():
     data = request.json

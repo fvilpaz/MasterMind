@@ -14,23 +14,13 @@ está montado `index.html`). Da resaltado de sintaxis por lenguaje, autoindentad
 No es solo estética: ahora mismo Nando no puede escribir código con comodidad desde el tren/móvil,
 que es el caso de uso principal de todo este proyecto.
 
-## 2. Separar `index.html` en `styles.css` + `app.js`
+## 2. ~~Separar `index.html` en `styles.css` + `app.js`~~ — HECHO (2026-09-25)
 
-975 líneas en un único archivo con `<style>` y `<script>` embebidos. Se empezó a hacer hoy
-(extracción mecánica, sin cambiar lógica) pero se paró a medias por falta de tiempo — el archivo
-actual **no se tocó**, sigue funcionando tal cual estaba. Retomar cuando haya calma:
+`index.html` pasa de 975 a 162 líneas. `styles.css` y `app.js` son idénticos a los bloques
+`<style>`/`<script>` originales (comprobado con `diff` contra el commit anterior). `app.py` sirve
+`/styles.css` y `/app.js` con rutas explícitas. Probado a mano por Nando en la web.
 
-- Extraer `<style>` (líneas 9-328 a día de hoy) a `styles.css`.
-- Extraer `<script>` (líneas 481-971) a `app.js`.
-- Añadir en `app.py` dos rutas explícitas (`/styles.css`, `/app.js`) con `send_from_directory`,
-  igual que ya existe para `index.html` — no fiarse de la resolución automática de
-  `static_folder='.'` de Flask sin comprobarla.
-- Checklist manual tras el cambio (sin tests automatizados, no hay framework montado): login
-  admin, login invitado, cambiar tema/modelo/curso, mandar un mensaje, guardar sesión, actualizar
-  progreso, cerrar sesión.
-
-Esto es lo que desbloquea poder usar ESLint/Stylelint de verdad (con todo en un HTML no tiene
-sentido).
+Esto desbloquea poder usar ESLint/Stylelint de verdad (ver punto 3).
 
 ## 3. `pre-commit` con seguridad y lint de Python
 
