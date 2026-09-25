@@ -1,55 +1,56 @@
-import { EditorView, keymap, lineNumbers, highlightActiveLineGutter, highlightActiveLine } from '@codemirror/view';
-import { EditorState, Compartment } from '@codemirror/state';
-import { defaultKeymap, indentWithTab, history, historyKeymap, indentOnInput, bracketMatching, syntaxHighlighting, defaultHighlightStyle } from 'codemirror';
-import { oneDark } from '@codemirror/theme-one-dark';
-import { python } from '@codemirror/lang-python';
-import { javascript } from '@codemirror/lang-javascript';
-import { html } from '@codemirror/lang-html';
-import { css } from '@codemirror/lang-css';
+// CodeMirror 5 — cargado vía CDN en index.html como script clásico
+(function() {
+  const LANG_MODES = {
+    python: 'python',
+    javascript: 'javascript',
+    html: 'htmlmixed',
+    css: 'css',
+    bash: 'shell',
+    text: null
+  };
 
-const langCompartment = new Compartment();
+  const wrap = document.getElementById('code-editor-wrap');
+  const langSelect = document.getElementById('code-lang');
 
-function getLang(name) {
-  if (name === 'python') return python();
-  if (name === 'javascript') return javascript();
-  if (name === 'html') return html();
-  if (name === 'css') return css();
-  return [];
-}
+  window.cmEditor = CodeMirror(wrap, {
+    value: '',
+    mode: 'python',
+    theme: 'dracula',
+    lineNumbers: true,
+    matchBrackets: true,
+    autoCloseBrackets: true,
+    indentUnit: 4,
+    tabSize: 4,
+    indentWithTabs: false,
+    lineWrapping: true,
+    extraKeys: {
+      Tab: cm => cm.execCommand('indentMore'),
+      'Shift-Tab': cm => cm.execCommand('indentLess'),
+      Enter: cm => {
+        // Enter con Shift = nueva línea normal; Enter solo = enviar
+        document.getElementById('code-send').click();
+      },
+      'Shift-Enter': cm => cm.execCommand('newlineAndIndentContinueComment')
+    }
+  });
 
-const state = EditorState.create({
-  doc: '',
-  extensions: [
-    history(),
-    lineNumbers(),
-    highlightActiveLineGutter(),
-    highlightActiveLine(),
-    indentOnInput(),
-    bracketMatching(),
-    syntaxHighlighting(defaultHighlightStyle),
-    oneDark,
-    langCompartment.of(getLang('python')),
-    keymap.of([indentWithTab, ...historyKeymap, ...defaultKeymap]),
-    EditorView.lineWrapping,
-  ]
-});
+  langSelect.addEventListener('change', e => {
+    const mode = LANG_MODES[e.target.value] || 'text/plain';
+    window.cmEditor.setOption('mode', mode);
+  });
 
-window.cmEditor = new EditorView({ state, parent: document.getElementById('code-editor-wrap') });
-
-document.getElementById('code-lang').addEventListener('change', e => {
-  window.cmEditor.dispatch({ effects: langCompartment.reconfigure(getLang(e.target.value)) });
-});
-
-window.toggleCodeEditor = function() {
-  const panel = document.getElementById('code-panel');
-  const footer = document.querySelector('footer');
-  const isOpen = panel.style.display === 'flex';
-  if (isOpen) {
-    panel.style.display = 'none';
-    footer.style.display = 'flex';
-  } else {
-    panel.style.display = 'flex';
-    footer.style.display = 'none';
-    window.cmEditor.focus();
-  }
-};
+  window.toggleCodeEditor = function() {
+    const panel = document.getElementById('code-panel');
+    const footer = document.querySelector('footer');
+    const isOpen = panel.style.display === 'flex';
+    if (isOpen) {
+      panel.style.display = 'none';
+      footer.style.display = 'flex';
+    } else {
+      panel.style.display = 'flex';
+      footer.style.display = 'none';
+      window.cmEditor.refresh();
+      window.cmEditor.focus();
+    }
+  };
+})();

@@ -1,6 +1,6 @@
 // Service worker de MasterMind: solo guarda la interfaz (HTML, CSS, JS, iconos).
 // Todo lo demás (/chat, /profile, /save-session...) va siempre directo al servidor.
-const CACHE = 'mastermind-v2';
+const CACHE = 'mastermind-v3';
 const SHELL = [
   '/styles.css',
   '/app.js',
