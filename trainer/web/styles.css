@@ -97,9 +97,15 @@
   .nav-brand { color: var(--primary-text); font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
   .nav-brand span { background: rgba(255,255,255,0.2); border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 500; }
   .nav-badges { display: flex; gap: 6px; flex: 1; flex-wrap: wrap; }
-  .badge { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.9); }
-  .badge.topic { color: #fde68a; }
-  .badge.mode  { color: #a5f3fc; }
+  /* Chips de la barra: fondo oscuro translúcido + texto blanco, legible sobre cualquier color de barra. Antes eran
+     texto claro (amarillo/cian) sobre un velo blanco: en las barras claras (mint, barbie, light...) no se leían. */
+  .badge { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: rgba(0,0,0,0.32); color: #ffffff; }
+  .badge.topic { font-weight: 600; }
+  .badge.mode  { font-style: italic; }
+  /* Botón de ajustes: en la barra, blanco sobre el color del tema. En la pantalla de inicio flota sobre el fondo
+     de la página, que en los temas claros es casi blanco: ahí toma los colores del tema. */
+  #settings-btn { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); color: var(--primary-text); border-radius: 6px; padding: 6px 12px; font-size: 13px; cursor: pointer; line-height: 1; }
+  body:has(#login-overlay:not(.hidden)) #settings-btn { background: var(--surface); border-color: var(--border); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,0.12); }
   .nav-controls { display: flex; align-items: center; gap: 6px; }
   #settings-dropdown { display: none; flex-direction: column; gap: 10px; position: absolute; right: 0; top: calc(100% + 8px); background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px; min-width: 200px; z-index: 999; box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
   #toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--surface); padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; }
