@@ -439,7 +439,7 @@ def update_profile():
     for key, value in data.items():
         if key in allowed:
             profile[key] = value
-    profile_path.write_text(json.dumps(profile, indent=2, ensure_ascii=False))
+    profile_path.write_text(json.dumps(profile, indent=2, ensure_ascii=False), encoding='utf-8')
     if os.environ.get('GITHUB_TOKEN', ''):
         try:
             github_put('trainer/config/profile.json', json.dumps(profile, indent=2, ensure_ascii=False), 'update: profile.json')
