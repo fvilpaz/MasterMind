@@ -2,7 +2,6 @@
 // Todo lo demás (/chat, /profile, /save-session...) va siempre directo al servidor.
 const CACHE = 'mastermind-v1';
 const SHELL = [
-  '/',
   '/styles.css',
   '/app.js',
   '/manifest.json',
