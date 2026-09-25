@@ -4,7 +4,7 @@
 
 > *Aprende · Domina · Repite*
 
-Live demo → **[fv-mastermind.com](https://fv-mastermind.com)**
+Live → **[fv-mastermind.com](https://fv-mastermind.com)**
 
 ---
 
@@ -12,7 +12,7 @@ Live demo → **[fv-mastermind.com](https://fv-mastermind.com)**
 
 MasterMind is a personal AI tutor that adapts to any learning path. Instead of a generic chatbot, it uses a **modular agent architecture** where each subject has its own specialised agent with its own teaching strategy, progression rules, and source material.
 
-I built it for my own learning — currently running CS50 (Harvard), MoureDev, Google paths, and 42 material — but the system is designed to scale to any content or student.
+Built for personal use — currently running CS50 (Harvard) and MoureDev — but the system scales to any course or student.
 
 ---
 
@@ -22,13 +22,11 @@ I built it for my own learning — currently running CS50 (Harvard), MoureDev, G
 AGENT.md  (router)
     │
     ├── CS50.md       ← enforces video → notes → exercises → problem set
-    ├── Mouredev.md   ← in progress
+    ├── Mouredev.md   ← Brais García method + katas + code reading
     └── YourCourse.md ← add your own
 ```
 
-The router reads the student profile (`config/profile.json`), selects the right agent, and injects the relevant source material into the system prompt — transcriptions, lecture notes, and session logs.
-
-**Mandatory progression** — the agent doesn't ask what you want to study. It knows where you left off and picks up from there.
+The router reads the student profile (`config/profile.json`), selects the right agent, and injects the relevant source material into the system prompt. **Mandatory progression** — the agent knows where you left off and picks up from there.
 
 ---
 
@@ -36,14 +34,14 @@ The router reads the student profile (`config/profile.json`), selects the right 
 
 | Feature | Details |
 |---|---|
-| 🔀 Streaming responses | Token-by-token via SSE — no waiting, no blank screen |
+| 🔀 Streaming responses | Token-by-token via SSE |
 | 🎓 Multi-course agents | Each subject has its own teaching logic |
 | 👤 Two-step login | Name → password (admin) or guest mode |
 | ⏱ Pomodoro timer | 25/5 with beep, integrated in the UI |
 | 🎨 8 themes | Harvard, Dracula, Cyberpunk, Barbie and more |
-| 🤖 Triple AI provider | Guests → Groq / Llama 3.3 70B (free, unlimited). Admin → Gemini or Claude via env var |
+| 🤖 Triple AI provider | Guests → Groq (free, unlimited). Admin → Gemini or Claude |
 | 📓 Session logs | Markdown logs auto-read on next session |
-| 📱 Responsive | Mobile-first, works on any screen |
+| 📱 PWA | Installable on Android/iOS, works offline for the shell |
 
 ---
 
@@ -51,18 +49,16 @@ The router reads the student profile (`config/profile.json`), selects the right 
 
 | Mode | Model | Notes |
 |---|---|---|
-| Guest | **Llama 3.3 70B** via [Groq](https://groq.com) | Free, unlimited, open-source. Fast inference. Slightly less capable than frontier models on complex reasoning — perfectly fine for CS50 Week 1. |
+| Guest | **Qwen 3.8 27B** via [Groq](https://groq.com) | Free, unlimited, fast. Good enough for most learning tasks. |
 | Admin | **Gemini 2.5 Flash** (default) or **Claude Sonnet** | Full context: transcripts, lecture notes, session logs. Switchable via `AI_PROVIDER` env var. |
-
-> Guest mode uses open-source AI intentionally — it keeps the platform free and unlimited for anyone to try. If you want the full experience with richer explanations and session memory, request admin access.
 
 ---
 
 ## Tech stack
 
-- **Backend** — Python · Flask · Gemini API · Claude API (Anthropic) · Groq API
+- **Backend** — Python · Flask · Gemini API · Claude API · Groq API
 - **Frontend** — Vanilla JS · CSS custom properties · SSE streaming
-- **Infrastructure** — Google Cloud Run · Docker · Cloudflare · custom domain
+- **Infrastructure** — Google Cloud Run · Docker · GitHub Actions (auto-deploy) · Cloudflare · custom domain
 
 ---
 
@@ -74,12 +70,16 @@ MasterMind/
 │   ├── agent/
 │   │   ├── AGENT.md        ← router: reads profile, selects course agent
 │   │   ├── CS50.md         ← CS50 teaching strategy + progression rules
-│   │   └── Mouredev.md     ← (in progress)
+│   │   └── Mouredev.md     ← MoureDev teaching strategy
 │   ├── config/
 │   │   └── profile.json    ← student state: course, week, topic, progress
 │   └── web/
 │       ├── app.py          ← Flask server + streaming endpoints
-│       └── index.html      ← UI
+│       ├── app.js          ← frontend logic
+│       ├── styles.css      ← themes + layout
+│       ├── index.html      ← shell (162 lines)
+│       ├── manifest.json   ← PWA manifest
+│       └── sw.js           ← service worker
 ├── brain/                  ← Obsidian vault with source material (local only)
 └── Dockerfile
 ```
@@ -92,8 +92,6 @@ MasterMind/
 2. Add the entry in `trainer/agent/AGENT.md` routing table
 3. Set `"course": "yourcourse"` in `config/profile.json`
 
-That's it. The system picks it up automatically.
-
 ---
 
 ## Running locally
@@ -103,10 +101,18 @@ git clone https://github.com/fvilpaz/MasterMind
 cd MasterMind/trainer/web
 python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
+```
 
-# Create .env with your keys
-cp .env.example .env
+Create a `.env` file in `trainer/web/` with:
+```
+ADMIN_PASSWORD=yourpassword
+GEMINI_API_KEY=...       # for admin Gemini mode
+ANTHROPIC_API_KEY=...    # for admin Claude mode
+GROQ_API_KEY=...         # for guest mode
+AI_PROVIDER=gemini       # or: claude
+```
 
+```bash
 python app.py
 # → http://localhost:5000
 ```
@@ -115,15 +121,6 @@ python app.py
 
 ## Deployment
 
-Deployed on **Google Cloud Run** from the repo root (so the `brain/` vault is included in the container). Custom domain via **Cloudflare** DNS → Cloud Run managed SSL.
-
-```bash
-gcloud run deploy mastermind \
-  --source . \
-  --region europe-west1 \
-  --allow-unauthenticated
-```
-
----
+Every push to `main` triggers an automatic deploy to Cloud Run via GitHub Actions.
 
 Built by [Fernando Vilas Paz](https://fvilpaz.github.io/cv/) · [fv-mastermind.com](https://fv-mastermind.com)
