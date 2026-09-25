@@ -22,4 +22,4 @@ jobs:
         with:
           service: mastermind-trainer
           region: europe-west1
-          source: ./trainer/web
+          source: .

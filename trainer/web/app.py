@@ -202,7 +202,7 @@ def stream_claude(messages, system):
             yield f"data: {json.dumps(text)}\n\n"
 
 
-def stream_groq(messages, system, model_name='openai/gpt-oss-20b'):
+def stream_groq(messages, system, model_name='qwen/qwen3.8-27b'):
     from groq import Groq
     client = Groq(api_key=os.environ['GROQ_API_KEY'])
     groq_messages = [{"role": "system", "content": system}] + [
