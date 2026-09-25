@@ -46,7 +46,24 @@ haría falta anidar el perfil por curso (`profile.mouredev.current_folder`, `pro
 - Confirmar que `GROQ_API_KEY` está bien puesta en las variables de entorno de Cloud Run (el modo
   invitado depende de ella; en local no está configurada, así que no se pudo probar del todo aquí).
 
-## Hecho hoy (para no repetir)
+## 7. PWA instalable — HECHO en local (2026-09-25), falta probar en el móvil
+
+- `manifest.json`, `sw.js` e iconos en `trainer/web/` (iconos generados del emoji 🧠 sobre `#0f172a`).
+- El service worker solo cachea la interfaz (`/`, css, js, manifest, iconos) con red primero; las
+  llamadas al servidor (`/chat`, `/profile`, `/save-session`...) nunca pasan por la caché.
+- Para forzar que los móviles recojan una versión nueva del SW: subir `CACHE = 'mastermind-vN'`.
+- Pendiente: desplegar en Cloud Run (manual) e instalar desde Chrome del móvil.
+- Opcional más adelante: **TWA** (Bubblewrap → APK para Play Store + `/.well-known/assetlinks.json`).
+  Solo si se quiere en la tienda; para uso propio la PWA basta.
+
+## Hecho el 2026-09-25
+
+- Separación de `index.html` en `styles.css` + `app.js` (punto 2).
+- `profile.json` se guardaba en cp1252 en Windows → rompía con acentos. Ahora UTF-8.
+- Los botones "Guardar sesión" y "Actualizar progreso" se quedan separados (decisión de Nando):
+  sesión = la conversación a `sessions/`; progreso = tema/semana en `profile.json`.
+
+## Hecho el 2026-09-24 (para no repetir)
 
 - Selector de curso al loguearse (CS50/MoureDev), leyendo `agent/*.md` reales.
 - `Mouredev.md` completo: método Brais + Malan + katas + lectura de código ajeno + escalada

@@ -489,3 +489,9 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
 });
 
 // No auto-start — wait for login choice
+
+// PWA: registra el service worker (permite instalar MasterMind como app)
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js')
+    .catch(e => console.warn('[PWA] No se pudo registrar el service worker:', e));
+}

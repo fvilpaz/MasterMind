@@ -259,6 +259,28 @@ def app_js():
     return send_from_directory('.', 'app.js')
 
 
+# --- PWA ---
+# Mimetypes puestos a mano: en Windows el registro puede mapear .js a text/plain, y el
+# navegador rechaza registrar un service worker que no llegue como JavaScript.
+
+@app.route('/manifest.json')
+def manifest():
+    return send_from_directory('.', 'manifest.json', mimetype='application/manifest+json')
+
+
+@app.route('/sw.js')
+def service_worker():
+    resp = send_from_directory('.', 'sw.js', mimetype='application/javascript')
+    # Que el navegador compruebe siempre si hay una versión nueva del service worker
+    resp.headers['Cache-Control'] = 'no-cache'
+    return resp
+
+
+@app.route('/icons/<path:filename>')
+def icons(filename):
+    return send_from_directory('icons', filename)
+
+
 @app.route('/login', methods=['POST'])
 def login():
     data = request.json
