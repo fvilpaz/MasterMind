@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, send_from_directory, session, Response, stream_with_context
-import json, os
+import hashlib, json, os
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -249,19 +249,27 @@ def index():
     return resp
 
 
+# La interfaz se sirve con 'no-cache': el navegador puede guardarla, pero pregunta SIEMPRE si ha cambiado (si no,
+# el servidor contesta 304 y no se descarga nada). Sin esto, el móvil decidía por su cuenta cuánto tiempo usar el
+# CSS/JS viejo tras un despliegue.
+def _sin_cache(resp):
+    resp.headers['Cache-Control'] = 'no-cache'
+    return resp
+
+
 @app.route('/styles.css')
 def styles():
-    return send_from_directory('.', 'styles.css')
+    return _sin_cache(send_from_directory('.', 'styles.css'))
 
 
 @app.route('/app.js')
 def app_js():
-    return send_from_directory('.', 'app.js')
+    return _sin_cache(send_from_directory('.', 'app.js'))
 
 
 @app.route('/code-editor.js')
 def code_editor_js():
-    return send_from_directory('.', 'code-editor.js', mimetype='application/javascript')
+    return _sin_cache(send_from_directory('.', 'code-editor.js', mimetype='application/javascript'))
 
 
 # --- PWA ---
@@ -270,12 +278,30 @@ def code_editor_js():
 
 @app.route('/manifest.json')
 def manifest():
-    return send_from_directory('.', 'manifest.json', mimetype='application/manifest+json')
+    return _sin_cache(send_from_directory('.', 'manifest.json', mimetype='application/manifest+json'))
+
+
+# Archivos cuyo contenido decide la versión de la caché del service worker
+_ARCHIVOS_INTERFAZ = ('index.html', 'styles.css', 'app.js', 'code-editor.js', 'manifest.json', 'sw.js')
+
+
+def _version_interfaz():
+    """Huella del contenido de la interfaz: cambia sola con cualquier cambio en HTML, CSS o JS. Así ya no hay que
+    subir a mano 'mastermind-v3' -> 'v4' en cada despliegue (y si se olvidaba, el móvil seguía con lo viejo)."""
+    h = hashlib.sha1()
+    for nombre in _ARCHIVOS_INTERFAZ:
+        ruta = os.path.join(app.root_path, nombre)
+        if os.path.exists(ruta):
+            with open(ruta, 'rb') as f:
+                h.update(f.read())
+    return h.hexdigest()[:12]
 
 
 @app.route('/sw.js')
 def service_worker():
-    resp = send_from_directory('.', 'sw.js', mimetype='application/javascript')
+    with open(os.path.join(app.root_path, 'sw.js'), encoding='utf-8') as f:
+        codigo = f.read().replace('__VERSION__', _version_interfaz())
+    resp = Response(codigo, mimetype='application/javascript')
     # Que el navegador compruebe siempre si hay una versión nueva del service worker
     resp.headers['Cache-Control'] = 'no-cache'
     return resp

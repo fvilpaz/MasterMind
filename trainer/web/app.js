@@ -501,7 +501,15 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
 // PWA: registra el service worker (permite instalar MasterMind como app)
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js')
+    .then(reg => reg.update())   // mira si hay versión nueva cada vez que se abre, también en la app instalada
     .catch(e => console.warn('[PWA] No se pudo registrar el service worker:', e));
+  // Versión nueva desplegada: se recarga sola, salvo en mitad de una conversación (se perdería el chat, que vive en
+  // memoria); en ese caso la versión nueva sale la próxima vez que se abra.
+  navigator.serviceWorker.addEventListener('message', e => {
+    if (e.data?.type !== 'SW_UPDATED') return;
+    if (messages.length === 0) window.location.reload();
+    else console.info('[PWA] Hay una versión nueva: se cargará la próxima vez que abras MasterMind');
+  });
 }
 
 // Editor de código — la lógica real está en code-editor.js (módulo ES)
