@@ -518,12 +518,12 @@ document.getElementById('code-cancel').addEventListener('click', () => {
 
 document.getElementById('code-send').addEventListener('click', () => {
   if (!window.cmEditor) return;
-  const code = window.cmEditor.state.doc.toString().trim();
+  const code = window.cmEditor.getValue().trim();
   if (!code) return;
   const lang = document.getElementById('code-lang').value === 'text' ? '' : document.getElementById('code-lang').value;
   document.getElementById('input').value = '```' + lang + '\n' + code + '\n```';
   document.getElementById('code-panel').style.display = 'none';
   document.querySelector('footer').style.display = 'flex';
-  window.cmEditor.dispatch({ changes: { from: 0, to: window.cmEditor.state.doc.length, insert: '' } });
+  window.cmEditor.setValue('');
   send();
 });

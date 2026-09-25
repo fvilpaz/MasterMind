@@ -26,11 +26,6 @@
     extraKeys: {
       Tab: cm => cm.execCommand('indentMore'),
       'Shift-Tab': cm => cm.execCommand('indentLess'),
-      Enter: cm => {
-        // Enter con Shift = nueva línea normal; Enter solo = enviar
-        document.getElementById('code-send').click();
-      },
-      'Shift-Enter': cm => cm.execCommand('newlineAndIndentContinueComment')
     }
   });
 
