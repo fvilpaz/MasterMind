@@ -62,6 +62,11 @@
     <span class="badge mode" id="b-mode">...</span>
   </div>
   <div class="nav-controls">
+    <div id="pomodoro" title="Pomodoro">
+      <span id="pomo-time">25:00</span>
+      <button id="pomo-toggle" title="Iniciar / Pausar">▶</button>
+      <button id="pomo-reset"  title="Reiniciar">↺</button>
+    </div>
     <div id="settings-menu" style="position:relative;z-index:1000;">
       <button id="settings-btn" title="Ajustes">⚙ ▾</button>
       <div id="settings-dropdown">
@@ -121,6 +126,7 @@
     </div>
   </div>
 </nav>
+<div id="pomo-progress"><div id="pomo-bar"></div></div>
 
 <div id="messages"></div>
 
@@ -164,19 +170,6 @@
   </div>
 </div>
 
-<div id="pomodoro">
-  <svg class="pomo-ring" viewBox="0 0 80 80">
-    <circle class="pomo-track" cx="40" cy="40" r="34"/>
-    <circle class="pomo-arc" id="pomo-arc" cx="40" cy="40" r="34"/>
-  </svg>
-  <div class="pomo-inner">
-    <span id="pomo-time">25:00</span>
-    <div class="pomo-btns">
-      <button id="pomo-toggle" title="Iniciar / Pausar">▶</button>
-      <button id="pomo-reset"  title="Reiniciar">↺</button>
-    </div>
-  </div>
-</div>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">

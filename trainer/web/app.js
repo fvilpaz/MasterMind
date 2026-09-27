@@ -142,7 +142,6 @@ async function greet() {
       messages.push({ role: 'assistant', content: reply });
       const qr = document.getElementById('quick-replies');
       qr.style.display = 'flex';
-      pomoReposition();
     }
   } catch {}
 }
@@ -150,7 +149,6 @@ async function greet() {
 document.querySelectorAll('.qr-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.getElementById('quick-replies').style.display = 'none';
-    pomoReposition();
     document.getElementById('input').value = btn.dataset.msg;
     send();
   });
@@ -267,7 +265,6 @@ function pomoBeep() {
 
 const POMO_WORK  = 25 * 60;
 const POMO_BREAK =  5 * 60;
-const CIRC = 213.6;
 let pomoMode      = 'work';
 let pomoRemaining = POMO_WORK;
 let pomoRunning   = false;
@@ -279,10 +276,12 @@ function pomoRender() {
   const mins  = String(Math.floor(pomoRemaining / 60)).padStart(2, '0');
   const secs  = String(pomoRemaining % 60).padStart(2, '0');
   document.getElementById('pomo-time').textContent = `${mins}:${secs}`;
-  document.getElementById('pomo-arc').style.strokeDashoffset = CIRC * (1 - pomoRemaining / total);
-  const w = document.getElementById('pomodoro');
-  w.classList.toggle('pomo-break', pomoMode === 'break');
-  w.classList.toggle('pomo-done',  pomoRemaining === 0);
+  // La línea bajo la barra se va llenando con el tiempo que ha pasado (el círculo antiguo se vaciaba).
+  document.getElementById('pomo-bar').style.width = `${(1 - pomoRemaining / total) * 100}%`;
+  for (const el of [document.getElementById('pomodoro'), document.getElementById('pomo-progress')]) {
+    el.classList.toggle('pomo-break', pomoMode === 'break');
+    el.classList.toggle('pomo-done',  pomoRemaining === 0);
+  }
 }
 
 document.getElementById('pomo-toggle').addEventListener('click', () => {
@@ -321,15 +320,6 @@ document.getElementById('pomo-reset').addEventListener('click', () => {
 });
 
 pomoRender();
-
-function pomoReposition() {
-  const fh = document.querySelector('footer').offsetHeight +
-             document.querySelector('.site-footer').offsetHeight;
-  document.getElementById('pomodoro').style.bottom = (fh + 12) + 'px';
-}
-window.addEventListener('resize', pomoReposition);
-document.getElementById('input').addEventListener('input', pomoReposition);
-pomoReposition();
 
 // ── LOGIN ─────────────────────────────────────────────
 async function startApp() {

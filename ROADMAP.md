@@ -144,7 +144,14 @@ perfil por defecto (`app.py:18`) que hoy nadie usa: puede ser el punto de partid
 solo), pero la interfaz sigue en castellano. Hace falta para **enseñar la app a alguien de habla
 inglesa** sin que tenga que pedir nada.
 
-## 13. Pomodoro: que no tape el chat en móvil/tablet (apuntado 2026-09-27)
+## ~~13. Pomodoro: que no tape el chat en móvil/tablet~~ — HECHO (2026-09-27)
+
+**Hecho:** el círculo flotante pasa a ser una **pastilla en la barra de arriba** (`25:00 ▶ ↺`, junto a
+⚙) y una **línea de progreso** fina bajo la barra, en móvil y en escritorio. Ya no flota: no tapa
+mensajes ni la caja de escribir. `pomoReposition()` eliminada (ya no hace falta). Se conservan
+verde en descanso y rojo + latido al terminar. Probado en 390 px y escritorio con el checklist de
+comportamiento (▶, ⏸, ↺, fin → rojo, ▶ → descanso verde). La línea se **llena** (el círculo se vaciaba).
+*Lo que había apuntado antes:*
 
 Hoy el pomodoro es un círculo **flotante** (`#pomodoro`, `position: fixed`, abajo a la derecha;
 `styles.css:244`, y en móvil `:285` con 96 px). `pomoReposition()` (`app.js:325`) lo sube por encima

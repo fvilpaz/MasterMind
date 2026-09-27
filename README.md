@@ -38,7 +38,7 @@ The router reads the student profile (`config/profile.json`), selects the right 
 | 🎓 Multi-course agents | Each subject has its own teaching logic |
 | 👤 Two-step login | Name → password (admin) or guest mode |
 | 🗂 Course picker | Admin gets a varied greeting ("¿A qué le atacamos hoy?") and one coloured card per course; the last one used is tagged |
-| ⏱ Pomodoro timer | 25/5 with beep, integrated in the UI |
+| ⏱ Pomodoro timer | 25/5 with beep, as a compact counter in the top bar (green on break, red + pulse when time is up) with a thin progress line — never covers the chat |
 | 🎨 8 themes | Harvard, Dracula, Cyberpunk, Barbie and more |
 | 🤖 Triple AI provider | Guests → Groq (free, unlimited). Admin → Gemini or Claude |
 | 📓 Session logs | Markdown logs auto-read on next session |
