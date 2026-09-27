@@ -219,6 +219,21 @@ franja entre el chat y el footer (flex), para que no tape nada. En escritorio pu
 Ojo al hacerlo: `pomoReposition()` fija `style.bottom` en línea y ganaría al CSS; habrá que
 desactivarlo (o que no haga nada) en ese modo. Probar en móvil vertical, horizontal y tablet.
 
+## 14. Invitados en un mundo aparte (`vguest`) → varios usuarios (apuntado 2026-09-27)
+
+**Idea de Nando:** los invitados deberían vivir en su propio espacio (p. ej. `vguest/` o `users/guest/`),
+con su perfil, progreso y sesiones, igual que Nando tiene el suyo. Hoy ya están bastante aislados (no
+guardan nada: perfil fijo `GUEST_PROFILE` en el código, sin material, sin progreso, sin sesiones — todo eso
+exige admin), pero no tienen "mundo" propio. Es el primer paso hacia **varios usuarios**
+(`users/<nombre>/profile.json` + `progress/<curso>.json`), cada uno en lo suyo.
+
+## 15. CS50: faltan materiales de casi todas las semanas (visto 2026-09-27)
+
+Solo `week01-c` (3 archivos) y `week04-memory` (2) tienen algo en `sources/`; las semanas 2, 3 y 5–10
+están **vacías**: al llegar ahí, el tutor no tendrá material de apoyo (antes ni se notaba, porque la app
+buscaba `week0N-c` y nunca encontraba nada desde la semana 2). Rellenar con fuentes libres
+(notas oficiales de CS50, transcripciones), igual que la semana 1.
+
 ## Hecho el 2026-09-25
 
 - Separación de `index.html` en `styles.css` + `app.js` (punto 2).
