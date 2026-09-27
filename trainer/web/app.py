@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, send_from_directory, session, Response, stream_with_context
-import hashlib, json, os
+import hashlib, json, os, random
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -186,6 +186,9 @@ def _resolve_greet(messages, is_admin, guest_name_val):
             )
         else:
             messages[-1]['content'] = GREET_GUEST
+        # Para que el saludo no sea siempre igual: un estilo al azar, AÑADIDO al final
+        # (no se toca el texto de GREET_*: el replace de arriba depende de él).
+        messages[-1]['content'] += f" Esta vez, arranca {random.choice(GREET_STYLES)}."
     return messages
 
 
@@ -343,6 +346,14 @@ GREET_ADMIN = (
     "y pregúntale cuánto tiempo tiene hoy: 1 hora (2 pomodoros), hora y media (3 pomodoros) o 2 horas (4 pomodoros). "
     "Sé motivador y directo, estilo entrenador personal. Máximo 3 frases."
 )
+
+GREET_STYLES = [
+    "como un entrenador en el vestuario antes del partido",
+    "como un compañero de estudio que se alegra de verte",
+    "planteando un mini reto de calentamiento sobre el tema en curso",
+    "con una curiosidad breve de programación relacionada con el tema",
+    "con un toque de humor ligero, sin pasarte",
+]
 
 GREET_GUEST = (
     "Da la bienvenida a un nuevo estudiante que acaba de llegar a CS50. "
