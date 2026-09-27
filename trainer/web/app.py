@@ -122,6 +122,30 @@ def folder_label(folder):
     return folder
 
 
+def _brain_path():
+    """Carpeta brain/ (misma regla que build_system_prompt: local.json > MASTERMIND_PATH > ../brain)."""
+    default_mm = str(ROOT.parent / 'brain')
+    local_path = ROOT / 'config/local.json'
+    if local_path.exists():
+        local = json.loads(local_path.read_text(encoding='utf-8'))
+        return Path(local.get('mastermind_path', os.environ.get('MASTERMIND_PATH', default_mm)))
+    return Path(os.environ.get('MASTERMIND_PATH', default_mm))
+
+
+def course_topics(course):
+    """Temas del curso en orden, leídos de sus carpetas en brain/ (exN_Tema en MoureDev, weekNN-tema
+    en CS50). Ordenados por NÚMERO: alfabéticamente, ex10 iría justo detrás de ex1."""
+    root = _brain_path() / COURSE_ROOTS.get(course, course)
+    if not root.is_dir():
+        return []
+    topics = []
+    for d in root.iterdir():
+        m = re.match(r'(?:ex|week)(\d+)', d.name)
+        if d.is_dir() and m:
+            topics.append({'folder': d.name, 'n': int(m.group(1)), 'topic': folder_label(d.name).split(' · ')[-1]})
+    return sorted(topics, key=lambda t: t['n'])
+
+
 # Carpeta raíz dentro de brain/ para cada curso, cuando no coincide con el nombre del curso tal cual.
 COURSE_ROOTS = {'cs50': 'cs50', 'mouredev': 'Moure/java'}
 
@@ -494,6 +518,19 @@ def profile():
         course = p.get('course', '').lower()
         return jsonify({**p, 'progress': _progress_view(course, get_progress(course))})
     return jsonify({**GUEST_PROFILE, 'progress': _progress_view('cs50', {'current': GUEST_TOPIC_FOLDER, 'mastered': []})})
+
+
+@app.route('/progress')
+def progress_list():
+    """/ls del chat: temas del curso elegido, cada uno 'mastered' (✅), 'current' (👉) o 'locked' (🔒)."""
+    if not session.get('is_admin', False):
+        return jsonify({'error': 'Solo con contraseña'}), 403
+    course = get_admin_profile().get('course', '').lower()
+    prog = get_progress(course)
+    topics = [{**t, 'status': 'mastered' if t['folder'] in prog.get('mastered', [])
+               else 'current' if t['folder'] == prog.get('current') else 'locked'}
+              for t in course_topics(course)]
+    return jsonify({'course': course, 'topics': topics})
 
 
 def github_put(repo_path, content_str, commit_msg):

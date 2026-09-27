@@ -86,6 +86,24 @@ try:
     pr = mm.app.test_client().get('/profile').get_json().get('progress', {})
     check('/profile (invitado): semana 1, sin leer el progreso de Nando', (pr.get('current'), pr.get('n')) == ('week01-c', 1))
 
+    # 1d. /ls → GET /progress: lista de temas del curso (de las carpetas de brain/) con su estado
+    if not hasattr(mm, 'course_topics'):
+        check('course_topics y GET /progress existen', False)
+    else:
+        ts = mm.course_topics('mouredev')
+        check('course_topics(mouredev): ex1…ex10 en orden de NÚMERO (ex10 al final, no tras ex1)',
+              [t['n'] for t in ts] == list(range(1, 11)) and ts[0]['folder'] == 'ex1_HelloWorld' and ts[-1]['folder'] == 'ex10_OOP')
+        ts = mm.course_topics('cs50')
+        check('course_topics(cs50): week01…week10 en orden', [t['n'] for t in ts] == list(range(1, 11)) and ts[1]['folder'] == 'week02-arrays')
+        check('course_topics: curso sin carpetas → []', mm.course_topics('cursonuevo') == [])
+        (prog / 'mouredev.json').write_text(json.dumps({'current': 'ex2_VariablesAndConstants', 'mastered': ['ex1_HelloWorld']}), encoding='utf-8')
+        escribir({**perfil(), 'course': 'mouredev'})
+        r = c.get('/progress')
+        estados = [t['status'] for t in r.get_json().get('topics', [])] if r.status_code == 200 else []
+        check("GET /progress: ✅ ex1 dominado, 👉 ex2 actual, 🔒 el resto",
+              estados[:3] == ['mastered', 'current', 'locked'] and estados[3:] == ['locked'] * 7)
+        check('GET /progress: el invitado no puede (su mundo es otro)', mm.app.test_client().get('/progress').status_code == 403)
+
     # 2. get_admin_profile sin token → lee el archivo local
     escribir({**perfil(), 'current_topic': 'Marca de prueba'})
     check('get_admin_profile (sin token): lee el archivo local', mm.get_admin_profile()['current_topic'] == 'Marca de prueba')

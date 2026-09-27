@@ -116,12 +116,30 @@ async function streamChat(msgList) {
 
 let isAdmin = false;
 
+// ── COMANDOS DEL CHAT (/ls, /back…) ─────────────────────
+// Los atiende la app: NO se envían a la IA ni entran en el historial de la conversación.
+const STATUS_ICONS = { mastered: '✅', current: '👉', locked: '🔒' };
+
+async function runCommand(text) {
+  const [cmd] = text.split(/\s+/);
+  addMessage('user', text);
+  if (cmd === '/ls') {
+    const r = await fetch('/progress');
+    const d = await r.json();
+    if (!r.ok) return addMessage('bot', d.error || 'No se pudo leer el progreso');
+    const prefix = d.course === 'cs50' ? 'week' : 'ex';
+    return addMessage('bot', d.topics.map(t => `${STATUS_ICONS[t.status]} ${prefix}${t.n}  ${t.topic}`).join('\n'));
+  }
+  addMessage('bot', `Comando no reconocido: ${cmd}. De momento existe /ls.`);
+}
+
 async function send() {
   const input = document.getElementById('input');
   const text = input.value.trim();
   if (!text) return;
   input.value = '';
   input.style.height = 'auto';
+  if (text.startsWith('/')) return runCommand(text);
   document.getElementById('send').disabled = true;
   messages.push({ role: 'user', content: text });
   addMessage('user', text);
