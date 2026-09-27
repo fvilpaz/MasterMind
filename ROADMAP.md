@@ -68,7 +68,17 @@ badges que lean la lección real**. Decidir antes cómo se avanza:
   1. a mano (selector de ejercicio leído de `brain/Moure/<ruta>/`);
   2. el tutor propone "¿pasamos a Bucles?" y un botón de la app lo confirma y guarda;
   3. **al aprobar un `exam`**, como ya pide `Mouredev.md` — pero haciéndolo la **app** (p. ej. el
-     tutor termina con una marca que el backend detecta), no el modelo. Enlaza con
+     tutor termina con una marca que el backend detecta), no el modelo.
+
+**DECIDIDO (Nando, 2026-09-27): opción 3 — se avanza solo cuando se domina.** Diseño propuesto:
+  - En `exam`, al aprobar, el tutor termina con una marca (p. ej. `[[DOMINADO]]`).
+  - La app la detecta, la oculta del chat y muestra un botón **"✅ Dominado — pasar a Ej. N · Tema"**.
+    **Confirma Nando** (el modelo se puede equivocar al decir "aprobado").
+  - Al confirmar: `topics_mastered` del curso + siguiente ejercicio (orden `exN_` de
+    `brain/Moure/<ruta>/`) + la barra se actualiza.
+  - **Requisito previo:** perfil por curso (este punto), para que MoureDev no pise a CS50.
+  - Pasos: pruebas de caracterización del perfil → perfil por curso (con migración del actual) →
+    `/advance` → marca + botón → instrucciones en `Mouredev.md`/`CS50.md` → barra con la lección real. Enlaza con
 el punto 10 (rutas de MoureDev).
 
 ## 6. Seguridad — antes de que esto sea de verdad público
