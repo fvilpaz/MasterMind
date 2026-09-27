@@ -478,12 +478,22 @@ def courses():
     return jsonify({'courses': found})
 
 
+def _progress_view(course, progress):
+    """El progreso listo para la barra de arriba: carpeta, número (ex3 → 3, week02 → 2) y tema."""
+    current = progress.get('current')
+    m = re.match(r'(?:ex|week)(\d+)', current or '')
+    return {**progress, 'course': course, 'n': int(m.group(1)) if m else None,
+            'topic': folder_label(current).split(' · ')[-1]}   # 'Week 2 · Arrays' → 'Arrays'
+
+
 @app.route('/profile')
 def profile():
     is_admin = session.get('is_admin', False)
     if is_admin:
-        return jsonify(get_admin_profile())
-    return jsonify(GUEST_PROFILE)
+        p = get_admin_profile()
+        course = p.get('course', '').lower()
+        return jsonify({**p, 'progress': _progress_view(course, get_progress(course))})
+    return jsonify({**GUEST_PROFILE, 'progress': _progress_view('cs50', {'current': GUEST_TOPIC_FOLDER, 'mastered': []})})
 
 
 def github_put(repo_path, content_str, commit_msg):

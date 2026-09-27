@@ -69,6 +69,23 @@ try:
     # El invitado nunca recibe material (sources_text = "" si no es admin): así era y así sigue.
     check('invitado: no recibe material', notas not in mm.build_system_prompt(is_admin=False))
 
+    # 1c. /profile devuelve, además del perfil, el progreso DEL CURSO ELEGIDO (para la barra de arriba)
+    (prog / 'mouredev.json').write_text(json.dumps({'current': 'ex3_DataTypes', 'mastered': ['ex1_HelloWorld']}), encoding='utf-8')
+    (prog / 'cs50.json').write_text(json.dumps({'current': 'week02-arrays', 'mastered': []}), encoding='utf-8')
+    c = mm.app.test_client()
+    with c.session_transaction() as s:
+        s['is_admin'] = True
+    escribir({**perfil(), 'course': 'mouredev'})
+    pr = c.get('/profile').get_json().get('progress', {})
+    check("/profile (mouredev): progreso de MoureDev → n=3, 'Data Types'",
+          (pr.get('current'), pr.get('n'), pr.get('topic')) == ('ex3_DataTypes', 3, 'Data Types'))
+    escribir({**perfil(), 'course': 'cs50'})
+    pr = c.get('/profile').get_json().get('progress', {})
+    check("/profile (cs50): progreso de CS50 → n=2, 'Arrays' (no el de MoureDev)",
+          (pr.get('current'), pr.get('n'), pr.get('topic')) == ('week02-arrays', 2, 'Arrays'))
+    pr = mm.app.test_client().get('/profile').get_json().get('progress', {})
+    check('/profile (invitado): semana 1, sin leer el progreso de Nando', (pr.get('current'), pr.get('n')) == ('week01-c', 1))
+
     # 2. get_admin_profile sin token → lee el archivo local
     escribir({**perfil(), 'current_topic': 'Marca de prueba'})
     check('get_admin_profile (sin token): lee el archivo local', mm.get_admin_profile()['current_topic'] == 'Marca de prueba')

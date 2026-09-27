@@ -5,8 +5,10 @@ async function loadProfile() {
     const r = await fetch('/profile');
     const p = await r.json();
     document.getElementById('nav-brand').textContent = p.course ? `MasterMind · ${p.course}` : 'MasterMind';
-    document.getElementById('b-week').textContent = `Week ${p.current_week}`;
-    document.getElementById('b-topic').textContent = p.current_topic;
+    // La lección real, del progreso del curso elegido: CS50 va por semanas, MoureDev por ejercicios.
+    const pr = p.progress || {};
+    document.getElementById('b-week').textContent = pr.n ? (pr.course === 'cs50' ? `Week ${pr.n}` : `Ej. ${pr.n}`) : '';
+    document.getElementById('b-topic').textContent = pr.topic || '';
     document.getElementById('b-mode').textContent = p.mode;
     if (isAdmin) {
       document.getElementById('profile-topic').value = p.current_topic || '';
