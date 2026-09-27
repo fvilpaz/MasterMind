@@ -498,7 +498,9 @@ def update_profile():
         return jsonify({'error': 'No autorizado'}), 403
     data = request.json
     profile_path = ROOT / 'config/profile.json'
-    profile = json.loads(profile_path.read_text(encoding='utf-8'))
+    # El perfil de verdad: en producción vive en GitHub (el archivo local es la copia de la imagen, vieja).
+    # Antes se leía el archivo local y, al elegir curso, se subía encima → se perdía la partida guardada.
+    profile = get_admin_profile()
     allowed = {'course', 'current_topic', 'current_week', 'mode', 'topics_mastered', 'weeks_completed', 'notes'}
     for key, value in data.items():
         if key in allowed:

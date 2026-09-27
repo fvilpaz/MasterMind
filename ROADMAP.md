@@ -112,9 +112,15 @@ el punto 10 (rutas de MoureDev).
 - Para forzar que los móviles recojan una versión nueva del SW: subir `CACHE = 'mastermind-vN'`.
 - Opcional más adelante: **TWA** (Bubblewrap → APK para Play Store). Para uso propio la PWA basta.
 
-## 8. Comandos en el chat: `/kata`, `/lectura`… (apuntado 2026-09-27)
+## 8. Comandos en el chat: `/kata`, `/read`, `/ls`, `/back`… (apuntado 2026-09-27)
 
-Escribir `/kata` en el chat y que salga una kata; `/lectura` para un ejercicio de lectura de código
+**Nombres decididos por Nando (2026-09-27):** `/kata`, **`/read`** (lectura de código ajeno; no
+`/lectura`), **`/ls`** (lista de ejercicios: ✅ dominados, 👉 actual, 🔒 bloqueados) y **`/back exN`**
+(volver a un ejercicio **ya dominado** para repasar). Para **avanzar no hay comando**: solo el botón que
+sale cuando el tutor aprueba el examen (ver punto 5). Los comandos los intercepta la app, no van al modelo.
+En el perfil: `progress` → por curso `{ "current": …, "mastered": [...] }`.
+
+Escribir `/kata` en el chat y que salga una kata; `/read` para un ejercicio de lectura de código
 ajeno (los dos ya son parte del método de `Mouredev.md`, pero hoy solo se llega a ellos pidiéndolo
 con palabras). Hoy el chat no tiene ningún comando con `/`: todo lo que se escribe va al modelo tal
 cual. El único mensaje especial es `__greet__` (saludo inicial, `app.js:140` → `app.py:180`), que
@@ -130,7 +136,7 @@ de saludo aleatoria encima (`COURSE_GREETINGS` en `app.js`). Solo lo ve el admin
 entrando directo a CS50. **Hecho también:** el saludo *del tutor* varía — `_resolve_greet` añade
 al final un estilo al azar de `GREET_STYLES` (entrenador, compañero, mini reto, curiosidad, humor)
 sin tocar el texto de `GREET_*` (el `replace` del nombre del invitado depende de él; comprobado con
-15 pruebas de caracterización antes y después). **Falta:** kata/lectura como opciones (punto 8).
+15 pruebas de caracterización antes y después). **Falta:** `/kata` y `/read` como opciones (punto 8).
 
 Hoy al entrar hay un `<select id="course-select">` (`index.html:46`, `app.js:386`). La idea: que
 MasterMind **salude y pregunte qué quiero hacer hoy**, y enseñe todas las opciones a la vista
@@ -175,7 +181,7 @@ antes de usarlas):
   `jlevy/the-art-of-command-line`, `onceupon/Bash-Oneliner`, `awesome-lists/awesome-bash`
 - Herramienta: `koalaman/shellcheck` (linter de bash: detecta solo fallos como el de abajo)
 
-Material para katas / `/lectura` (punto 8) ya presente en los ejercicios de Nando:
+Material para katas / `/read` (punto 8) ya presente en los ejercicios de Nando:
 `ejercicios/backup_diario.sh` guarda `log_file=...` **entre** el `tar` y el `if [ $? -eq 0 ]`, así
 que el `$?` es el de la asignación y siempre dice "Backup exitoso" aunque `tar` falle. No se
 corrige: es un ejercicio perfecto para `ex5_Errores`.
