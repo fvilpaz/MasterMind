@@ -74,15 +74,17 @@
     --red:        #ff5555;
     color-scheme: dark;
   }
+  /* Cyberpunk "neón nocturno": base cian, magenta de acento, barra oscura (ver ajustes más abajo).
+     Antes el primario era amarillo #f0e040 y pintaba la barra entera: más señal de obra que Night City. */
   [data-theme="cyberpunk"] {
-    --primary:    #f0e040;
-    --primary-dk: #c4b800;
-    --primary-text: #000000;
-    --accent:     #00fff9;
+    --primary:    #00fff9;
+    --primary-dk: #00c8c3;
+    --primary-text: #041014;
+    --accent:     #ff2a6d;
     --bg:         #0d0f12;
     --surface:    #161920;
     --surface2:   #1e2130;
-    --border:     rgba(240,224,64,0.15);
+    --border:     rgba(0,255,249,0.18);
     --text:       #e0e0e0;
     --muted:      #6b7280;
     --green:      #39ff14;
@@ -171,10 +173,23 @@
   .site-footer-links a { color: var(--muted); text-decoration: none; transition: color 0.15s; }
   .site-footer-links a:hover { color: var(--primary); }
 
-  [data-theme="cyberpunk"] .badge       { color: rgba(0,0,0,0.75); background: rgba(0,0,0,0.12); }
-  [data-theme="cyberpunk"] .badge.topic { color: #2a1f00; }
-  [data-theme="cyberpunk"] .badge.mode  { color: #002a2a; }
-  [data-theme="cyberpunk"] select       { border-color: rgba(0,0,0,0.25); }
+  /* Cyberpunk: barra casi negra con borde magenta que brilla; lo que va encima, en cian. */
+  [data-theme="cyberpunk"] nav { background: #0a0c10; border-bottom: 2px solid var(--accent);
+                                 box-shadow: 0 0 14px rgba(255,42,109,0.55); }
+  [data-theme="cyberpunk"] .nav-brand { color: var(--primary); text-shadow: 0 0 8px rgba(0,255,249,0.6); }
+  [data-theme="cyberpunk"] #settings-btn,
+  [data-theme="cyberpunk"] #pomodoro { color: var(--primary); background: rgba(0,255,249,0.08);
+                                       border-color: rgba(0,255,249,0.35); }
+  [data-theme="cyberpunk"] .badge       { color: var(--primary); background: rgba(0,255,249,0.1); }
+  [data-theme="cyberpunk"] .badge.topic { color: var(--accent); background: rgba(255,42,109,0.12); }
+  [data-theme="cyberpunk"] .badge.mode  { color: #e0e0e0; }
+  [data-theme="cyberpunk"] select       { border-color: rgba(0,255,249,0.25); }
+  /* Mensajes: el del tutor con filo cian, el tuyo con filo magenta (en vez de un bloque de color). */
+  [data-theme="cyberpunk"] .msg-row.bot  .bubble { border-color: rgba(0,255,249,0.35); }
+  [data-theme="cyberpunk"] .msg-row.user .bubble { background: rgba(255,42,109,0.12); color: var(--text);
+                                                   border: 1px solid var(--accent); }
+  [data-theme="cyberpunk"] .btn-send { box-shadow: 0 0 10px rgba(0,255,249,0.45); }
+  [data-theme="cyberpunk"] #pomodoro.pomo-break { color: #000; }  /* texto negro sobre verde neón */
 
   [data-theme="harvard"] {
     --primary:    #a51c30;
