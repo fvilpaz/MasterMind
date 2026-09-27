@@ -97,7 +97,7 @@ async function streamChat(msgList) {
           const parsed = JSON.parse(payload);
           if (typeof parsed === 'string') {
             fullText += parsed;
-            bubble.innerHTML = renderMarkdown(fullText);
+            bubble.innerHTML = renderMarkdown(hideMark(fullText));
             row.scrollIntoView({ behavior: 'smooth' });
           } else if (parsed && parsed.error) {
             bubble.innerHTML = renderMarkdown(`Error: ${parsed.error}`);
@@ -116,6 +116,33 @@ async function streamChat(msgList) {
 
 let isAdmin = false;
 
+// ── GUARDAR LA PARTIDA ──────────────────────────────────
+// La IA pone esta marca al final del mensaje cuando apruebas el examen (Mouredev.md / CS50.md).
+// Nunca se ve: se oculta mientras llega, y si llega entera aparece el botón para guardar.
+const MASTERED_MARK = '[[DOMINADO]]';
+// Quita la marca, y también su comienzo si todavía está llegando por trozos ("[[DOMI…").
+const hideMark = t => t.replace(MASTERED_MARK, '').replace(/\[\[[A-Z]*\]?$/, '').trimEnd();
+
+async function showNextButton() {
+  const d = await (await fetch('/progress')).json();
+  const i = (d.topics || []).findIndex(t => t.status === 'current');
+  const next = d.topics?.[i + 1];
+  if (!next) return;                                  // último tema: no hay a dónde avanzar
+  const label = `${d.course === 'cs50' ? 'Week' : 'Ej.'} ${next.n} · ${next.topic}`;
+  const row = document.createElement('div');
+  row.className = 'msg-row bot';
+  row.innerHTML = `<div class="avatar bot">🎓</div><div class="bubble"><button class="btn-send">✅ ¡Aprobado! Guardar y pasar a ${escapeHtml(label)}</button></div>`;
+  document.getElementById('messages').appendChild(row);
+  row.scrollIntoView({ behavior: 'smooth' });
+  row.querySelector('button').addEventListener('click', async e => {
+    e.target.disabled = true;
+    const r = await fetch('/progress/next', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+    const res = await r.json();
+    row.querySelector('.bubble').textContent = r.ok ? `💾 Partida guardada: ahora estás en ${label}.` : `No se pudo guardar: ${res.error}`;
+    if (r.ok) loadProfile();                          // la barra de arriba pasa al tema nuevo
+  });
+}
+
 // ── COMANDOS DEL CHAT (/ls, /back…) ─────────────────────
 // Los atiende la app: NO se envían a la IA ni entran en el historial de la conversación.
 const STATUS_ICONS = { mastered: '✅', current: '👉', locked: '🔒' };
@@ -124,6 +151,9 @@ const STATUS_ICONS = { mastered: '✅', current: '👉', locked: '🔒' };
 const COMMANDS = {
   '/help': 'Esta ayuda',
   '/ls':   'Tus ejercicios: ✅ dominados · 👉 el actual · 🔒 bloqueados',
+  '/back': '/back ex1: vuelve a un ejercicio ya dominado para repasarlo (próximamente)',
+  '/kata': 'Un ejercicio corto de calentamiento sobre el tema actual (próximamente)',
+  '/read': 'Leer y comentar código ajeno sobre el tema actual (próximamente)',
 };
 
 async function runCommand(text) {
@@ -139,6 +169,7 @@ async function runCommand(text) {
     const prefix = d.course === 'cs50' ? 'week' : 'ex';
     return addMessage('bot', d.topics.map(t => `${STATUS_ICONS[t.status]} ${prefix}${t.n}  ${t.topic}`).join('\n'));
   }
+  if (COMMANDS[cmd]) return addMessage('bot', `${cmd} todavía no está hecho. Escribe /help para ver los que ya funcionan.`);
   addMessage('bot', `Comando no reconocido: ${cmd}. Escribe /help para ver los comandos.`);
 }
 
@@ -157,6 +188,7 @@ async function send() {
     const reply = await streamChat(messages);
     if (reply) {
       messages.push({ role: 'assistant', content: reply });
+      if (reply.includes(MASTERED_MARK)) showNextButton();
     }
   } catch (e) { removeTyping(); addMessage('error', `Error de conexión: ${e.message}`); }
   document.getElementById('send').disabled = false;

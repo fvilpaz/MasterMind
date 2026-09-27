@@ -38,6 +38,8 @@ The router reads the student profile (`config/profile.json`), selects the right 
 | 🎓 Multi-course agents | Each subject has its own teaching logic |
 | 👤 Two-step login | Name → password (admin) or guest mode |
 | 🗂 Course picker | Admin gets a varied greeting ("¿A qué le atacamos hoy?") and one coloured card per course; the last one used is tagged |
+| 💾 Save your progress | Each course keeps its own progress (`config/progress/<course>.json`). You only move on when the tutor **passes you in an exam**: it tags its reply and a button appears to save and go to the next lesson. The top bar shows the real lesson (`Ej. 3 · Data Types`, `Week 2 · Arrays`) |
+| ⌨️ Chat commands | `/help` (all commands), `/ls` (your lessons: ✅ mastered · 👉 current · 🔒 locked); `/back`, `/kata`, `/read` coming. Handled by the app, never sent to the AI |
 | ⏱ Pomodoro timer | 25/5 with beep, as a compact counter in the top bar (green on break, red + pulse when time is up) with a thin progress line — never covers the chat |
 | 🎨 8 themes | Harvard, Dracula, Cyberpunk, Barbie and more — every text and button checked for contrast (≥ 3:1) in all of them |
 | ⌨️ Code editor | CodeMirror panel (`</>`) with syntax colours per category (types, keywords, strings…) for Python, **Java**, **C**, JS, HTML, CSS and Bash; its theme follows the app theme (eclipse on light themes, darcula / dracula / monokai on dark ones) |
@@ -74,7 +76,8 @@ MasterMind/
 │   │   ├── CS50.md         ← CS50 teaching strategy + progression rules
 │   │   └── Mouredev.md     ← MoureDev teaching strategy
 │   ├── config/
-│   │   └── profile.json    ← student state: course, week, topic, progress
+│   │   ├── profile.json    ← who you are: name, chosen course, mode, language
+│   │   └── progress/       ← one file per course: { "current": lesson folder, "mastered": [...] }
 │   └── web/
 │       ├── app.py          ← Flask server + streaming endpoints
 │       ├── app.js          ← frontend logic
@@ -127,6 +130,7 @@ No dependencies (no pytest needed). From the repo root:
 
 ```bash
 python trainer/tests/test_greet.py   # opening greeting: admin/guest, guest name, varied style
+python trainer/tests/test_profile.py # profile + per-course progress: isolation, save/next, /ls, security
 ```
 
 Exit code `0` = all pass. Each test file includes a **control** check that proves it can fail.

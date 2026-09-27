@@ -41,7 +41,27 @@ El selector de Week 1-5 + botón de progreso es específico de CS50 (manda `curr
 `current_folder`). Para MoureDev, cambiar de tema desde la interfaz hoy no funciona — hay que
 editar `config/profile.json` a mano. Hace falta un control de progreso genérico por curso.
 
-## 5. `profile.json` es un único perfil plano, no por curso
+## 5. `profile.json` es un único perfil plano, no por curso — EN GRAN PARTE HECHO (2026-09-28)
+
+**Hecho:**
+- Progreso por curso en su propio archivo: `config/progress/<curso>.json` (`{"current", "mastered"}`),
+  en GitHub en producción. Funciones `get_progress` / `save_progress` / `folder_label`, `course_topics`.
+  Guardar un curso nunca toca otro; nombres de curso raros rechazados (path traversal).
+- La IA recibe el material del progreso de **su** curso (`_topic_folder`). Arreglado de paso: CS50
+  inventaba `week0N-c`, que no existe desde la semana 2.
+- `/update-profile` ya no borra la partida al elegir curso (leía la copia vieja de la imagen).
+- Barra de arriba con la lección real (`Ej. N · Tema` / `Week N · Tema`), vía `/profile`.
+- **Guardar la partida al aprobar:** la IA termina con `[[DOMINADO]]` (Mouredev.md / CS50.md), la app
+  la oculta y muestra el botón "✅ ¡Aprobado! Guardar y pasar a…", que llama a `POST /progress/next`
+  (de uno en uno, sin saltos). ⚠️ **Subido sin probar de punta a punta en la app** (Nando sin tiempo,
+  2026-09-28): las pruebas del servidor pasan, falta ver un examen real → marca → botón → guardado.
+
+**Pendiente:**
+- Probar el flujo completo del botón en producción.
+- Quitar de `profile.json` los campos viejos (`current_week`, `current_folder`, `current_topic`,
+  `weeks_completed`, `topics_mastered`) cuando nadie los use: aún los usan el panel "📍 Progreso" de
+  CS50 y el nombre de la carpeta de sesiones (`/save-session`, `build_system_prompt`).
+- Pasar ese panel de CS50 y la carpeta de sesiones al progreso por curso.
 
 Si cambias de CS50 a MoureDev y vuelves, `current_topic`/`current_week`/`topics_mastered` se pisan
 entre cursos — no hay estado independiente por curso. Para llevar los dos en paralelo de verdad,
@@ -113,6 +133,10 @@ el punto 10 (rutas de MoureDev).
 - Opcional más adelante: **TWA** (Bubblewrap → APK para Play Store). Para uso propio la PWA basta.
 
 ## 8. Comandos en el chat: `/kata`, `/read`, `/ls`, `/back`… (apuntado 2026-09-27)
+
+**Hecho (2026-09-28):** `/help` y `/ls`. La lista vive en `COMMANDS` (`app.js`): `/help` la enseña
+entera (los que faltan salen como "próximamente"). Pista fija "💡 Escribe /help…" encima de la caja de
+escribir. **Siguientes:** `/back exN` (necesita `POST /progress/back`), luego `/kata` y `/read`.
 
 **Nombres decididos por Nando (2026-09-27):** `/kata`, **`/read`** (lectura de código ajeno; no
 `/lectura`), **`/ls`** (lista de ejercicios: ✅ dominados, 👉 actual, 🔒 bloqueados) y **`/back exN`**
