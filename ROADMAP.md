@@ -45,6 +45,14 @@ haría falta anidar el perfil por curso (`profile.mouredev.current_folder`, `pro
   serio.
 - Confirmar que `GROQ_API_KEY` está bien puesta en las variables de entorno de Cloud Run (el modo
   invitado depende de ella; en local no está configurada, así que no se pudo probar del todo aquí).
+- **El contenedor corre como `root`** (auditoría con trivy, 2026-09-27, DS-0002 HIGH): el
+  `Dockerfile` no tiene `USER`. No tiene que ver con el login admin/invitado (eso es dentro de la
+  app): es con qué usuario de Linux corre `python app.py`. Si alguien explotara un fallo de la app,
+  lo ejecutaría como `root`. Arreglo: `RUN useradd -m app` + `USER app` antes del `CMD`.
+- **Falta `.dockerignore`**: `COPY . .` mete toda la carpeta en la imagen. Hoy no hay fuga porque
+  Cloud Run se construye desde el checkout de GitHub Actions (sin `.env`), pero un `docker build .`
+  en local metería `trainer/web/.env` (con `GEMINI_API_KEY`) dentro de la imagen. Añadir un
+  `.dockerignore` con al menos `.env`, `**/.env`, `.git`, `__pycache__`.
 
 ## ~~7. PWA instalable~~ — HECHO (2026-09-25)
 
