@@ -142,6 +142,18 @@ perfil por defecto (`app.py:18`) que hoy nadie usa: puede ser el punto de partid
 solo), pero la interfaz sigue en castellano. Hace falta para **enseñar la app a alguien de habla
 inglesa** sin que tenga que pedir nada.
 
+## 13. Pomodoro: que no tape el chat en móvil/tablet (apuntado 2026-09-27)
+
+Hoy el pomodoro es un círculo **flotante** (`#pomodoro`, `position: fixed`, abajo a la derecha;
+`styles.css:244`, y en móvil `:285` con 96 px). `pomoReposition()` (`app.js:325`) lo sube por encima
+del footer recalculando su `bottom` al redimensionar y al escribir. En pantallas pequeñas queda
+encima de los mensajes y "mancha" el efecto visual.
+
+**Idea de Nando:** en móvil/tablet, sacarlo del modo flotante y meterlo **en el flujo**, en una
+franja entre el chat y el footer (flex), para que no tape nada. En escritorio puede seguir flotante.
+Ojo al hacerlo: `pomoReposition()` fija `style.bottom` en línea y ganaría al CSS; habrá que
+desactivarlo (o que no haga nada) en ese modo. Probar en móvil vertical, horizontal y tablet.
+
 ## Hecho el 2026-09-25
 
 - Separación de `index.html` en `styles.css` + `app.js` (punto 2).
