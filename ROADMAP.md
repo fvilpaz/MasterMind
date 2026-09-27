@@ -78,6 +78,39 @@ MasterMind **salude y pregunte qué quiero hacer hoy**, y enseñe todas las opci
 debería preguntar **qué ruta** (Java, Bash…), leyendo las que existan en vez de tenerlas escritas a
 mano. Relacionado con los puntos 4 y 5: el progreso tendrá que ser por ruta, no solo por curso.
 
+## 11. Ruta de Bash en `brain/Moure/bash/`, más rica que la de Java (apuntado 2026-09-27)
+
+Mismo patrón que Java (`exN_Tema/src/` con el código de Nando + `sources/enlaces.md` solo con
+fuentes libres, nada de MoureDev Pro), pero ampliando con material abierto de GitHub. Los scripts de
+práctica de `Coding\Cursos\MoureDev\bash\` se agrupan de forma natural en:
+
+| Tema | Scripts de Nando |
+|---|---|
+| `ex1_PrimerScript` | `1st_script.sh`, `script.sh` (echo, variables, `read`, aritmética) |
+| `ex2_Parametros` | `param_script.sh` (`$0`, `$1`, `$#`, `$@`) |
+| `ex3_Condicionales` | `conditional_script.sh` (`if`/`elif`, `case`, `-z`/`-n`/`-e`) |
+| `ex4_Bucles` | `loops.sh` (`for`, `while`, `until`) |
+| `ex5_Errores` | `errors_script.sh` (`$?`, `\|\|`, `&&`) |
+| `ex6_Cron` | `ejercicios/*.sh` + `guia_cron` |
+
+Fuentes candidatas (todas comprobadas el 2026-09-27 que existen; falta revisar licencia y contenido
+antes de usarlas):
+
+- Oficial: GNU Bash Reference Manual — https://www.gnu.org/software/bash/manual/bash.html
+- Referencia libre: W3Schools Bash — https://www.w3schools.com/bash/
+- BashGuide (Greg's Wiki) — https://mywiki.wooledge.org/BashGuide
+- Google Shell Style Guide — https://google.github.io/styleguide/shellguide.html
+- GitHub: `denysdovhan/bash-handbook`, `Idnan/bash-guide`, `dylanaraps/pure-bash-bible`,
+  `jlevy/the-art-of-command-line`, `onceupon/Bash-Oneliner`, `awesome-lists/awesome-bash`
+- Herramienta: `koalaman/shellcheck` (linter de bash: detecta solo fallos como el de abajo)
+
+Material para katas / `/lectura` (punto 8) ya presente en los ejercicios de Nando:
+`ejercicios/backup_diario.sh` guarda `log_file=...` **entre** el `tar` y el `if [ $? -eq 0 ]`, así
+que el `$?` es el de la asignación y siempre dice "Backup exitoso" aunque `tar` falle. No se
+corrige: es un ejercicio perfecto para `ex5_Errores`.
+
+Orden: contenido tema a tema → adaptar `Mouredev.md` (hoy habla solo de Oracle/Java) → punto 10.
+
 ## Hecho el 2026-09-25
 
 - Separación de `index.html` en `styles.css` + `app.js` (punto 2).
