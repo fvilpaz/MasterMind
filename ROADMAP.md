@@ -5,6 +5,14 @@ para la próxima sesión con calma.
 
 ## 1. Editor de código en el chat (mejora de comodidad, sobre todo móvil)
 
+**Ampliado (2026-09-27):** Java y C en el selector (modo `clike`); tema del editor a juego con el de la
+app vía `MutationObserver` sobre `data-theme` (`code-editor.js`). Elegidos midiendo 25 temas con código
+Java: eclipse (claros), darcula (dark), dracula, monokai (cyberpunk) — los únicos con color propio para
+los tipos y contraste ≥ 3. El botón `</>` ya no es blanco sobre blanco en los temas claros.
+Además, auditoría de contraste de los 8 temas: nada por debajo de 3:1 (variables nuevas por tema:
+`--accent-text`, `--primary-on-surface`, `--nav-chip-bg/-border`; mint y dracula con texto oscuro sobre
+su primario).
+
 Ahora mismo escribir código en el chat es un `textarea` plano — sin resaltado, sin autoindentado,
 y en el móvil no hay ni salto de línea cómodo. La idea: un botón "modo código" que abra un panel
 con **CodeMirror** (librería ligera, se mete con un `<script>` sin build tools, encaja con cómo

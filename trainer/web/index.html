@@ -137,7 +137,7 @@
 </div>
 
 <footer>
-  <button id="code-mode-btn" title="Modo código" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:var(--primary-text);border-radius:6px;padding:6px 10px;font-size:13px;cursor:pointer;font-family:monospace;white-space:nowrap;flex-shrink:0;">&lt;/&gt;</button>
+  <button id="code-mode-btn" title="Modo código">&lt;/&gt;</button>
   <textarea id="input" placeholder="Escribe tu mensaje..." rows="1"></textarea>
   <button class="btn-send" id="send">Enviar</button>
 </footer>
@@ -146,6 +146,8 @@
   <div style="display:flex;align-items:center;gap:8px;">
     <select id="code-lang" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:12px;color:var(--text);">
       <option value="python">Python</option>
+      <option value="java">Java</option>
+      <option value="c">C</option>
       <option value="javascript">JavaScript</option>
       <option value="html">HTML</option>
       <option value="css">CSS</option>
@@ -173,8 +175,13 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+<!-- Temas del editor a juego con cada tema de la app (el mapa está en code-editor.js) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/eclipse.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/darcula.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/monokai.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>

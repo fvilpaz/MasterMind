@@ -39,7 +39,8 @@ The router reads the student profile (`config/profile.json`), selects the right 
 | 👤 Two-step login | Name → password (admin) or guest mode |
 | 🗂 Course picker | Admin gets a varied greeting ("¿A qué le atacamos hoy?") and one coloured card per course; the last one used is tagged |
 | ⏱ Pomodoro timer | 25/5 with beep, as a compact counter in the top bar (green on break, red + pulse when time is up) with a thin progress line — never covers the chat |
-| 🎨 8 themes | Harvard, Dracula, Cyberpunk, Barbie and more |
+| 🎨 8 themes | Harvard, Dracula, Cyberpunk, Barbie and more — every text and button checked for contrast (≥ 3:1) in all of them |
+| ⌨️ Code editor | CodeMirror panel (`</>`) with syntax colours per category (types, keywords, strings…) for Python, **Java**, **C**, JS, HTML, CSS and Bash; its theme follows the app theme (eclipse on light themes, darcula / dracula / monokai on dark ones) |
 | 🤖 Triple AI provider | Guests → Groq (free, unlimited). Admin → Gemini or Claude |
 | 📓 Session logs | Markdown logs auto-read on next session |
 | 📱 PWA | Installable on Android/iOS, works offline for the shell |
