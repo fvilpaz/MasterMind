@@ -120,9 +120,18 @@ let isAdmin = false;
 // Los atiende la app: NO se envían a la IA ni entran en el historial de la conversación.
 const STATUS_ICONS = { mastered: '✅', current: '👉', locked: '🔒' };
 
+// La guía de /help sale de aquí: al añadir un comando nuevo, se apunta en esta lista y aparece solo.
+const COMMANDS = {
+  '/help': 'Esta ayuda',
+  '/ls':   'Tus ejercicios: ✅ dominados · 👉 el actual · 🔒 bloqueados',
+};
+
 async function runCommand(text) {
   const [cmd] = text.split(/\s+/);
   addMessage('user', text);
+  if (cmd === '/help') {
+    return addMessage('bot', Object.entries(COMMANDS).map(([c, ayuda]) => `${c.padEnd(6)} ${ayuda}`).join('\n'));
+  }
   if (cmd === '/ls') {
     const r = await fetch('/progress');
     const d = await r.json();
@@ -130,7 +139,7 @@ async function runCommand(text) {
     const prefix = d.course === 'cs50' ? 'week' : 'ex';
     return addMessage('bot', d.topics.map(t => `${STATUS_ICONS[t.status]} ${prefix}${t.n}  ${t.topic}`).join('\n'));
   }
-  addMessage('bot', `Comando no reconocido: ${cmd}. De momento existe /ls.`);
+  addMessage('bot', `Comando no reconocido: ${cmd}. Escribe /help para ver los comandos.`);
 }
 
 async function send() {
