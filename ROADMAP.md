@@ -39,6 +39,30 @@ Si cambias de CS50 a MoureDev y vuelves, `current_topic`/`current_week`/`topics_
 entre cursos — no hay estado independiente por curso. Para llevar los dos en paralelo de verdad,
 haría falta anidar el perfil por curso (`profile.mouredev.current_folder`, `profile.cs50.current_week`, etc.).
 
+**Lo que quiere Nando (2026-09-27)** — cada curso con su propio progreso, y la barra de arriba
+reflejando **la lección real en curso**:
+
+- `MasterMind · mouredev` en la barra: bien como está.
+- Debajo, en vez de `Week 1 · Hello World · explain` fijo:
+  - **CS50** → `Week N · tema`; **MoureDev** → el ejercicio/tema en curso (p. ej. `Ej. 8 · Bucles`).
+    Hoy la palabra `Week` está fija (`app.js:8`) y `current_week` no significa nada en MoureDev.
+  - El modo (`explain`, o el que se use) se mantiene tal cual: está bien.
+- **Si pasamos a bucles, tiene que verse bucles.**
+
+**Lo que se descubrió al mirarlo (y es más grave que el badge):**
+- **La lección de MoureDev no puede avanzar desde la app.** `/update-profile` no admite
+  `current_folder` (no está en `allowed`, `app.py:502`), y el panel "Actualizar progreso" solo manda
+  `current_topic` y `current_week` (`app.js:482`). Hoy solo se avanza editando `profile.json` a mano.
+- **El tutor tampoco actualiza el perfil** al cambiar de tema en el chat.
+- Y `current_folder` es lo que decide **qué fuentes recibe el tutor** (`app.py:84`): si en el chat se
+  pasa a bucles pero el perfil sigue en `ex1_HelloWorld`, el tutor sigue recibiendo el material de
+  Hello World.
+
+Por tanto van juntos: **perfil por curso (este punto) + control de progreso por curso (punto 4) +
+badges que lean la lección real**. Decidir antes: ¿avanza Nando a mano (selector de ejercicio leído de
+`brain/Moure/<ruta>/`), o el tutor propone "¿pasamos a Bucles?" y al confirmar se guarda? Enlaza con
+el punto 10 (rutas de MoureDev).
+
 ## 6. Seguridad — antes de que esto sea de verdad público
 
 - `ADMIN_PASSWORD` actual es débil (puesta como prueba temporal) — cambiar antes de tomárselo en
