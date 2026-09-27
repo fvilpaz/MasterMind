@@ -124,6 +124,10 @@ respuestas del tutor); en castellano, todo en castellano. Hoy está todo fijo en
 prompts (`GREET_*`, `build_system_prompt`) en castellano. Ya existe un campo `"language": "es"` en el
 perfil por defecto (`app.py:18`) que hoy nadie usa: puede ser el punto de partida.
 
+**Por qué:** pedirle al tutor en el chat "¿practicamos en inglés?" ya funciona (el modelo cambia
+solo), pero la interfaz sigue en castellano. Hace falta para **enseñar la app a alguien de habla
+inglesa** sin que tenga que pedir nada.
+
 ## Hecho el 2026-09-25
 
 - Separación de `index.html` en `styles.css` + `app.js` (punto 2).
