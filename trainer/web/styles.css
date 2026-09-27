@@ -323,4 +323,20 @@
     font-family: inherit; padding: 4px 0;
   }
   .login-box .btn-guest:hover { color: var(--text); }
+  /* Tarjetas de curso: cada curso con su color, fijo en todos los temas (es su identidad).
+     Un curso sin color asignado usa el del tema. */
+  .login-box .course-card {
+    width: 100%; padding: 13px; border: none; border-radius: var(--radius);
+    background: var(--course-color, var(--primary)); color: #fff;
+    font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: filter 0.15s;
+  }
+  .login-box .course-card:hover { filter: brightness(0.88); }
+  .login-box .course-card[data-course="cs50"]     { --course-color: #a51c30; } /* carmesí Harvard */
+  .login-box .course-card[data-course="mouredev"] { --course-color: #1a6fc4; }
+  .course-chip {
+    font-size: 11px; font-weight: 600; padding: 2px 8px;
+    border-radius: 999px; background: rgba(255, 255, 255, 0.25);
+  }
   .login-error { color: var(--red); font-size: 12px; display: none; margin-bottom: 10px; }

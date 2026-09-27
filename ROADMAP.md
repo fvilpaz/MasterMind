@@ -72,7 +72,13 @@ sirve de modelo para interceptar un mensaje antes de mandarlo.
 
 Se hará con la metodología de aprender construyendo (pasos pequeños, "¿qué crees que hace?").
 
-## 9. Inicio: saludo en vez de `select` de curso (apuntado 2026-09-27)
+## 9. Inicio: saludo en vez de `select` de curso (apuntado 2026-09-27) — EN PARTE HECHO
+
+**Hecho (2026-09-27):** el `select` es ahora una tarjeta por curso con su color (CS50 carmesí
+Harvard, MoureDev azul), nombre bonito (`COURSE_LABELS`), chip "último" en el que usaste y una frase
+de saludo aleatoria encima (`COURSE_GREETINGS` en `app.js`). Solo lo ve el admin; el invitado sigue
+entrando directo a CS50. **Falta:** que el saludo *del tutor* en el chat también varíe (abajo) y
+añadir kata/lectura como opciones de la pantalla (punto 8).
 
 Hoy al entrar hay un `<select id="course-select">` (`index.html:46`, `app.js:386`). La idea: que
 MasterMind **salude y pregunte qué quiero hacer hoy**, y enseñe todas las opciones a la vista

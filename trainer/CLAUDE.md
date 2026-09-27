@@ -24,7 +24,9 @@ trainer/
 
 1. Crea `agent/NombreCurso.md` con las instrucciones del agente
 2. Añade la entrada en la tabla de `agent/AGENT.md`
-3. El estudiante configura `"course": "nombre"` en `config/profile.json`
+3. Aparece solo como tarjeta en el selector de curso (admin), que guarda `"course"` en
+   `config/profile.json`. Opcional: nombre bonito en `COURSE_LABELS` (`web/app.js`) y color con
+   `.course-card[data-course="nombre"] { --course-color: … }` (`web/styles.css`)
 
 ## Para correr la app
 

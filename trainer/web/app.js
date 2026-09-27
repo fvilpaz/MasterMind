@@ -377,25 +377,40 @@ document.getElementById('login-btn').addEventListener('click', async () => {
   else { err.style.display = 'block'; }
 });
 
+// Nombre bonito de cada curso; uno que no esté aquí se enseña tal cual (nombre del archivo en agent/).
+const COURSE_LABELS = { cs50: 'CS50', mouredev: 'MoureDev' };
+
+const COURSE_GREETINGS = [
+  '¿A qué le atacamos hoy?',
+  '¿Qué te apetece aprender hoy?',
+  '¿Con qué entrenamos hoy?',
+  '¿Por dónde tiramos hoy?',
+];
+
 async function showCourseStep() {
   document.getElementById('step-password').style.display = 'none';
   const step = document.getElementById('step-course');
   step.style.display = 'flex';
+  const name = document.getElementById('login-name').value.trim();
+  const greeting = COURSE_GREETINGS[Math.floor(Math.random() * COURSE_GREETINGS.length)];
+  document.getElementById('course-greeting').textContent = name ? `¡Hola, ${name}! ${greeting}` : greeting;
   const r = await fetch('/courses');
   const { courses } = await r.json();
-  const select = document.getElementById('course-select');
-  select.innerHTML = courses.map(c => `<option value="${c}">${c}</option>`).join('');
   const p = await (await fetch('/profile')).json();
-  if (p.course && courses.includes(p.course)) select.value = p.course;
-  makeCustomSelect(select);
+  // Una tarjeta por curso, con su color (styles.css); el último que usaste lleva el chip "último"
+  // (como hacía el select preseleccionando p.course).
+  document.getElementById('course-cards').innerHTML = courses.map(c =>
+    `<button class="course-card" data-course="${c}">${COURSE_LABELS[c] || c}${c === p.course ? ' <span class="course-chip">último</span>' : ''}</button>`
+  ).join('');
 }
 
-document.getElementById('course-btn').addEventListener('click', async () => {
-  const course = document.getElementById('course-select').value;
+document.getElementById('course-cards').addEventListener('click', async e => {
+  const card = e.target.closest('button[data-course]');
+  if (!card) return;
   await fetch('/update-profile', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ course })
+    body: JSON.stringify({ course: card.dataset.course })
   });
   startApp();
 });

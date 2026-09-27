@@ -37,6 +37,7 @@ The router reads the student profile (`config/profile.json`), selects the right 
 | 🔀 Streaming responses | Token-by-token via SSE |
 | 🎓 Multi-course agents | Each subject has its own teaching logic |
 | 👤 Two-step login | Name → password (admin) or guest mode |
+| 🗂 Course picker | Admin gets a varied greeting ("¿A qué le atacamos hoy?") and one coloured card per course; the last one used is tagged |
 | ⏱ Pomodoro timer | 25/5 with beep, integrated in the UI |
 | 🎨 8 themes | Harvard, Dracula, Cyberpunk, Barbie and more |
 | 🤖 Triple AI provider | Guests → Groq (free, unlimited). Admin → Gemini or Claude |
@@ -90,7 +91,9 @@ MasterMind/
 
 1. Create `trainer/agent/YourCourse.md` with the teaching strategy
 2. Add the entry in `trainer/agent/AGENT.md` routing table
-3. Set `"course": "yourcourse"` in `config/profile.json`
+3. It shows up on its own as a card in the course picker (admin). Optional: a display name in
+   `COURSE_LABELS` (`trainer/web/app.js`) and a colour with
+   `.course-card[data-course="yourcourse"] { --course-color: … }` (`trainer/web/styles.css`)
 
 ---
 
