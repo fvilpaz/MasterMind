@@ -5,6 +5,12 @@ on:
     branches:
       - main
 
+# Si llegan dos pushes seguidos, el segundo despliegue espera al primero en vez de
+# chocar con él (el 27-sep chocaron: "Conflict for resource mastermind-trainer").
+concurrency:
+  group: deploy-cloud-run
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
