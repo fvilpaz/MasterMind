@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, send_from_directory, session, Response, stream_with_context
-import hashlib, json, os, random
+import hashlib, json, os, random, re
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -71,6 +71,55 @@ def get_admin_profile():
         if content:
             return json.loads(content)
     return json.loads((ROOT / 'config/profile.json').read_text(encoding='utf-8'))
+
+
+def _progress_path(course):
+    """Ruta (dentro de trainer/) del progreso de un curso. Solo nombres simples: sin esto, un curso
+    llamado '../profile' leería o escribiría otro archivo."""
+    if not re.fullmatch(r'[a-z0-9_-]+', course or ''):
+        raise ValueError(f"Nombre de curso no válido: {course!r}")
+    return f'config/progress/{course}.json'
+
+
+def get_progress(course):
+    """Progreso de UN curso ({'current': carpeta, 'mastered': [...]}). Como el perfil: en producción
+    vive en GitHub; en local, el archivo. Si el curso aún no tiene archivo, progreso vacío."""
+    path = _progress_path(course)
+    if os.environ.get('GITHUB_TOKEN', ''):
+        content = github_get(f'trainer/{path}')
+        if content:
+            return json.loads(content)
+    local = ROOT / path
+    if local.exists():
+        return json.loads(local.read_text(encoding='utf-8'))
+    return {'current': None, 'mastered': []}
+
+
+def save_progress(course, progress):
+    """Guarda el progreso de UN curso (solo su archivo: nunca toca el de otro curso)."""
+    path = _progress_path(course)
+    text = json.dumps(progress, indent=2, ensure_ascii=False)
+    local = ROOT / path
+    local.parent.mkdir(parents=True, exist_ok=True)
+    local.write_text(text, encoding='utf-8')
+    if os.environ.get('GITHUB_TOKEN', ''):
+        try:
+            github_put(f'trainer/{path}', text, f'update: progress/{course}.json')
+        except Exception as e:
+            print(f"[WARN] No se pudo sincronizar progress/{course}.json con GitHub: {e}")
+
+
+def folder_label(folder):
+    """Nombre legible de una carpeta de tema: ex1_HelloWorld → 'Hello World', week02-arrays → 'Week 2 · Arrays'."""
+    if not folder:
+        return ''
+    m = re.match(r'ex\d+_(.+)$', folder)
+    if m:
+        return re.sub(r'(?<=[a-z])(?=[A-Z])', ' ', m.group(1))
+    m = re.match(r'week(\d+)-(.+)$', folder)
+    if m:
+        return f"Week {int(m.group(1))} · {m.group(2).replace('-', ' ').title()}"
+    return folder
 
 
 # Carpeta raíz dentro de brain/ para cada curso, cuando no coincide con el nombre del curso tal cual.

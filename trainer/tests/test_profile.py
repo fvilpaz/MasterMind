@@ -92,6 +92,50 @@ try:
         os.environ.pop('GITHUB_TOKEN', None)
     check('producción: al elegir curso se conserva la partida guardada en GitHub (ex3, no ex1)',
           subido.get('current_folder') == 'ex3_DataTypes')
+
+    # 6. Progreso por curso: config/progress/<curso>.json (get_progress / save_progress / folder_label)
+    if not hasattr(mm, 'get_progress'):
+        check('get_progress / save_progress / folder_label existen', False)
+    else:
+        prog_dir = tmp / 'config' / 'progress'
+        check('get_progress: lee el archivo del curso',
+              mm.get_progress('mouredev') == json.loads((prog_dir / 'mouredev.json').read_text(encoding='utf-8')))
+        cs50_antes = (prog_dir / 'cs50.json').read_bytes()
+        mm.save_progress('mouredev', {'current': 'ex2_VariablesAndConstants', 'mastered': ['ex1_HelloWorld']})
+        check('save_progress + get_progress: ida y vuelta',
+              mm.get_progress('mouredev') == {'current': 'ex2_VariablesAndConstants', 'mastered': ['ex1_HelloWorld']})
+        check('AISLAMIENTO: guardar MoureDev no toca el progreso de CS50', (prog_dir / 'cs50.json').read_bytes() == cs50_antes)
+        check('curso sin archivo → progreso vacío, sin romperse',
+              mm.get_progress('cursonuevo') == {'current': None, 'mastered': []})
+        rechazado = True
+        for malo in ('../profile', 'a/b', '', 'MoureDev!'):
+            try:
+                mm.get_progress(malo)
+                rechazado = False
+            except ValueError:
+                pass
+        check("SEGURIDAD: nombres de curso raros ('../profile', 'a/b'…) se rechazan", rechazado)
+        check("folder_label: ex1_HelloWorld → 'Hello World'", mm.folder_label('ex1_HelloWorld') == 'Hello World')
+        check("folder_label: ex10_OOP → 'OOP'", mm.folder_label('ex10_OOP') == 'OOP')
+        check("folder_label: ex2_VariablesAndConstants → 'Variables And Constants'",
+              mm.folder_label('ex2_VariablesAndConstants') == 'Variables And Constants')
+        check("folder_label: week02-arrays → 'Week 2 · Arrays'", mm.folder_label('week02-arrays') == 'Week 2 · Arrays')
+        check("folder_label: week01-c → 'Week 1 · C'", mm.folder_label('week01-c') == 'Week 1 · C')
+        check("folder_label: None → ''", mm.folder_label(None) == '')
+        # Producción: GitHub, en trainer/config/progress/<curso>.json
+        rutas = []
+        mm.github_get = lambda path: (rutas.append(('get', path)), json.dumps({'current': 'ex5_Strings', 'mastered': []}))[1]
+        mm.github_put = lambda path, content, msg: rutas.append(('put', path))
+        os.environ['GITHUB_TOKEN'] = 'falso-para-la-prueba'
+        try:
+            leido = mm.get_progress('mouredev')
+            mm.save_progress('mouredev', leido)
+        finally:
+            mm.github_get, mm.github_put = orig_get, orig_put
+            os.environ.pop('GITHUB_TOKEN', None)
+        check('producción: get_progress lee de GitHub', leido.get('current') == 'ex5_Strings')
+        check('producción: lee y guarda en trainer/config/progress/mouredev.json',
+              rutas == [('get', 'trainer/config/progress/mouredev.json'), ('put', 'trainer/config/progress/mouredev.json')])
 finally:
     mm.ROOT = REAL_ROOT
     shutil.rmtree(tmp, ignore_errors=True)
