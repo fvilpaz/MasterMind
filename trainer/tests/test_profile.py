@@ -29,6 +29,7 @@ def check(nombre, cond):
 REAL_ROOT = mm.ROOT
 tmp = Path(tempfile.mkdtemp(prefix='mm-test-'))
 shutil.copytree(REAL_ROOT / 'config', tmp / 'config')
+shutil.copytree(REAL_ROOT / 'agent', tmp / 'agent')        # instrucciones de la IA (build_system_prompt)
 mm.ROOT = tmp
 perfil_path = tmp / 'config' / 'profile.json'
 real_antes = (REAL_ROOT / 'config' / 'profile.json').read_bytes()
@@ -45,13 +46,28 @@ def escribir(p):
 cliente = mm.app.test_client()
 
 try:
-    # 1. _topic_folder: qué carpeta de tema se usa
-    check("_topic_folder: si hay current_folder, manda él",
-          mm._topic_folder('mouredev', {'current_folder': 'ex3_DataTypes'}) == 'ex3_DataTypes')
-    check("_topic_folder: CS50 sin current_folder → week0N-c",
-          mm._topic_folder('cs50', {'current_week': 2}) == 'week02-c')
-    check("_topic_folder: otro curso sin current_folder → None",
-          mm._topic_folder('mouredev', {}) is None)
+    # 1. _topic_folder: qué carpeta de tema (y por tanto qué material) recibe la IA del chat.
+    #    Lee SOLO el progreso de su curso (config/progress/<curso>.json).
+    prog = tmp / 'config' / 'progress'
+    (prog / 'mouredev.json').write_text(json.dumps({'current': 'ex3_DataTypes', 'mastered': []}), encoding='utf-8')
+    (prog / 'cs50.json').write_text(json.dumps({'current': 'week02-arrays', 'mastered': []}), encoding='utf-8')
+    check("_topic_folder('mouredev'): la carpeta de su progreso", mm._topic_folder('mouredev') == 'ex3_DataTypes')
+    check("_topic_folder('cs50'): semana 2 = week02-arrays (antes inventaba week02-c, que no existe)",
+          mm._topic_folder('cs50') == 'week02-arrays')
+    escribir({**perfil(), 'course': 'cs50', 'current_folder': 'ex3_DataTypes'})   # restos de MoureDev en el perfil
+    check("_topic_folder('cs50'): NO usa carpetas de MoureDev aunque estén en el perfil",
+          mm._topic_folder('cs50') == 'week02-arrays')
+    check("_topic_folder: curso sin progreso → None", mm._topic_folder('cursonuevo') is None)
+
+    # 1b. build_system_prompt usa _topic_folder: el material que recibe la IA sale del progreso del curso.
+    brain = Path(json.loads((tmp / 'config' / 'local.json').read_text(encoding='utf-8'))['mastermind_path']) \
+        if (tmp / 'config' / 'local.json').exists() else REAL_ROOT.parent / 'brain'
+    notas = (brain / 'cs50' / 'week01-c' / 'sources' / 'lecture_notes.md').read_text(encoding='utf-8')[200:260]
+    (prog / 'cs50.json').write_text(json.dumps({'current': 'week01-c', 'mastered': []}), encoding='utf-8')
+    escribir({**perfil(), 'course': 'cs50'})
+    check('admin en CS50 semana 1: la IA recibe el material de week01-c', notas in mm.build_system_prompt(is_admin=True))
+    # El invitado nunca recibe material (sources_text = "" si no es admin): así era y así sigue.
+    check('invitado: no recibe material', notas not in mm.build_system_prompt(is_admin=False))
 
     # 2. get_admin_profile sin token → lee el archivo local
     escribir({**perfil(), 'current_topic': 'Marca de prueba'})

@@ -126,15 +126,15 @@ def folder_label(folder):
 COURSE_ROOTS = {'cs50': 'cs50', 'mouredev': 'Moure/java'}
 
 
-def _topic_folder(course, profile):
-    """Nombre de la carpeta del tema en curso dentro de la raíz del curso. Si el perfil ya trae
-    'current_folder' explícito, manda eso (es lo que usa MoureDev, con nombres tipo ex2_Tema que no
-    se pueden derivar de un número). Si no, cae al patrón antiguo de CS50 para no romper nada."""
-    if profile.get('current_folder'):
-        return profile['current_folder']
-    if course == 'cs50':
-        return f"week0{profile.get('current_week', 1)}-c"
-    return None
+def _topic_folder(course):
+    """Carpeta del tema en curso (dentro de la raíz del curso en brain/), leída SOLO del progreso de ese
+    curso. Antes salía del perfil común: current_folder de MoureDev pisaba a CS50, y CS50 inventaba
+    'week0N-c', que no existe desde la semana 2 (las carpetas son week02-arrays, week03-algorithms…)."""
+    return get_progress(course).get('current')
+
+
+# El invitado (demo pública de CS50) siempre en la semana 1: no debe seguir el progreso de Nando.
+GUEST_TOPIC_FOLDER = 'week01-c'
 
 
 def build_system_prompt(is_admin=False):
@@ -157,7 +157,7 @@ def build_system_prompt(is_admin=False):
     else:
         mm = Path(os.environ.get('MASTERMIND_PATH', default_mm))
     course_root = COURSE_ROOTS.get(course, course)
-    topic_folder = _topic_folder(course, profile)
+    topic_folder = _topic_folder(course) if is_admin else GUEST_TOPIC_FOLDER
     if mm.exists() and topic_folder:
         sources_dir = mm / course_root / topic_folder / "sources"
         if sources_dir.exists():
@@ -522,7 +522,7 @@ def save_session():
         return jsonify({'error': 'Contenido vacío'}), 400
     profile = get_admin_profile()
     course = profile.get('course', '').lower()
-    topic_folder = _topic_folder(course, profile)
+    topic_folder = _topic_folder(course)
     session_folder = f"week{profile.get('current_week', 1)}-c" if course == 'cs50' and topic_folder \
         else (f"{COURSE_ROOTS.get(course, course).replace('/', '_')}_{topic_folder}" if topic_folder else 'sesiones_sueltas')
     import datetime
