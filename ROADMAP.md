@@ -54,6 +54,30 @@ haría falta anidar el perfil por curso (`profile.mouredev.current_folder`, `pro
 - Para forzar que los móviles recojan una versión nueva del SW: subir `CACHE = 'mastermind-vN'`.
 - Opcional más adelante: **TWA** (Bubblewrap → APK para Play Store). Para uso propio la PWA basta.
 
+## 8. Comandos en el chat: `/kata`, `/lectura`… (apuntado 2026-09-27)
+
+Escribir `/kata` en el chat y que salga una kata; `/lectura` para un ejercicio de lectura de código
+ajeno (los dos ya son parte del método de `Mouredev.md`, pero hoy solo se llega a ellos pidiéndolo
+con palabras). Hoy el chat no tiene ningún comando con `/`: todo lo que se escribe va al modelo tal
+cual. El único mensaje especial es `__greet__` (saludo inicial, `app.js:140` → `app.py:180`), que
+sirve de modelo para interceptar un mensaje antes de mandarlo.
+
+Se hará con la metodología de aprender construyendo (pasos pequeños, "¿qué crees que hace?").
+
+## 9. Inicio: saludo en vez de `select` de curso (apuntado 2026-09-27)
+
+Hoy al entrar hay un `<select id="course-select">` (`index.html:46`, `app.js:386`). La idea: que
+MasterMind **salude y pregunte qué quiero hacer hoy**, y enseñe todas las opciones a la vista
+(cursos, kata, lectura…) en vez de esconderlas en un desplegable.
+
+## 10. MoureDev no es solo Java (apuntado 2026-09-27)
+
+`COURSE_ROOTS = {'cs50': 'cs50', 'mouredev': 'Moure/java'}` (`app.py:77`): MoureDev está
+**hardcodeado a Java**. En `Coding\Cursos\MoureDev\` ya hay también **`bash`** (en el repo, en
+`brain/Moure/`, de momento solo está `java`) y habrá más rutas en el futuro. Al elegir MoureDev
+debería preguntar **qué ruta** (Java, Bash…), leyendo las que existan en vez de tenerlas escritas a
+mano. Relacionado con los puntos 4 y 5: el progreso tendrá que ser por ruta, no solo por curso.
+
 ## Hecho el 2026-09-25
 
 - Separación de `index.html` en `styles.css` + `app.js` (punto 2).
