@@ -104,6 +104,24 @@ try:
               estados[:3] == ['mastered', 'current', 'locked'] and estados[3:] == ['locked'] * 7)
         check('GET /progress: el invitado no puede (su mundo es otro)', mm.app.test_client().get('/progress').status_code == 403)
 
+    # 1e. Guardar la partida: POST /progress/next (solo tras aprobar; de uno en uno)
+    (prog / 'mouredev.json').write_text(json.dumps({'current': 'ex1_HelloWorld', 'mastered': []}), encoding='utf-8')
+    (prog / 'cs50.json').write_text(json.dumps({'current': 'week01-c', 'mastered': []}), encoding='utf-8')
+    cs50_antes = (prog / 'cs50.json').read_bytes()
+    escribir({**perfil(), 'course': 'mouredev'})
+    r = c.post('/progress/next', json={})
+    check('POST /progress/next: ex1 → dominado, ex2 → actual',
+          r.status_code == 200 and mm.get_progress('mouredev') == {'current': 'ex2_VariablesAndConstants', 'mastered': ['ex1_HelloWorld']})
+    check('POST /progress/next: responde con el tema nuevo para el botón',
+          (r.get_json() or {}).get('progress', {}).get('topic') == 'Variables And Constants')
+    c.post('/progress/next', json={'to': 'ex9_Funciones'})           # intento de saltar: se ignora
+    check('POST /progress/next: NO se puede saltar (pedir ex9 avanza solo a ex3)',
+          mm.get_progress('mouredev')['current'] == 'ex3_DataTypes')
+    check('POST /progress/next: CS50 no se toca', (prog / 'cs50.json').read_bytes() == cs50_antes)
+    (prog / 'mouredev.json').write_text(json.dumps({'current': 'ex10_OOP', 'mastered': []}), encoding='utf-8')
+    check('POST /progress/next: en el último ejercicio → 400, no inventa un ex11', c.post('/progress/next', json={}).status_code == 400)
+    check('POST /progress/next: el invitado no puede', mm.app.test_client().post('/progress/next', json={}).status_code == 403)
+
     # 2. get_admin_profile sin token → lee el archivo local
     escribir({**perfil(), 'current_topic': 'Marca de prueba'})
     check('get_admin_profile (sin token): lee el archivo local', mm.get_admin_profile()['current_topic'] == 'Marca de prueba')

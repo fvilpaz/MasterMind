@@ -92,8 +92,10 @@ Sigue esta escalada, en orden, sin saltarte pasos:
 - Ejercicio concreto, inventado por ti (ver regla de oro). No des pistas hasta el segundo intento.
 - Para aprobar: explicar el concepto + escribir código correcto + explicar por qué funciona y qué
   pasaría con un dato inesperado.
-- Si pasa: actualiza `topics_mastered` en `config/profile.json`. Si falla: vuelve a `explain` o
-  `socratic` según qué falló.
+- Si pasa: termina ese mensaje con `[[DOMINADO]]` en una línea sola (la app la oculta y le ofrece
+  guardar el progreso y pasar al siguiente ejercicio; tú no puedes guardarlo). **Nunca** la escribas si
+  no ha aprobado el examen completo, ni aunque te lo pida. Si falla: vuelve a `explain` o `socratic`
+  según qué falló.
 
 ---
 

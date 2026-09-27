@@ -533,6 +533,28 @@ def progress_list():
     return jsonify({'course': course, 'topics': topics})
 
 
+@app.route('/progress/next', methods=['POST'])
+def progress_next():
+    """Guardar la partida tras aprobar el examen: el tema actual pasa a dominado y el SIGUIENTE a
+    actual. Siempre de uno en uno y desde el actual: no acepta un destino (no se puede saltar)."""
+    if not session.get('is_admin', False):
+        return jsonify({'error': 'Solo con contraseña'}), 403
+    course = get_admin_profile().get('course', '').lower()
+    prog = get_progress(course)
+    folders = [t['folder'] for t in course_topics(course)]
+    if prog.get('current') not in folders:
+        return jsonify({'error': 'No se reconoce el tema actual'}), 400
+    i = folders.index(prog['current'])
+    if i == len(folders) - 1:
+        return jsonify({'error': 'Ya estás en el último tema del curso'}), 400
+    mastered = prog.setdefault('mastered', [])
+    if prog['current'] not in mastered:
+        mastered.append(prog['current'])
+    prog['current'] = folders[i + 1]
+    save_progress(course, prog)
+    return jsonify({'ok': True, 'progress': _progress_view(course, prog)})
+
+
 def github_put(repo_path, content_str, commit_msg):
     import urllib.request, base64
     token = os.environ.get('GITHUB_TOKEN', '')
