@@ -120,6 +120,16 @@ python app.py
 # → http://localhost:5000
 ```
 
+### Tests
+
+No dependencies (no pytest needed). From the repo root:
+
+```bash
+python trainer/tests/test_greet.py   # opening greeting: admin/guest, guest name, varied style
+```
+
+Exit code `0` = all pass. Each test file includes a **control** check that proves it can fail.
+
 ---
 
 ## Deployment

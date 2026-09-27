@@ -28,6 +28,13 @@ trainer/
    `config/profile.json`. Opcional: nombre bonito en `COURSE_LABELS` (`web/app.js`) y color con
    `.course-card[data-course="nombre"] { --course-color: … }` (`web/styles.css`)
 
+## Tests
+
+`python trainer/tests/test_greet.py` (desde la raíz del repo, sin pytest). Pruebas de
+caracterización del saludo inicial: **pasarlas antes y después** de tocar `GREET_*` o
+`_resolve_greet` (p. ej. al traducir, punto 12 del ROADMAP). Ojo: el `replace` del nombre del
+invitado depende del texto exacto `llámale 'aprendiz'` de `GREET_GUEST`.
+
 ## Para correr la app
 
 ```bash
