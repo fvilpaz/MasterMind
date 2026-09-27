@@ -53,14 +53,22 @@ reflejando **la lección real en curso**:
 - **La lección de MoureDev no puede avanzar desde la app.** `/update-profile` no admite
   `current_folder` (no está en `allowed`, `app.py:502`), y el panel "Actualizar progreso" solo manda
   `current_topic` y `current_week` (`app.js:482`). Hoy solo se avanza editando `profile.json` a mano.
-- **El tutor tampoco actualiza el perfil** al cambiar de tema en el chat.
+- **El tutor tampoco actualiza el perfil** al cambiar de tema en el chat. `Mouredev.md` le dice en
+  `exam` *"Si pasa: actualiza `topics_mastered` en `config/profile.json`"*, pero es un modelo de chat:
+  **no tiene herramienta para escribir ese archivo** y ningún código lee su respuesta. La instrucción
+  existe y nadie la ejecuta. "Guardar sesión" tampoco: solo escribe el log en `sessions/`.
+  (Por eso a veces *parece* que avanza: el saludo lee el log y "recuerda" el tema, pero el perfil,
+  el badge y las fuentes siguen donde estaban.)
 - Y `current_folder` es lo que decide **qué fuentes recibe el tutor** (`app.py:84`): si en el chat se
   pasa a bucles pero el perfil sigue en `ex1_HelloWorld`, el tutor sigue recibiendo el material de
   Hello World.
 
 Por tanto van juntos: **perfil por curso (este punto) + control de progreso por curso (punto 4) +
-badges que lean la lección real**. Decidir antes: ¿avanza Nando a mano (selector de ejercicio leído de
-`brain/Moure/<ruta>/`), o el tutor propone "¿pasamos a Bucles?" y al confirmar se guarda? Enlaza con
+badges que lean la lección real**. Decidir antes cómo se avanza:
+  1. a mano (selector de ejercicio leído de `brain/Moure/<ruta>/`);
+  2. el tutor propone "¿pasamos a Bucles?" y un botón de la app lo confirma y guarda;
+  3. **al aprobar un `exam`**, como ya pide `Mouredev.md` — pero haciéndolo la **app** (p. ej. el
+     tutor termina con una marca que el backend detecta), no el modelo. Enlaza con
 el punto 10 (rutas de MoureDev).
 
 ## 6. Seguridad — antes de que esto sea de verdad público
