@@ -70,6 +70,11 @@ Hoy al entrar hay un `<select id="course-select">` (`index.html:46`, `app.js:386
 MasterMind **salude y pregunte qué quiero hacer hoy**, y enseñe todas las opciones a la vista
 (cursos, kata, lectura…) en vez de esconderlas en un desplegable.
 
+**Que el saludo no sea siempre el mismo** (apuntado 2026-09-27): variar la pregunta de arranque —
+"¿a qué le atacamos hoy?", "¿qué te apetece aprender?"… Hoy el saludo lo genera el modelo a partir
+de `GREET_ADMIN` / `GREET_GUEST` (`app.py:340` y `:347`), que le dan instrucciones fijas; habría que
+pedirle variedad o darle una lista de arranques para elegir.
+
 ## 10. MoureDev no es solo Java (apuntado 2026-09-27)
 
 `COURSE_ROOTS = {'cs50': 'cs50', 'mouredev': 'Moure/java'}` (`app.py:77`): MoureDev está
@@ -110,6 +115,14 @@ que el `$?` es el de la asignación y siempre dice "Backup exitoso" aunque `tar`
 corrige: es un ejercicio perfecto para `ex5_Errores`.
 
 Orden: contenido tema a tema → adaptar `Mouredev.md` (hoy habla solo de Oracle/Java) → punto 10.
+
+## 12. Plataforma en inglés o en castellano (apuntado 2026-09-27)
+
+Poder elegir idioma: en inglés, toda la plataforma en inglés (botones, menús, mensajes **y** las
+respuestas del tutor); en castellano, todo en castellano. Hoy está todo fijo en castellano:
+`<html lang="es">` (`index.html:2`), los textos de la interfaz escritos a mano en HTML/JS, y los
+prompts (`GREET_*`, `build_system_prompt`) en castellano. Ya existe un campo `"language": "es"` en el
+perfil por defecto (`app.py:18`) que hoy nadie usa: puede ser el punto de partida.
 
 ## Hecho el 2026-09-25
 
