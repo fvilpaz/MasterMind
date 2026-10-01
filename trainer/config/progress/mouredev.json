@@ -1,4 +1,6 @@
 {
-  "current": "ex1_HelloWorld",
-  "mastered": []
+  "current": "ex2_VariablesAndConstants",
+  "mastered": [
+    "ex1_HelloWorld"
+  ]
 }
