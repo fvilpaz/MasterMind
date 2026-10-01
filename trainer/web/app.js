@@ -400,6 +400,16 @@ document.getElementById('choice-pw-btn').addEventListener('click', () => {
   document.getElementById('login-password').focus();
 });
 
+// Si ya entraste antes con contraseña, se recuerda tu nombre y solo pide la contraseña.
+try {
+  const saved = localStorage.getItem('mm-name');
+  if (saved) {
+    document.getElementById('login-name').value = saved;
+    showStep2();
+    document.getElementById('choice-pw-btn').click();   // directo a la contraseña (sin "¿Tienes cuenta?")
+  }
+} catch {}
+
 document.getElementById('login-btn').addEventListener('click', async () => {
   const name = document.getElementById('login-name').value.trim();
   const pw = document.getElementById('login-password').value;
@@ -410,7 +420,11 @@ document.getElementById('login-btn').addEventListener('click', async () => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ password: pw, name })
   });
-  if (r.ok) { isAdmin = true; showCourseStep(); }
+  if (r.ok) {
+    isAdmin = true;
+    try { if (name) localStorage.setItem('mm-name', name); } catch {}   // solo se recuerda al entrar con contraseña
+    showCourseStep();
+  }
   else { err.style.display = 'block'; }
 });
 
