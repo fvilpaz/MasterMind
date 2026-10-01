@@ -139,7 +139,11 @@ async function showNextButton() {
     const r = await fetch('/progress/next', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
     const res = await r.json();
     row.querySelector('.bubble').textContent = r.ok ? `💾 Partida guardada: ahora estás en ${label}.` : `No se pudo guardar: ${res.error}`;
-    if (r.ok) loadProfile();                          // la barra de arriba pasa al tema nuevo
+    if (r.ok) {
+      loadProfile();                                  // la barra de arriba pasa al tema nuevo
+      messages.length = 0;                            // la IA arranca el tema nuevo sin el historial del anterior
+      greet();                                        // y da el enunciado del tema nuevo
+    }
   });
 }
 
