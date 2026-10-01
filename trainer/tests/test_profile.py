@@ -69,6 +69,16 @@ try:
     # El invitado nunca recibe material (sources_text = "" si no es admin): así era y así sigue.
     check('invitado: no recibe material', notas not in mm.build_system_prompt(is_admin=False))
 
+    # 1b-bis. El perfil que ve la IA no puede contradecir al progreso: tras guardar la partida, el perfil
+    #    puede seguir diciendo ex1 (nada lo actualiza) y la IA daba el enunciado del ejercicio 1.
+    (prog / 'mouredev.json').write_text(json.dumps({'current': 'ex2_VariablesAndConstants', 'mastered': ['ex1_HelloWorld']}), encoding='utf-8')
+    escribir({**perfil(), 'course': 'mouredev', 'current_folder': 'ex1_HelloWorld', 'current_topic': 'Hello World'})
+    sistema = mm.build_system_prompt(is_admin=True)
+    check('admin: el perfil del prompt toma la carpeta del PROGRESO (ex2), no la vieja del perfil (ex1)',
+          '"current_folder": "ex2_VariablesAndConstants"' in sistema and '"current_folder": "ex1_HelloWorld"' not in sistema)
+    check("admin: el perfil del prompt toma el tema del progreso ('Variables And Constants')",
+          '"current_topic": "Variables And Constants"' in sistema)
+
     # 1c. /profile devuelve, además del perfil, el progreso DEL CURSO ELEGIDO (para la barra de arriba)
     (prog / 'mouredev.json').write_text(json.dumps({'current': 'ex3_DataTypes', 'mastered': ['ex1_HelloWorld']}), encoding='utf-8')
     (prog / 'cs50.json').write_text(json.dumps({'current': 'week02-arrays', 'mastered': []}), encoding='utf-8')

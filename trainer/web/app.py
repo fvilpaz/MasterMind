@@ -207,6 +207,10 @@ def build_system_prompt(is_admin=False):
         session_folder = f"week{profile.get('current_week', 1)}-c"
     session_log = get_last_session_log(session_folder) if is_admin and session_folder else ""
     has_sessions = bool(session_log)
+    if is_admin and topic_folder:
+        # El tema en curso lo manda el progreso: el perfil puede seguir diciendo el ejercicio anterior.
+        profile = {**profile, 'current_folder': topic_folder,
+                   'current_topic': folder_label(topic_folder).split(' · ')[-1]}
     student_status = (
         "## Estado del estudiante (NUEVO — sin sesiones previas)\n"
         if not has_sessions else
