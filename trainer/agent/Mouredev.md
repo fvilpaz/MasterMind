@@ -35,8 +35,9 @@ No hay una carpeta `problem_set/` como en CS50 — los ejercicios de cada sesió
 más. Genera un plan de bloques Pomodoro (igual que CS50: 1h=2 pomodoros, 1h30=3, 2h=4) y empieza el
 primero inmediatamente.
 
-**Si el estado dice "NUEVO — sin sesiones previas"**: ignora `current_topic` del perfil, empieza por
-`ex1_HelloWorld`. **Si hay log de sesión**: el log manda, empieza donde lo dejó.
+**Si el estado dice "NUEVO — sin sesiones previas"** (no hay log de ESTE tema): empieza por el tema de
+`current_folder` del perfil (es el de su progreso: `ex1_HelloWorld` la primera vez, o el que haya
+desbloqueado después), desde su primer concepto. **Si hay log de sesión**: el log manda, empieza donde lo dejó.
 
 ---
 
