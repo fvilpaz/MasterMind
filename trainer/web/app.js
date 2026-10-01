@@ -407,6 +407,7 @@ try {
     document.getElementById('login-name').value = saved;
     showStep2();
     document.getElementById('choice-pw-btn').click();   // directo a la contraseña (sin "¿Tienes cuenta?")
+    document.getElementById('welcome-msg').textContent = `¡Hola, ${saved}!`;
   }
 } catch {}
 
