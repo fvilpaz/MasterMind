@@ -105,6 +105,9 @@ try:
               [t['n'] for t in ts] == list(range(1, 11)) and ts[0]['folder'] == 'ex1_HelloWorld' and ts[-1]['folder'] == 'ex10_OOP')
         ts = mm.course_topics('cs50')
         check('course_topics(cs50): week01…week10 en orden', [t['n'] for t in ts] == list(range(1, 11)) and ts[1]['folder'] == 'week02-arrays')
+        ts = mm.course_topics('42malaga')
+        check('course_topics(42malaga): ex01…ex54 en orden, de first_word a str_maxlenoc',
+              [t['n'] for t in ts] == list(range(1, 55)) and ts[0]['folder'] == 'ex01_first_word' and ts[-1]['folder'] == 'ex54_str_maxlenoc')
         check('course_topics: curso sin carpetas → []', mm.course_topics('cursonuevo') == [])
         (prog / 'mouredev.json').write_text(json.dumps({'current': 'ex2_VariablesAndConstants', 'mastered': ['ex1_HelloWorld']}), encoding='utf-8')
         escribir({**perfil(), 'course': 'mouredev'})

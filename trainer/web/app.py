@@ -147,7 +147,7 @@ def course_topics(course):
 
 
 # Carpeta raíz dentro de brain/ para cada curso, cuando no coincide con el nombre del curso tal cual.
-COURSE_ROOTS = {'cs50': 'cs50', 'mouredev': 'Moure/java'}
+COURSE_ROOTS = {'cs50': 'cs50', 'mouredev': 'Moure/java', '42malaga': '42'}
 
 
 def _topic_folder(course):

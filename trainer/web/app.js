@@ -430,7 +430,7 @@ document.getElementById('login-btn').addEventListener('click', async () => {
 });
 
 // Nombre bonito de cada curso; uno que no esté aquí se enseña tal cual (nombre del archivo en agent/).
-const COURSE_LABELS = { cs50: 'CS50', mouredev: 'MoureDev' };
+const COURSE_LABELS = { cs50: 'CS50', mouredev: 'MoureDev', '42malaga': '42 Málaga' };
 
 const COURSE_GREETINGS = [
   '¿A qué le atacamos hoy?',
