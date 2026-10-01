@@ -43,7 +43,7 @@ Trabaja sobre una copia temporal: nunca toca el `profile.json` ni el progreso re
 
 - Cada curso guarda su partida en `config/progress/<curso>.json` (`get_progress` / `save_progress`).
 - Se avanza **solo al aprobar un examen**: el agente termina con `[[DOMINADO]]` (Mouredev.md / CS50.md),
-  la app muestra el botón y llama a `POST /progress/next`. El agente no puede guardar nada por sí mismo.
+  la app la oculta y llama sola a `POST /progress/next` (sin botón). El agente no puede guardar nada por sí mismo.
 - Comandos del chat (`/help`, `/ls`…): lista en `COMMANDS` (`web/app.js`), los atiende `runCommand`,
   no van a la IA ni al historial.
 

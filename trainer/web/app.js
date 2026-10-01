@@ -118,33 +118,21 @@ let isAdmin = false;
 
 // ── GUARDAR LA PARTIDA ──────────────────────────────────
 // La IA pone esta marca al final del mensaje cuando apruebas el examen (Mouredev.md / CS50.md).
-// Nunca se ve: se oculta mientras llega, y si llega entera aparece el botón para guardar.
+// Nunca se ve: se oculta mientras llega, y si llega entera se guarda la partida (solo el admin).
 const MASTERED_MARK = '[[DOMINADO]]';
 // Quita la marca, y también su comienzo si todavía está llegando por trozos ("[[DOMI…").
 const hideMark = t => t.replace(MASTERED_MARK, '').replace(/\[\[[A-Z]*\]?$/, '').trimEnd();
 
-async function showNextButton() {
-  const d = await (await fetch('/progress')).json();
-  const i = (d.topics || []).findIndex(t => t.status === 'current');
-  const next = d.topics?.[i + 1];
-  if (!next) return;                                  // último tema: no hay a dónde avanzar
-  const label = `${d.course === 'cs50' ? 'Week' : 'Ej.'} ${next.n} · ${next.topic}`;
-  const row = document.createElement('div');
-  row.className = 'msg-row bot';
-  row.innerHTML = `<div class="avatar bot">🎓</div><div class="bubble"><button class="btn-send">✅ ¡Aprobado! Guardar y pasar a ${escapeHtml(label)}</button></div>`;
-  document.getElementById('messages').appendChild(row);
-  row.scrollIntoView({ behavior: 'smooth' });
-  row.querySelector('button').addEventListener('click', async e => {
-    e.target.disabled = true;
-    const r = await fetch('/progress/next', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
-    const res = await r.json();
-    row.querySelector('.bubble').textContent = r.ok ? `💾 Partida guardada: ahora estás en ${label}.` : `No se pudo guardar: ${res.error}`;
-    if (r.ok) {
-      loadProfile();                                  // la barra de arriba pasa al tema nuevo
-      messages.length = 0;                            // la IA arranca el tema nuevo sin el historial del anterior
-      greet();                                        // y da el enunciado del tema nuevo
-    }
-  });
+// Aprobado el examen, la partida se guarda sola: el tema actual pasa a dominado y el siguiente a actual.
+async function saveProgress() {
+  const r = await fetch('/progress/next', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+  const res = await r.json();
+  if (!r.ok) return addMessage('bot', `No se pudo guardar: ${res.error}`);   // p. ej. ya estás en el último tema
+  const p = res.progress;
+  addMessage('bot', `💾 Partida guardada: ahora estás en ${p.course === 'cs50' ? 'Week' : 'Ej.'} ${p.n} · ${p.topic}.`);
+  loadProfile();                                      // la barra de arriba pasa al tema nuevo
+  messages.length = 0;                                // la IA arranca el tema nuevo sin el historial del anterior
+  greet();                                            // y da el enunciado del tema nuevo
 }
 
 // ── COMANDOS DEL CHAT (/ls, /back…) ─────────────────────
@@ -192,7 +180,7 @@ async function send() {
     const reply = await streamChat(messages);
     if (reply) {
       messages.push({ role: 'assistant', content: reply });
-      if (reply.includes(MASTERED_MARK)) showNextButton();
+      if (isAdmin && reply.includes(MASTERED_MARK)) await saveProgress();
     }
   } catch (e) { removeTyping(); addMessage('error', `Error de conexión: ${e.message}`); }
   document.getElementById('send').disabled = false;

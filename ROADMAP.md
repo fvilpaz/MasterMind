@@ -52,12 +52,13 @@ editar `config/profile.json` a mano. Hace falta un control de progreso genérico
 - `/update-profile` ya no borra la partida al elegir curso (leía la copia vieja de la imagen).
 - Barra de arriba con la lección real (`Ej. N · Tema` / `Week N · Tema`), vía `/profile`.
 - **Guardar la partida al aprobar:** la IA termina con `[[DOMINADO]]` (Mouredev.md / CS50.md), la app
-  la oculta y muestra el botón "✅ ¡Aprobado! Guardar y pasar a…", que llama a `POST /progress/next`
-  (de uno en uno, sin saltos). ⚠️ **Subido sin probar de punta a punta en la app** (Nando sin tiempo,
-  2026-09-28): las pruebas del servidor pasan, falta ver un examen real → marca → botón → guardado.
+  la oculta y llama sola a `POST /progress/next` (de uno en uno, sin saltos; **sin botón** desde
+  2026-10-02, y se quitó el panel "Actualizar progreso"). Al guardar, el chat empieza de cero con el
+  enunciado del tema nuevo. Falta ver un examen real → marca → guardado automático.
 
 **Pendiente:**
-- Probar el flujo completo del botón en producción.
+- Probar el avance automático en producción. Antes: que la partida se guarde de verdad en producción
+  (`GITHUB_TOKEN` en Cloud Run con permiso de escritura) y `/back exN` por si la IA se equivoca.
 - Quitar de `profile.json` los campos viejos (`current_week`, `current_folder`, `current_topic`,
   `weeks_completed`, `topics_mastered`) cuando nadie los use: aún los usan el panel "📍 Progreso" de
   CS50 y el nombre de la carpeta de sesiones (`/save-session`, `build_system_prompt`).
