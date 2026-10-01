@@ -10,10 +10,6 @@ async function loadProfile() {
     document.getElementById('b-week').textContent = pr.n ? (pr.course === 'cs50' ? `Week ${pr.n}` : `Ej. ${pr.n}`) : '';
     document.getElementById('b-topic').textContent = pr.topic || '';
     document.getElementById('b-mode').textContent = p.mode;
-    if (isAdmin) {
-      document.getElementById('profile-topic').value = p.current_topic || '';
-      document.getElementById('profile-week').value = p.current_week || 1;
-    }
   } catch {}
 }
 
@@ -290,7 +286,6 @@ themeSelect.addEventListener('change', () => {
 });
 makeCustomSelect(themeSelect);
 makeCustomSelect(document.getElementById('model'));
-makeCustomSelect(document.getElementById('profile-week'));
 
 // ── POMODORO ──────────────────────────────────────────
 const POMO_EMOJIS = {
@@ -379,7 +374,6 @@ async function startApp() {
   document.getElementById('login-overlay').classList.add('hidden');
   if (isAdmin) {
     document.getElementById('model-row').style.display = 'flex';
-    document.getElementById('progress-row').style.display = 'flex';
   }
   await loadProfile();
   greet();
@@ -515,35 +509,6 @@ document.getElementById('save-session-btn').addEventListener('click', async () =
     }
   } catch (e) {
     showToast('✗ No se pudo guardar. Inténtalo de nuevo.', true);
-  }
-  btn.innerHTML = btnOriginal;
-  btn.disabled = false;
-});
-
-document.getElementById('save-profile-btn').addEventListener('click', async () => {
-  settingsDropdown.classList.remove('open');
-  const topic = document.getElementById('profile-topic').value.trim();
-  const week = parseInt(document.getElementById('profile-week').value);
-  const btn = document.getElementById('save-profile-btn');
-  const btnOriginal = btn.innerHTML;
-  btn.textContent = 'Guardando...';
-  btn.disabled = true;
-  try {
-    const r = await fetch('/update-profile', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ current_topic: topic, current_week: week })
-    });
-    const data = await r.json();
-    if (data.ok) {
-      showToast('✓ Progreso actualizado');
-      document.getElementById('b-topic').textContent = topic;
-      document.getElementById('b-week').textContent = `Week ${week}`;
-    } else {
-      showToast('✗ No se pudo actualizar. Inténtalo de nuevo.', true);
-    }
-  } catch {
-    showToast('✗ No se pudo actualizar. Inténtalo de nuevo.', true);
   }
   btn.innerHTML = btnOriginal;
   btn.disabled = false;
