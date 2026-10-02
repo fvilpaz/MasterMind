@@ -23,6 +23,7 @@ AGENT.md  (router)
     │
     ├── CS50.md       ← enforces video → notes → exercises → problem set
     ├── Mouredev.md   ← Brais García method + katas + code reading
+    ├── 42malaga.md   ← 42 Exam Rank 02 (C): same hybrid method, adapted to studying on a phone
     └── YourCourse.md ← add your own
 ```
 
@@ -36,9 +37,9 @@ The router reads the student profile (`config/profile.json`), selects the right 
 |---|---|
 | 🔀 Streaming responses | Token-by-token via SSE |
 | 🎓 Multi-course agents | Each subject has its own teaching logic |
-| 👤 Two-step login | Name → password (admin) or guest mode |
+| 👤 Two-step login | Name → password (admin) or guest mode. After one successful password login the app remembers your name and only asks for the password |
 | 🗂 Course picker | Admin gets a varied greeting ("¿A qué le atacamos hoy?") and one coloured card per course; the last one used is tagged |
-| 💾 Save your progress | Each course keeps its own progress (`config/progress/<course>.json`). You only move on when the tutor **passes you in an exam**: it tags its reply and a button appears to save and go to the next lesson. The top bar shows the real lesson (`Ej. 3 · Data Types`, `Week 2 · Arrays`) |
+| 💾 Save your progress | Each course keeps its own progress (`config/progress/<course>.json`). You only move on when the tutor **passes you in an exam**: it tags its reply and the app saves your progress and moves on to the next lesson by itself (no button; the chat restarts with the new lesson). The top bar shows the real lesson (`Ej. 3 · Data Types`, `Week 2 · Arrays`) |
 | ⌨️ Chat commands | `/help` (all commands), `/ls` (your lessons: ✅ mastered · 👉 current · 🔒 locked); `/back`, `/kata`, `/read` coming. Handled by the app, never sent to the AI |
 | ⏱ Pomodoro timer | 25/5 with beep, as a compact counter in the top bar (green on break, red + pulse when time is up) with a thin progress line — never covers the chat |
 | 🎨 8 themes | Harvard, Dracula, Cyberpunk, Barbie and more — every text and button checked for contrast (≥ 3:1) in all of them |
@@ -74,7 +75,8 @@ MasterMind/
 │   ├── agent/
 │   │   ├── AGENT.md        ← router: reads profile, selects course agent
 │   │   ├── CS50.md         ← CS50 teaching strategy + progression rules
-│   │   └── Mouredev.md     ← MoureDev teaching strategy
+│   │   ├── Mouredev.md     ← MoureDev teaching strategy
+│   │   └── 42malaga.md     ← 42 Exam Rank 02 teaching strategy (C)
 │   ├── config/
 │   │   ├── profile.json    ← who you are: name, chosen course, mode, language
 │   │   └── progress/       ← one file per course: { "current": lesson folder, "mastered": [...] }
@@ -82,10 +84,10 @@ MasterMind/
 │       ├── app.py          ← Flask server + streaming endpoints
 │       ├── app.js          ← frontend logic
 │       ├── styles.css      ← themes + layout
-│       ├── index.html      ← shell (162 lines)
+│       ├── index.html      ← shell (182 lines)
 │       ├── manifest.json   ← PWA manifest
 │       └── sw.js           ← service worker
-├── brain/                  ← Obsidian vault with source material (local only)
+├── brain/                  ← Obsidian vault with source material (cs50/, Moure/, 42/: one folder per lesson, `exNN_name/sources/`)
 └── Dockerfile
 ```
 
@@ -98,6 +100,10 @@ MasterMind/
 3. It shows up on its own as a card in the course picker (admin). Optional: a display name in
    `COURSE_LABELS` (`trainer/web/app.js`) and a colour with
    `.course-card[data-course="yourcourse"] { --course-color: … }` (`trainer/web/styles.css`)
+4. Lessons go in `brain/<root>/exNN_name/sources/` (or `weekNN-name`); map the root folder in `COURSE_ROOTS`
+   (`trainer/web/app.py`) and give the course a starting point in `trainer/config/progress/<course>.json`
+5. Name the agent file so the lookup finds it (`NAME.md`, `Name.md` or `name.md`): case matters on Linux
+   (Cloud Run) even if it works on Windows
 
 ---
 
@@ -117,6 +123,7 @@ GEMINI_API_KEY=...       # for admin Gemini mode
 ANTHROPIC_API_KEY=...    # for admin Claude mode
 GROQ_API_KEY=...         # for guest mode
 AI_PROVIDER=gemini       # or: claude
+GITHUB_TOKEN=...         # production only (optional): the app commits progress/profile to the repo
 ```
 
 ```bash
@@ -139,6 +146,15 @@ Exit code `0` = all pass. Each test file includes a **control** check that prove
 
 ## Deployment
 
-Every push to `main` triggers an automatic deploy to Cloud Run via GitHub Actions.
+Every push to `main` triggers an automatic deploy to Cloud Run via GitHub Actions — except commits that only touch
+`trainer/config/progress/**`, `trainer/config/profile.json` or `trainer/sessions/**` (`paths-ignore` in
+`deploy.yml`).
+
+**Where your progress lives.** With `GITHUB_TOKEN` set on the Cloud Run service (project `mastermind-trainer`,
+region `europe-west1`), the app saves progress and profile as commits on `main` (`update: progress/…`,
+`update: profile.json`). Without it, it falls back to files on the container's disk, which are lost on every
+restart. So: **`git pull --rebase` before pushing from your PC**, and don't commit those files by hand. On Cloud
+Run, add variables with `--update-env-vars` (`--set-env-vars` replaces all of them). Moving progress out of git
+into a storage bucket is planned (`ROADMAP.md`, point 17).
 
 Built by [Fernando Vilas Paz](https://fvilpaz.github.io/cv/) · [fv-mastermind.com](https://fv-mastermind.com)

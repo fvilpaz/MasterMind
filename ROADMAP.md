@@ -35,11 +35,10 @@ Esto desbloquea poder usar ESLint/Stylelint de verdad (ver punto 3).
 Acordado pero no montado: `detect-secrets` (para que no vuelva a pasar lo de los PDFs/API keys en
 el historial), `bandit` (seguridad Flask/Python), `ruff` (lint + formato).
 
-## 4. El panel "Actualizar progreso" no sirve para MoureDev
+## ~~4. El panel "Actualizar progreso" no sirve para MoureDev~~ — HECHO (2026-10-02)
 
-El selector de Week 1-5 + botón de progreso es específico de CS50 (manda `current_week`, no
-`current_folder`). Para MoureDev, cambiar de tema desde la interfaz hoy no funciona — hay que
-editar `config/profile.json` a mano. Hace falta un control de progreso genérico por curso.
+Se quitó el panel (selector de Week, tema y botón) y su código: el progreso avanza solo al aprobar
+(punto 5). `/update-profile` se queda: lo usan las tarjetas de curso.
 
 ## 5. `profile.json` es un único perfil plano, no por curso — EN GRAN PARTE HECHO (2026-09-28)
 
@@ -57,12 +56,14 @@ editar `config/profile.json` a mano. Hace falta un control de progreso genérico
   enunciado del tema nuevo. Falta ver un examen real → marca → guardado automático.
 
 **Pendiente:**
-- Probar el avance automático en producción. Antes: que la partida se guarde de verdad en producción
-  (`GITHUB_TOKEN` en Cloud Run con permiso de escritura) y `/back exN` por si la IA se equivoca.
+- Ver el **primer guardado real de progreso** en producción (`update: progress/…` en GitHub): el
+  `GITHUB_TOKEN` ya está en Cloud Run (punto 18) y el commit de perfil se comprobó, el de progreso no.
+  Y `/back exN` (punto 8) por si la IA aprueba por error.
 - Quitar de `profile.json` los campos viejos (`current_week`, `current_folder`, `current_topic`,
-  `weeks_completed`, `topics_mastered`) cuando nadie los use: aún los usan el panel "📍 Progreso" de
-  CS50 y el nombre de la carpeta de sesiones (`/save-session`, `build_system_prompt`).
-- Pasar ese panel de CS50 y la carpeta de sesiones al progreso por curso.
+  `weeks_completed`, `topics_mastered`) cuando nadie los use: aún los usan la carpeta de sesiones de CS50
+  (`week{current_week}-c`, en `build_system_prompt`) y el nombre del archivo de `/save-session`. El prompt ya
+  no se fía de ellos: `current_folder` y `current_topic` salen del progreso (2026-10-02).
+- Pasar la carpeta de sesiones al progreso por curso.
 
 Si cambias de CS50 a MoureDev y vuelves, `current_topic`/`current_week`/`topics_mastered` se pisan
 entre cursos — no hay estado independiente por curso. Para llevar los dos en paralelo de verdad,
@@ -258,6 +259,96 @@ Solo `week01-c` (3 archivos) y `week04-memory` (2) tienen algo en `sources/`; la
 están **vacías**: al llegar ahí, el tutor no tendrá material de apoyo (antes ni se notaba, porque la app
 buscaba `week0N-c` y nunca encontraba nada desde la semana 2). Rellenar con fuentes libres
 (notas oficiales de CS50, transcripciones), igual que la semana 1.
+
+## 16. Curso "42 Málaga" — HECHO (2026-10-02), con cosas pendientes
+
+**Hecho:** curso nuevo en el selector. Tutor `agent/42malaga.md` (híbrido MoureDev + CS50, adaptado al
+móvil: traza a mano, nunca pide compilar). 54 ejercicios de Exam Rank 02 en
+`brain/42/exNN_nombre/sources/subject.md` (enunciado en inglés, sin soluciones, ordenados por nivel
+`part_0`→`part_4`: ex01–12, 13–26, 27–41, 42–48, 49–54). Progreso propio (`config/progress/42malaga.json`) y
+`COURSE_ROOTS['42malaga'] = '42'`. Copia de `exams_by_beltran/` en `brain/42/` (repo abierto de Beltran, con
+soluciones y scripts: el tutor **no** lo lee; se guardó ahí para tenerlo en cualquier PC). El archivo del tutor va
+en minúsculas porque Linux distingue mayúsculas al buscarlo.
+
+**Pendiente:**
+- **Criterio de aprobado.** En la primera sesión el tutor dio `[[DOMINADO]]` sin que Nando escribiera el
+  programa final (con errores de sintaxis) y le dictó casi todo. Opciones: (1) tal cual · (2) flexible con las
+  erratas del móvil pero **siempre** el programa completo en un mensaje y sin dictar líneas · (3) estricto.
+  Recomendada la 2. Mirar si `Mouredev.md` tiene el mismo hueco (no comprobado).
+- Que el tutor muestre el `subject.md` tal cual en el primer paso (en la prueba no lo hizo).
+- **`/42`**: un reto suelto "off topic" dentro de otro curso, elegido por la app (no inventado por la IA) y
+  pasado al tutor como instrucción oculta. Mismo mecanismo que `/kata` (punto 8). Sin hacer.
+- Contrastar unos pocos enunciados con una segunda fuente: solo se cruzó inglés/francés dentro del mismo
+  repo (`inter` da un aviso falso: el ejemplo francés está traducido con otras palabras y es correcto).
+- **Océano** (divulgador, lista de YouTube): Nando quiere aprovechar algo de él; falta decir qué idea. La lista
+  no se pudo leer (pantalla de consentimiento de YouTube).
+- La barra de arriba enseña el nombre interno `42malaga`, no el bonito "42 Málaga". El orden dentro de cada
+  nivel es alfabético (arbitrario).
+
+## 17. El progreso vive dentro del repo del código → llevarlo a un bucket (apuntado 2026-10-02)
+
+**Hoy:** la app guarda progreso y perfil como **commits en `main`** (con `GITHUB_TOKEN`). Consecuencias:
+commits de la app mezclados con los de Nando, `git pull --rebase` antes de cada push desde el PC, y un
+`paths-ignore` en `deploy.yml` para que esos commits no desplieguen. Antes no se notaba porque el token no
+estaba en Cloud Run: nada llegaba a GitHub y el avance se perdía al reiniciar la instancia.
+
+**Propuesta:** `GCS_BUCKET` (Cloud Storage, `europe-west1`, acceso uniforme, sin acceso público, rol *Storage
+Object Admin* para la cuenta de servicio de Cloud Run). Con la variable, progreso y perfil se leen y escriben
+ahí; sin ella, como ahora (GitHub o local). Bucket vacío → valor inicial = archivos del repo (sin migrar a
+mano). Dependencia `google-cloud-storage`. `GITHUB_TOKEN` seguiría solo para los logs de sesión. Unas ~40
+líneas en `app.py` + pruebas con un cliente falso; el primer guardado real se verifica en producción. Nando
+haría: crear el bucket, el permiso y la variable. Coste prácticamente cero.
+
+## 18. Operación en producción (2026-10-02)
+
+- El servicio `mastermind-trainer` está en el proyecto de Google Cloud **`mastermind-trainer`** (no en "My
+  First Project"), región `europe-west1`. `fv-mastermind.com` apunta ahí (dominio asignado a Cloud Run).
+- `GITHUB_TOKEN` añadido a Cloud Run (token fine-grained `mastermind-sessions`: solo `fvilpaz/MasterMind`,
+  Contents lectura y escritura, sin caducidad). Comprobado: la app hace `update: profile.json` y ese commit
+  **no** lanza despliegue. Sin comprobar aún: guardado real de progreso.
+- **Pendiente: rotar `ADMIN_PASSWORD`** (se usó `nando` temporalmente para probar).
+- Al tocar variables desde `gcloud`, usar `--update-env-vars` y no `--set-env-vars` (este reemplaza todas;
+  es una sospecha de por qué el token desapareció, no está comprobado).
+- Antes de que el token estuviera, la app **fingía guardar**: `save_progress` y `/update-profile` se tragan el
+  error de GitHub (solo un `[WARN]` en los logs) y devuelven `ok`.
+
+## 19. Refactor y pruebas pendientes (apuntado 2026-10-02)
+
+Siguiendo la regla del final: **pruebas antes de refactorizar**, nunca a ciegas.
+
+**Pruebas que faltan**
+- Frontend: nada con tests (`saveProgress`, `greet`, login que recuerda el nombre, `COMMANDS`). Todo se
+  comprobó a mano con el navegador (MCP de Chrome DevTools).
+- Servidor: `[[DOMINADO]]` real de punta a punta, `build_system_prompt` con el curso 42, y qué pasa cuando
+  GitHub falla en `get_admin_profile` / `/update-profile` / `save_progress`.
+- CI: `deploy.yml` despliega **sin pasar los tests**. Añadir un paso que ejecute `test_greet.py` y
+  `test_profile.py` antes de desplegar.
+
+**Candidatos a refactor** (solo con pruebas antes)
+- `app.py` mezcla rutas, acceso a GitHub (`github_get` / `github_put`), progreso y construcción del prompt.
+  Separar el acceso a datos (patrón *Repository*: un solo sitio que sabe dónde se guardan los datos) haría
+  trivial el bucket del punto 17.
+- `app.js` (575 líneas) junta login, chat, comandos, pomodoro y ajustes.
+- Que `save_progress` avise al usuario cuando no puede subir a GitHub, en vez de decir `ok`.
+- Quitar los campos viejos de `profile.json` (punto 5).
+
+## Hecho el 2026-10-02
+
+- **El progreso avanza solo al aprobar**: sin botón "Guardar y pasar a…". Al guardar sale "💾 Partida
+  guardada…", la barra pasa al tema nuevo, el chat empieza de cero y la IA da el enunciado nuevo.
+- Quitado el panel "Actualizar progreso" (punto 4). Lo que se decidió el 2026-09-25 (mantenerlo separado de
+  "Guardar sesión") queda superado: "Guardar sesión" sigue, "Actualizar progreso" ya no existe.
+- **Bug del enunciado que se quedaba en el ej. 1**, tres causas a la vez: el perfil del prompt decía ex1
+  (ahora el prompt toma `current_folder` / `current_topic` del progreso), el historial del ejercicio anterior
+  seguía en el chat (ahora se vacía) y `Mouredev.md` mandaba empezar siempre por `ex1_HelloWorld` cuando no
+  había sesiones previas del tema (ahora empieza por el tema del progreso).
+- **Login que recuerda el nombre** (`localStorage` `mm-name`, solo tras entrar con contraseña): salta directo a
+  la contraseña con "¡Hola, Nando!".
+- Curso **42 Málaga** (punto 16).
+- `deploy.yml`: `paths-ignore` para los commits de la app (`trainer/config/progress/**`,
+  `trainer/config/profile.json`, `trainer/sessions/**`).
+- Producción: `GITHUB_TOKEN` en Cloud Run (punto 18); partida de 42 restaurada a ex02 (first_word dominado) y
+  MoureDev en ex2.
 
 ## Hecho el 2026-09-25
 
