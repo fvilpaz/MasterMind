@@ -1,4 +1,6 @@
 {
-  "current": "ex01_first_word",
-  "mastered": []
+  "current": "ex02_fizzbuzz",
+  "mastered": [
+    "ex01_first_word"
+  ]
 }
