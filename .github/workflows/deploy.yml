@@ -4,6 +4,13 @@ on:
   push:
     branches:
       - main
+    # Los commits que hace la propia app al guardar (partida, perfil, sesiones) no despliegan: con
+    # GITHUB_TOKEN en Cloud Run cada guardado sería un commit y cada commit reiniciaría la app.
+    # Un commit que mezcle estos archivos con código SÍ despliega (solo se salta si todo coincide).
+    paths-ignore:
+      - 'trainer/config/progress/**'
+      - 'trainer/config/profile.json'
+      - 'trainer/sessions/**'
 
 # Si llegan dos pushes seguidos, el segundo despliegue espera al primero en vez de
 # chocar con él (el 27-sep chocaron: "Conflict for resource mastermind-trainer").
