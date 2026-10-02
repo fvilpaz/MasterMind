@@ -306,7 +306,7 @@ haría: crear el bucket, el permiso y la variable. Coste prácticamente cero.
 - `GITHUB_TOKEN` añadido a Cloud Run (token fine-grained `mastermind-sessions`: solo `fvilpaz/MasterMind`,
   Contents lectura y escritura, sin caducidad). Comprobado: la app hace `update: profile.json` y ese commit
   **no** lanza despliegue. Sin comprobar aún: guardado real de progreso.
-- **Pendiente: rotar `ADMIN_PASSWORD`** (se usó `nando` temporalmente para probar).
+- **Pendiente: rotar `ADMIN_PASSWORD`** (se puso una contraseña temporal para probar en producción).
 - Al tocar variables desde `gcloud`, usar `--update-env-vars` y no `--set-env-vars` (este reemplaza todas;
   es una sospecha de por qué el token desapareció, no está comprobado).
 - Antes de que el token estuviera, la app **fingía guardar**: `save_progress` y `/update-profile` se tragan el
