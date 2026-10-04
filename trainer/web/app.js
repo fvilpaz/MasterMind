@@ -317,6 +317,8 @@ let pomoMode      = 'work';
 let pomoRemaining = POMO_WORK;
 let pomoRunning   = false;
 let pomoInterval  = null;
+let pomoEndsAt    = 0;   // hora real (ms) a la que acaba el bloque en marcha: el reloj se calcula contra ella, no restando 1 por segundo
+const POMO_KEY    = 'pomo-state';
 
 function pomoRender() {
   pomoSetEmoji();
@@ -332,41 +334,74 @@ function pomoRender() {
   }
 }
 
+// El estado vive en el navegador para que sobreviva a recargar o cerrar la pestaña.
+function pomoSave() {
+  try {
+    localStorage.setItem(POMO_KEY, JSON.stringify({ mode: pomoMode, remaining: pomoRemaining, endsAt: pomoRunning ? pomoEndsAt : 0 }));
+  } catch {}
+}
+
+function pomoStop() {
+  clearInterval(pomoInterval);
+  pomoRunning = false;
+  document.getElementById('pomo-toggle').textContent = '▶';
+}
+
+function pomoLeft() { return Math.max(0, Math.ceil((pomoEndsAt - Date.now()) / 1000)); }
+
+function pomoTick() {
+  pomoRemaining = pomoLeft();
+  if (pomoRemaining === 0) { pomoStop(); pomoBeep(); }
+  pomoRender();
+  pomoSave();
+}
+
+function pomoStart() {
+  pomoRunning = true;
+  document.getElementById('pomo-toggle').textContent = '⏸';
+  pomoInterval = setInterval(pomoTick, 1000);
+}
+
 document.getElementById('pomo-toggle').addEventListener('click', () => {
   if (pomoRunning) {
-    clearInterval(pomoInterval);
-    pomoRunning = false;
-    document.getElementById('pomo-toggle').textContent = '▶';
+    pomoRemaining = pomoLeft();
+    pomoStop();
   } else {
     if (pomoRemaining === 0) {
       pomoMode = pomoMode === 'work' ? 'break' : 'work';
       pomoRemaining = pomoMode === 'work' ? POMO_WORK : POMO_BREAK;
     }
-    pomoRunning = true;
-    document.getElementById('pomo-toggle').textContent = '⏸';
-    pomoInterval = setInterval(() => {
-      pomoRemaining--;
-      pomoRender();
-      if (pomoRemaining === 0) {
-        clearInterval(pomoInterval);
-        pomoRunning = false;
-        document.getElementById('pomo-toggle').textContent = '▶';
-        pomoBeep();
-        pomoRender();
-      }
-    }, 1000);
+    pomoEndsAt = Date.now() + pomoRemaining * 1000;
+    pomoStart();
   }
+  pomoRender();
+  pomoSave();
 });
 
 document.getElementById('pomo-reset').addEventListener('click', () => {
-  clearInterval(pomoInterval);
-  pomoRunning   = false;
+  pomoStop();
   pomoMode      = 'work';
   pomoRemaining = POMO_WORK;
-  document.getElementById('pomo-toggle').textContent = '▶';
   pomoRender();
+  pomoSave();
 });
 
+// Al volver a la pestaña el navegador pudo haber frenado el reloj: se recalcula al momento.
+document.addEventListener('visibilitychange', () => { if (pomoRunning && !document.hidden) pomoTick(); });
+
+// Recuperar el estado guardado (si el bloque acabó mientras no estabas, aparece en 00:00 y sin pitido).
+try {
+  const saved = JSON.parse(localStorage.getItem(POMO_KEY) || 'null');
+  if (saved && (saved.mode === 'work' || saved.mode === 'break') && Number.isFinite(saved.remaining)) {
+    pomoMode = saved.mode;
+    pomoRemaining = saved.remaining;
+    if (saved.endsAt) {
+      pomoEndsAt = saved.endsAt;
+      pomoRemaining = pomoLeft();
+      if (pomoRemaining > 0) pomoStart();
+    }
+  }
+} catch {}
 pomoRender();
 
 // ── LOGIN ─────────────────────────────────────────────
