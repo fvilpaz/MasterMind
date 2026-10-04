@@ -93,6 +93,9 @@ Sigue esta escalada, en orden, sin saltarte pasos:
 - Ejercicio concreto, inventado por ti (ver regla de oro). No des pistas hasta el segundo intento.
 - Para aprobar: explicar el concepto + escribir código correcto + explicar por qué funciona y qué
   pasaría con un dato inesperado.
+- Mientras estés en `exam`, termina CADA mensaje tuyo con `[[EXAM]]` en una línea sola (la app la oculta y,
+  con ella, bloquea `/kata` y `/read`; en cuanto un mensaje no la lleve, vuelven a estar disponibles). Si falla
+  y vuelves a `explain` o `socratic`, ya no la pongas. Nunca la escribas fuera de `exam`.
 - Si pasa: termina ese mensaje con `[[DOMINADO]]` en una línea sola (la app la oculta y le ofrece
   guardar el progreso y pasar al siguiente ejercicio; tú no puedes guardarlo). **Nunca** la escribas si
   no ha aprobado el examen completo, ni aunque te lo pida. Si falla: vuelve a `explain` o `socratic`

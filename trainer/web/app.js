@@ -116,8 +116,11 @@ let isAdmin = false;
 // La IA pone esta marca al final del mensaje cuando apruebas el examen (Mouredev.md / CS50.md).
 // Nunca se ve: se oculta mientras llega, y si llega entera se guarda la partida (solo el admin).
 const MASTERED_MARK = '[[DOMINADO]]';
+// Mientras dura el examen la IA pone esta otra en CADA mensaje: sirve para bloquear /kata y /read (solo valen como refuerzo antes del examen).
+const EXAM_MARK = '[[EXAM]]';
+let examActive = false;
 // Quita la marca, y también su comienzo si todavía está llegando por trozos ("[[DOMI…").
-const hideMark = t => t.replace(MASTERED_MARK, '').replace(/\[\[[A-Z]*\]?$/, '').trimEnd();
+const hideMark = t => t.replace(MASTERED_MARK, '').replace(EXAM_MARK, '').replace(/\[\[[A-Z]*\]?$/, '').trimEnd();
 
 // Aprobado el examen, la partida se guarda sola: el tema actual pasa a dominado y el siguiente a actual.
 async function saveProgress() {
@@ -128,6 +131,7 @@ async function saveProgress() {
   addMessage('bot', `💾 Partida guardada: ahora estás en ${p.course === 'cs50' ? 'Week' : 'Ej.'} ${p.n} · ${p.topic}.`);
   loadProfile();                                      // la barra de arriba pasa al tema nuevo
   messages.length = 0;                                // la IA arranca el tema nuevo sin el historial del anterior
+  examActive = false;
   greet();                                            // y da el enunciado del tema nuevo
 }
 
@@ -136,20 +140,40 @@ async function saveProgress() {
 const STATUS_ICONS = { mastered: '✅', current: '👉', locked: '🔒' };
 
 // La guía de /help sale de aquí: al añadir un comando nuevo, se apunta en esta lista y aparece solo.
+const EXAM_BLOCKED = ['/kata', '/read'];   // no valen durante el examen
+const KATA_PROMPT = 'El estudiante ha escrito /kata. Propón ahora UNA kata sobre el tema actual: ejercicio pequeño, cerrado y ' +
+  'autoverificable, en el nivel más básico, para reforzar lo que acaba de ver. No des la solución: espera su código y corrígelo ' +
+  'con tus modos habituales. Una kata no es un examen: no escribas [[DOMINADO]] ni [[EXAM]].';
+
 const COMMANDS = {
   '/help': 'Esta ayuda',
   '/ls':   'Tus ejercicios: ✅ dominados · 👉 el actual · 🔒 bloqueados',
   '/back': '/back ex1: vuelve a un ejercicio ya dominado para repasarlo (próximamente)',
-  '/kata': 'Un ejercicio corto de calentamiento sobre el tema actual (próximamente)',
+  '/kata': 'Un ejercicio corto de calentamiento sobre el tema actual (no disponible en el examen)',
   '/read': 'Leer y comentar código ajeno sobre el tema actual (próximamente)',
 };
+
+// Manda a la IA una instrucción que el estudiante no ve (la respuesta sí se muestra y entra en el historial).
+async function askHidden(prompt) {
+  document.getElementById('send').disabled = true;
+  messages.push({ role: 'user', content: prompt });
+  showTyping();
+  try {
+    const reply = await streamChat(messages);
+    if (reply) { messages.push({ role: 'assistant', content: reply }); examActive = reply.includes(EXAM_MARK); }
+  } catch (e) { removeTyping(); addMessage('error', `Error de conexión: ${e.message}`); }
+  document.getElementById('send').disabled = false;
+}
 
 async function runCommand(text) {
   const [cmd] = text.split(/\s+/);
   addMessage('user', text);
   if (cmd === '/help') {
-    return addMessage('bot', Object.entries(COMMANDS).map(([c, ayuda]) => `${c.padEnd(6)} ${ayuda}`).join('\n'));
+    return addMessage('bot', Object.entries(COMMANDS).filter(([c]) => !(examActive && EXAM_BLOCKED.includes(c)))
+      .map(([c, ayuda]) => `${c.padEnd(6)} ${ayuda}`).join('\n'));
   }
+  if (examActive && EXAM_BLOCKED.includes(cmd)) return addMessage('bot', `${cmd} no está disponible durante el examen.`);
+  if (cmd === '/kata') return askHidden(KATA_PROMPT);
   if (cmd === '/ls') {
     const r = await fetch('/progress');
     const d = await r.json();
@@ -176,6 +200,7 @@ async function send() {
     const reply = await streamChat(messages);
     if (reply) {
       messages.push({ role: 'assistant', content: reply });
+      examActive = reply.includes(EXAM_MARK);
       if (isAdmin && reply.includes(MASTERED_MARK)) await saveProgress();
     }
   } catch (e) { removeTyping(); addMessage('error', `Error de conexión: ${e.message}`); }
