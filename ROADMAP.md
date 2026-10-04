@@ -138,7 +138,10 @@ el punto 10 (rutas de MoureDev).
 
 **Hecho (2026-09-28):** `/help` y `/ls`. La lista vive en `COMMANDS` (`app.js`): `/help` la enseña
 entera (los que faltan salen como "próximamente"). Pista fija "💡 Escribe /help…" encima de la caja de
-escribir. **Siguientes:** `/back exN` (necesita `POST /progress/back`), luego `/kata` y `/read`.
+escribir. **Hecho (2026-10-04):** `/kata` — manda a la IA una instrucción oculta; no sale en el examen (ver "Hecho el 2026-10-04").
+**Siguientes:** `/back exN` (necesita `POST /progress/back`), luego `/read`. Para `/read`: código inventado por la IA, con
+alguna trampa realista (el código real de GitHub queda aparcado); `Mouredev.md` aún dice "fragmento real de GitHub" y
+hay que cambiar esa frase al hacerlo. `/read` ya nace bloqueado en el examen (`EXAM_BLOCKED` en `app.js`).
 
 **Nombres decididos por Nando (2026-09-27):** `/kata`, **`/read`** (lectura de código ajeno; no
 `/lectura`), **`/ls`** (lista de ejercicios: ✅ dominados, 👉 actual, 🔒 bloqueados) y **`/back exN`**
@@ -331,6 +334,29 @@ Siguiendo la regla del final: **pruebas antes de refactorizar**, nunca a ciegas.
 - `app.js` (575 líneas) junta login, chat, comandos, pomodoro y ajustes.
 - Que `save_progress` avise al usuario cuando no puede subir a GitHub, en vez de decir `ok`.
 - Quitar los campos viejos de `profile.json` (punto 5).
+
+## Hecho el 2026-10-04
+
+- **Reloj del pomodoro con hora real** (`0fe971d`): guarda la hora de fin y recalcula, en vez de restar 1 por segundo
+  (el navegador frena `setInterval` en segundo plano, y por eso "se pausaba"). Estado en `localStorage`
+  (`pomo-state`): sobrevive a recargar y a cerrar la pestaña; si acaba mientras no estás, sale 00:00 sin pitido.
+- **Plan de pomodoros** (`1702d9b`): los botones ⏱ guardan `pomo-plan` `{total, done, at}`. Cada pomodoro de trabajo
+  completo suma uno (el descanso no). Con plan en marcha el saludo de un tema nuevo va por `__greet_plan__` y **no**
+  pregunta el tiempo; al cumplirlo, o a las 4 h, vuelve a preguntar. Solo admin y por navegador.
+- **`/kata` y marca `[[EXAM]]`** (`7af4cb4`): la IA pone `[[EXAM]]` en cada mensaje mientras dura el examen (regla en
+  `Mouredev.md`, `CS50.md` y `42malaga.md`); la app la oculta y bloquea `/kata` y `/read` (y los quita de `/help`)
+  hasta que un mensaje no la lleve. No hay marca de fin: la última respuesta manda.
+- Probado en navegador real (copia aislada + IA falsa, ver `MEMORY.md`): reloj tras recargar y en pausa, plan en
+  marcha y plan cumplido, `/kata` dentro y fuera del examen. Los 3 despliegues terminaron en `success`.
+- **Sin comprobar:** que la IA real ponga `[[EXAM]]` en cada mensaje del examen; el modo invitado y el móvil.
+
+## 💡 Aparcado (2026-10-04)
+
+- Plan de pomodoros en el servidor para compartirlo entre PC y móvil (hoy es por navegador).
+- Si se escribe "tengo 1 hora" en vez de pulsar el botón ⏱, no se guarda plan: se podría leer del texto.
+- Comando `/tiempo` para reiniciar el plan a mitad.
+- Curso de pruebas rápido (idea de Nando: "churros") para probar la app de punta a punta con datos absurdos.
+- Código real de GitHub en `/read`.
 
 ## Hecho el 2026-10-02
 

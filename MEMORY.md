@@ -36,7 +36,23 @@
   vuelta atrás (aún no hay `/back`). Pasó con 42 el 2026-10-02.
 - `/update-profile` y `save_progress` no avisan si fallan en GitHub.
 
+## Pomodoro, plan y marcas (cómo funciona)
+- Todo en `localStorage`, por navegador: `pomo-state` (`{mode, remaining, endsAt}`; `endsAt` = hora real de fin, 0 si
+  está parado) y `pomo-plan` (`{total, done, at}`, caduca a las 4 h). No pasa por el servidor.
+- El saludo tiene dos formas: `__greet__` (pregunta el tiempo) y `__greet_plan__` (no lo pregunta, solo admin).
+  Los dos en `GREET_TOKENS` (`app.py`). Un token nuevo hay que añadirlo ahí o `is_greet` no lo reconoce.
+- Marcas ocultas de la IA: `[[DOMINADO]]` (aprobó: guarda y avanza) y `[[EXAM]]` (está en examen, en cada mensaje).
+  `hideMark` (`app.js`) las quita al mostrar, también a medias (`[[EX`).
+
 ## Cómo probar en local
+- **Probar de punta a punta sin tocar nada real** (así se hizo el 2026-10-04): `git archive HEAD trainer` a una
+  carpeta temporal (sin `.env`, sin `GITHUB_TOKEN`) y un `run.py` que importa `app`, fija `ADMIN_PASSWORD` temporal,
+  `GITHUB_TOKEN=''`, `MASTERMIND_PATH` = ruta de `brain/` del repo real (solo lectura) y cambia `stream_gemini` y
+  `stream_groq` por una IA falsa guionizada. `MASTERMIND_PATH` es la carpeta `brain`, no la raíz del repo.
+  En un script de Python, rutas con `/` (un `` se vuelve retroceso) y en PowerShell no reescribir archivos con
+  `Get-Content`/`Set-Content` sin codificación: estropea los acentos.
+- Navegador: sirve también la extensión Claude in Chrome (`javascript_tool` para pulsar los mismos botones).
+- Este Git Bash no tiene `gh`: los despliegues se ven con la API pública (arriba, Producción).
 - Arrancar: `cd trainer/web && ADMIN_PASSWORD=<la que quieras> PORT=8080 python app.py` (`load_dotenv` no pisa
   variables ya definidas). Parar el servidor en Windows con PowerShell (no hay `pkill`).
 - Elegir curso o `/progress/next` **modifica** `trainer/config/progress/*.json` y `profile.json`: copiar antes,
@@ -55,5 +71,7 @@
 - 42: solo enunciados (`subject.md`), nunca soluciones; el ejercicio es el del enunciado, no inventado.
   `brain/42/exams_by_beltran/` es copia de un repo abierto y el tutor no lo lee.
 - El invitado no guarda nada ni ve material.
-- Aparcado: `/back`, `/kata`, `/read`, `/42` (ROADMAP, puntos 8 y 16).
+- `/kata` y `/read` solo valen **antes** del examen, como refuerzo (no en `exam`): la app lo sabe por la marca
+  `[[EXAM]]` que pone el tutor. Si la IA se olvida de ponerla, los comandos quedan abiertos en el examen.
+- Aparcado: `/back`, `/read`, `/42` (ROADMAP, puntos 8 y 16). `/kata` hecho el 2026-10-04.
 - Reglas de trabajo y los 5 Tatuajes: `~/Nando.md` (global). Para refactorizar: ROADMAP, última sección.
