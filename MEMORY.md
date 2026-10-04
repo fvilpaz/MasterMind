@@ -49,7 +49,7 @@
   carpeta temporal (sin `.env`, sin `GITHUB_TOKEN`) y un `run.py` que importa `app`, fija `ADMIN_PASSWORD` temporal,
   `GITHUB_TOKEN=''`, `MASTERMIND_PATH` = ruta de `brain/` del repo real (solo lectura) y cambia `stream_gemini` y
   `stream_groq` por una IA falsa guionizada. `MASTERMIND_PATH` es la carpeta `brain`, no la raíz del repo.
-  En un script de Python, rutas con `/` (un `` se vuelve retroceso) y en PowerShell no reescribir archivos con
+  En un script de Python, rutas con `/` (un `\b` se vuelve retroceso) y en PowerShell no reescribir archivos con
   `Get-Content`/`Set-Content` sin codificación: estropea los acentos.
 - Navegador: sirve también la extensión Claude in Chrome (`javascript_tool` para pulsar los mismos botones).
 - Este Git Bash no tiene `gh`: los despliegues se ven con la API pública (arriba, Producción).
