@@ -186,11 +186,11 @@ async function send() {
 async function greet() {
   showTyping();
   try {
-    const reply = await streamChat([{ role: 'user', content: '__greet__' }]);
+    const hasPlan = isAdmin && planActive();      // con plan en marcha no se vuelve a preguntar el tiempo
+    const reply = await streamChat([{ role: 'user', content: hasPlan ? '__greet_plan__' : '__greet__' }]);
     if (reply) {
       messages.push({ role: 'assistant', content: reply });
-      const qr = document.getElementById('quick-replies');
-      qr.style.display = 'flex';
+      if (!hasPlan) document.getElementById('quick-replies').style.display = 'flex';
     }
   } catch {}
 }
@@ -198,6 +198,7 @@ async function greet() {
 document.querySelectorAll('.qr-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.getElementById('quick-replies').style.display = 'none';
+    planSet({ total: Number(btn.dataset.pomos), done: 0, at: Date.now() });
     document.getElementById('input').value = btn.dataset.msg;
     send();
   });
@@ -347,11 +348,33 @@ function pomoStop() {
   document.getElementById('pomo-toggle').textContent = '▶';
 }
 
+// ── PLAN DE POMODOROS ──────────────────────────────────
+// Al elegir el tiempo se guarda un plan { total, done, at }. Mientras queden pomodoros por hacer
+// (y no hayan pasado 4 h desde el último movimiento) no se vuelve a preguntar el tiempo.
+const PLAN_KEY = 'pomo-plan';
+const PLAN_TTL = 4 * 60 * 60 * 1000;
+
+function planGet() {
+  try { return JSON.parse(localStorage.getItem(PLAN_KEY) || 'null'); } catch { return null; }
+}
+function planSet(plan) {
+  try { localStorage.setItem(PLAN_KEY, JSON.stringify(plan)); } catch {}
+}
+function planActive() {
+  const p = planGet();
+  return !!p && p.done < p.total && Date.now() - p.at < PLAN_TTL;
+}
+// Un pomodoro de trabajo completo suma uno al plan (el descanso no cuenta).
+function planPomoDone() {
+  const p = planGet();
+  if (p && p.done < p.total) planSet({ ...p, done: p.done + 1, at: Date.now() });
+}
+
 function pomoLeft() { return Math.max(0, Math.ceil((pomoEndsAt - Date.now()) / 1000)); }
 
 function pomoTick() {
   pomoRemaining = pomoLeft();
-  if (pomoRemaining === 0) { pomoStop(); pomoBeep(); }
+  if (pomoRemaining === 0) { pomoStop(); pomoBeep(); if (pomoMode === 'work') planPomoDone(); }
   pomoRender();
   pomoSave();
 }
@@ -399,6 +422,10 @@ try {
       pomoEndsAt = saved.endsAt;
       pomoRemaining = pomoLeft();
       if (pomoRemaining > 0) pomoStart();
+      else {
+        if (pomoMode === 'work') planPomoDone();   // acabó mientras no estabas
+        pomoSave();                                // y se guarda ya parado, para no contarlo dos veces
+      }
     }
   }
 } catch {}

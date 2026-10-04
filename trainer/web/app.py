@@ -253,10 +253,13 @@ def call_gemini(messages, system, model_name='gemini-flash-latest'):
     return response.text
 
 
+GREET_TOKENS = ('__greet__', '__greet_plan__')   # lo que manda el navegador; '_plan' = ya hay un plan de pomodoros en marcha
+
+
 def _resolve_greet(messages, is_admin, guest_name_val):
-    if messages and messages[-1]['content'] == '__greet__':
+    if messages and messages[-1]['content'] in GREET_TOKENS:
         if is_admin:
-            messages[-1]['content'] = GREET_ADMIN
+            messages[-1]['content'] = GREET_ADMIN_PLAN if messages[-1]['content'] == '__greet_plan__' else GREET_ADMIN
         elif guest_name_val:
             messages[-1]['content'] = GREET_GUEST.replace(
                 "llámale 'aprendiz'", f"llámale '{guest_name_val}', que es su nombre real"
@@ -424,6 +427,14 @@ GREET_ADMIN = (
     "Sé motivador y directo, estilo entrenador personal. Máximo 3 frases."
 )
 
+# Mismo arranque, pero el estudiante ya tiene un plan de pomodoros en marcha: no se le vuelve a preguntar el tiempo.
+GREET_ADMIN_PLAN = (
+    "Estás empezando un tema nuevo dentro de una sesión que ya está en marcha. Saluda al estudiante por su nombre, "
+    "dile en una frase de qué va el tema nuevo y lánzale directamente el primer paso del método. "
+    "NO le preguntes cuánto tiempo tiene: ya tiene un plan de pomodoros en marcha. "
+    "Sé motivador y directo, estilo entrenador personal. Máximo 3 frases."
+)
+
 GREET_STYLES = [
     "como un entrenador en el vestuario antes del partido",
     "como un compañero de estudio que se alegra de verte",
@@ -461,7 +472,7 @@ def chat_stream():
     data = request.json
     messages = data['messages']
     is_admin = session.get('is_admin', False)
-    is_greet = messages and messages[-1]['content'] == '__greet__'
+    is_greet = messages and messages[-1]['content'] in GREET_TOKENS
     system = build_system_prompt(is_admin=is_admin)
     messages = _resolve_greet(messages, is_admin, session.get('guest_name', ''))
 
