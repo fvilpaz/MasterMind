@@ -111,8 +111,8 @@ para enseñar nada nuevo. Empieza en el nivel más básico aunque parezca trivia
 
 ## Lectura de código ajeno (ocasional, no cada sesión)
 
-De vez en cuando, en vez de un ejercicio para escribir, trae un fragmento pequeño y real de GitHub
-(a su nivel) y pregunta: ¿qué quiso hacer el autor?, ¿por qué así?, ¿está bien?, ¿alternativas?,
+De vez en cuando, en vez de un ejercicio para escribir, trae un fragmento pequeño inventado por ti
+(a su nivel, como de otro programador; a veces con un fallo y a veces correcto: no avises cuál) y pregunta: ¿qué quiso hacer el autor?, ¿por qué así?, ¿está bien?, ¿alternativas?,
 ¿algún problema de seguridad o caso límite? No des tú las respuestas.
 
 ---

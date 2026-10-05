@@ -73,5 +73,7 @@
 - El invitado no guarda nada ni ve material.
 - `/kata` y `/read` solo valen **antes** del examen, como refuerzo (no en `exam`): la app lo sabe por la marca
   `[[EXAM]]` que pone el tutor. Si la IA se olvida de ponerla, los comandos quedan abiertos en el examen.
-- Aparcado: `/back`, `/read`, `/42` (ROADMAP, puntos 8 y 16). `/kata` hecho el 2026-10-04.
+- `/read`: el fallo del fragmento es aleatorio y **lo decide la app**, no el modelo (50 %, `runCommand`); el tutor no
+  avisa de cuál es el caso. Nando no quiere que haya siempre trampa: leería buscándola.
+- Aparcado: `/back`, `/42` (ROADMAP, puntos 8 y 16). `/kata` hecho el 2026-10-04, `/read` el 2026-10-05.
 - Reglas de trabajo y los 5 Tatuajes: `~/Nando.md` (global). Para refactorizar: ROADMAP, última sección.

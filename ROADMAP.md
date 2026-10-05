@@ -139,12 +139,13 @@ el punto 10 (rutas de MoureDev).
 **Hecho (2026-09-28):** `/help` y `/ls`. La lista vive en `COMMANDS` (`app.js`): `/help` la enseña
 entera (los que faltan salen como "próximamente"). Pista fija "💡 Escribe /help…" encima de la caja de
 escribir. **Hecho (2026-10-04):** `/kata` — manda a la IA una instrucción oculta; no sale en el examen (ver "Hecho el 2026-10-04").
-**Siguientes:** `/back exN` (necesita `POST /progress/back`), luego `/read`. Para `/read`: código inventado por la IA
-(el código real de GitHub queda aparcado); `Mouredev.md` aún dice "fragmento real de GitHub" y hay que cambiar esa
-frase al hacerlo. **Decidido (Nando, 2026-10-05): la trampa es aleatoria**, a veces el código está bien y a veces
-falla algo; el tutor nunca avisa de cuál es el caso. Si siempre hubiera fallo, Nando leería buscándolo en vez de
-entender. La pregunta es neutra ("¿qué hace? ¿ves algo raro?") y, si no había fallo, se comprueba que no se
-inventa uno. `/read` ya nace bloqueado en el examen (`EXAM_BLOCKED` en `app.js`).
+**Hecho (2026-10-05): `/read`.** Código inventado por la IA (el real de GitHub queda aparcado). **La trampa es
+aleatoria** (decidido por Nando): a veces el código está bien y a veces falla algo, y el tutor nunca avisa de cuál.
+Si siempre hubiera fallo, leería buscándolo en vez de entender. **La moneda la tira la app** (`Math.random() < 0.5`
+en `runCommand`) y se lo dice a la IA en la instrucción oculta (`READ_PROMPT`): el modelo "al azar" casi siempre
+pondría fallo. Pregunta neutra ("¿qué hace? ¿ves algo raro?"); si no había fallo y se inventa uno, se lo dice.
+`Mouredev.md` ya no habla de "fragmento real de GitHub". Bloqueado en el examen como `/kata`.
+**Siguiente:** `/back exN` (necesita `POST /progress/back`). `/read` ya nace bloqueado en el examen (`EXAM_BLOCKED` en `app.js`).
 
 **Nombres decididos por Nando (2026-09-27):** `/kata`, **`/read`** (lectura de código ajeno; no
 `/lectura`), **`/ls`** (lista de ejercicios: ✅ dominados, 👉 actual, 🔒 bloqueados) y **`/back exN`**

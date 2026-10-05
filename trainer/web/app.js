@@ -145,12 +145,20 @@ const KATA_PROMPT = 'El estudiante ha escrito /kata. Propón ahora UNA kata sobr
   'autoverificable, en el nivel más básico, para reforzar lo que acaba de ver. No des la solución: espera su código y corrígelo ' +
   'con tus modos habituales. Una kata no es un examen: no escribas [[DOMINADO]] ni [[EXAM]].';
 
+// /read: la app tira la moneda (el modelo no es fiable "al azar": casi siempre pondría fallo) y se lo dice a la IA.
+const READ_PROMPT = fallo => 'El estudiante ha escrito /read. Inventa un fragmento de código corto (10-20 líneas) sobre el tema actual, ' +
+  'a su nivel, como si fuera de otro programador. ' +
+  (fallo ? 'Esta vez el código tiene UN fallo realista (lógica, caso límite o seguridad). '
+         : 'Esta vez el código está BIEN: no escondas ningún fallo. ') +
+  'No digas si tiene fallo ni dónde. Pregunta solo: ¿qué hace?, ¿por qué así?, ¿ves algo raro? No des las respuestas: espera las suyas. ' +
+  'Si no había fallo y se inventa uno, díselo. Una lectura no es un examen: no escribas [[DOMINADO]] ni [[EXAM]].';
+
 const COMMANDS = {
   '/help': 'Esta ayuda',
   '/ls':   'Tus ejercicios: ✅ dominados · 👉 el actual · 🔒 bloqueados',
   '/back': '/back ex1: vuelve a un ejercicio ya dominado para repasarlo (próximamente)',
   '/kata': 'Un ejercicio corto de calentamiento sobre el tema actual (no disponible en el examen)',
-  '/read': 'Leer y comentar código ajeno sobre el tema actual (próximamente)',
+  '/read': 'Leer y comentar código ajeno sobre el tema actual (no disponible en el examen)',
 };
 
 // Manda a la IA una instrucción que el estudiante no ve (la respuesta sí se muestra y entra en el historial).
@@ -174,6 +182,7 @@ async function runCommand(text) {
   }
   if (examActive && EXAM_BLOCKED.includes(cmd)) return addMessage('bot', `${cmd} no está disponible durante el examen.`);
   if (cmd === '/kata') return askHidden(KATA_PROMPT);
+  if (cmd === '/read') return askHidden(READ_PROMPT(Math.random() < 0.5));
   if (cmd === '/ls') {
     const r = await fetch('/progress');
     const d = await r.json();
