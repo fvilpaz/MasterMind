@@ -396,7 +396,22 @@ prompt que el modelo puede saltarse.
 **Lo que se tocaría:** las 3 secciones `exam` de `agent/*.md` + el mensaje oculto de la app + un contador
 (`localStorage` o progreso). Enlaza con el criterio de aprobado de 42 (punto 16) y con `/back` (punto 8).
 
-## 21. Pantalla intermedia tras elegir curso: resumen + repasar o seguir (apuntado 2026-10-05)
+## 21. Pantalla intermedia tras elegir curso: resumen + repasar o seguir (apuntado 2026-10-05) — HECHO (2026-10-05)
+
+**Hecho:** al pulsar una tarjeta sale la sala (`#step-room`): saludo con el nombre, "Vas por Ej. N · Tema" y dos
+botones, **Repasar lo aprendido** / **Seguir con el curso** (este último, como antes). Repasar entra al chat con
+una instrucción oculta (`ROOM_PROMPT`) que lleva la lista de temas dominados; charla libre, sin examen. Se sale con
+el botón "Ir al curso ▶" (barra de arriba) **o** escribiendo "vamos/volvamos/sigamos/seguimos … curso"
+(`ROOM_EXIT`): vacía el chat y lanza el saludo normal con la pregunta de los pomodoros. Mientras `roomActive`, la
+app **ignora** `[[DOMINADO]]` (`send()`). Solo admin; el invitado entra directo, como antes. Solo `index.html` y
+`app.js`, sin tocar `app.py`. Probado en navegador con IA falsa y copia aislada: sala, Repasar, guard del
+`[[DOMINADO]]` (con control: en el curso sí avanza), salida por frase y por botón, "Seguir con el curso".
+**Sin comprobar:** que la IA real haga caso de `ROOM_PROMPT` (sin examen, sin marcas); el móvil real.
+**Limitaciones conocidas:** el tutor sigue recibiendo el material del tema *actual* y no el del repasado
+(`_topic_folder`, `app.py`); `/kata` y `/read` dentro de la sala se refieren al tema actual; "Guardar sesión" en la
+sala guarda esa charla como log del curso. **Pendiente:** el resumen redactado por el tutor (opción (b)).
+
+*Lo apuntado antes de hacerlo:*
 
 **Idea de Nando:** hoy, al pulsar la tarjeta de un curso, se entra directo al chat y el tutor saluda
 (punto 9). En su lugar, una **pantalla intermedia**:

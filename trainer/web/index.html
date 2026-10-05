@@ -45,6 +45,14 @@
       <p id="course-greeting" style="margin-bottom:16px;">¿Qué curso quieres entrenar hoy?</p>
       <div id="course-cards" style="display:flex;flex-direction:column;gap:10px;"></div>
     </div>
+    <div id="step-room" style="display:none;flex-direction:column;gap:10px;">
+      <div style="font-size:52px;line-height:1;margin-bottom:12px;">🧠</div>
+      <h2>MasterMind</h2>
+      <hr style="border:none;border-top:1px solid var(--border);margin:16px 0 24px;">
+      <p id="room-greeting" style="margin-bottom:16px;"></p>
+      <button class="btn-primary" id="room-review-btn">📚 Repasar lo aprendido</button>
+      <button class="btn-primary" id="room-continue-btn">▶ Seguir con el curso</button>
+    </div>
   </div>
   <div style="display:flex;align-items:center;gap:20px;font-size:12px;color:var(--muted);">
     <span>MasterMind · Nando</span>
@@ -62,6 +70,7 @@
     <span class="badge mode" id="b-mode">...</span>
   </div>
   <div class="nav-controls">
+    <button class="badge mode" id="room-exit" style="display:none;border:none;cursor:pointer;">Ir al curso ▶</button>
     <div id="pomodoro" title="Pomodoro">
       <span id="pomo-time">25:00</span>
       <button id="pomo-toggle" title="Iniciar / Pausar">▶</button>

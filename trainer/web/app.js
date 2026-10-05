@@ -200,6 +200,7 @@ async function send() {
   if (!text) return;
   input.value = '';
   input.style.height = 'auto';
+  if (roomActive && ROOM_EXIT.test(text)) { addMessage('user', text); return exitRoom(); }
   if (text.startsWith('/')) return runCommand(text);
   document.getElementById('send').disabled = true;
   messages.push({ role: 'user', content: text });
@@ -210,7 +211,7 @@ async function send() {
     if (reply) {
       messages.push({ role: 'assistant', content: reply });
       examActive = reply.includes(EXAM_MARK);
-      if (isAdmin && reply.includes(MASTERED_MARK)) await saveProgress();
+      if (isAdmin && !roomActive && reply.includes(MASTERED_MARK)) await saveProgress();   // en la sala de repaso nunca se avanza
     }
   } catch (e) { removeTyping(); addMessage('error', `Error de conexión: ${e.message}`); }
   document.getElementById('send').disabled = false;
@@ -466,14 +467,55 @@ try {
 pomoRender();
 
 // ── LOGIN ─────────────────────────────────────────────
-async function startApp() {
+async function startApp(room = false) {
   document.getElementById('login-overlay').classList.add('hidden');
   if (isAdmin) {
     document.getElementById('model-row').style.display = 'flex';
   }
   await loadProfile();
+  if (room) return startRoom();
   greet();
 }
+
+// ── SALA DE REPASO (antes del curso) ────────────────────
+// Charla libre sobre lo ya aprendido: sin examen, sin marcas y sin guardar progreso. Se sale con el botón
+// "Ir al curso" o escribiendo una frase como "vamos con el curso"; entonces arranca el saludo de siempre.
+let roomActive = false;
+const ROOM_EXIT = /\b(vamos|volvamos|sigamos|seguimos)\b.*\bcurso\b/i;
+const ROOM_PROMPT = hechos => 'El estudiante entra en la SALA DE REPASO, antes del curso. Es charla libre, como un chat normal: ' +
+  'sin examen y sin guardar progreso; no escribas [[DOMINADO]] ni [[EXAM]]. Salúdale en una frase y pregúntale qué quiere repasar. ' +
+  `Lo que ha dominado hasta ahora: ${hechos.length ? hechos.join(', ') : 'nada todavía'}. Puede elegir uno de esos temas u otro. ` +
+  'Cuando elija, pregúntale, proponle ejercicios, katas y lecturas de código de ese tema, con tus modos habituales pero sin ' +
+  'examinarle. No des la solución antes de su intento.';
+
+async function showRoomStep() {
+  document.getElementById('step-course').style.display = 'none';
+  document.getElementById('step-room').style.display = 'flex';
+  const name = document.getElementById('login-name').value.trim();
+  const pr = (await (await fetch('/profile')).json()).progress || {};
+  const donde = pr.n ? ` Vas por ${pr.course === 'cs50' ? 'Week' : 'Ej.'} ${pr.n} · ${pr.topic}.` : '';
+  document.getElementById('room-greeting').textContent = `¡Hola${name ? ', ' + name : ''}!${donde} ¿Repasamos lo aprendido o seguimos con el curso?`;
+}
+
+async function startRoom() {
+  roomActive = true;
+  document.getElementById('room-exit').style.display = '';
+  const d = await (await fetch('/progress')).json();
+  askHidden(ROOM_PROMPT((d.topics || []).filter(t => t.status === 'mastered').map(t => t.topic)));
+}
+
+function exitRoom() {
+  roomActive = false;
+  examActive = false;
+  document.getElementById('room-exit').style.display = 'none';
+  messages.length = 0;                                // el curso arranca sin la charla del repaso
+  addMessage('bot', '📚 Terminamos el repaso. Vamos con el curso.');
+  greet();
+}
+
+document.getElementById('room-review-btn').addEventListener('click', () => startApp(true));
+document.getElementById('room-continue-btn').addEventListener('click', () => startApp());
+document.getElementById('room-exit').addEventListener('click', exitRoom);
 
 function showStep2() {
   const name = document.getElementById('login-name').value.trim() || 'aprendiz';
@@ -560,7 +602,7 @@ document.getElementById('course-cards').addEventListener('click', async e => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ course: card.dataset.course })
   });
-  startApp();
+  showRoomStep();
 });
 
 document.getElementById('login-password').addEventListener('keydown', e => {
