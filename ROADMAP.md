@@ -461,6 +461,13 @@ lección real, `/kata`, el saludo con estilos (`GREET_STYLES`) y los logs de `se
 
 ## 22. Plan de calidad por curso: revisar los `.md`, aclarar, y solo entonces el temario (2026-10-05)
 
+**DECISIÓN de Nando (2026-10-05): temarios y lectura de páginas APARCADOS (no descartados).** Nando va añadiendo el
+contenido de cada tema a medida que avanza en el curso, y el tutor genera katas, lecturas, ejercicios y exámenes sobre
+lo que ya hay: el modelo ya sabe Java, no necesita que le lleven páginas. Por tanto **no** se construye ahora ni el
+`temario.md` por tema ni la lectura de W3Schools/Oracle desde `app.py` (opción A) ni la herramienta de búsqueda
+(opción B). Si el examen sigue saliendo fácil con las reglas nuevas, lo mínimo sería una lista corta de subtemas
+por tema (los capítulos de W3Schools sirven de guía). Primero, que Nando pruebe un examen real.
+
 **Método (pedido por Nando):** curso a curso, **MoureDev → CS50 → 42 Málaga**, y dentro de cada curso fase a fase, con
 un commit por fase. En cada fase se **revisan primero los `.md` implicados** (el del tutor en `agent/` y los de
 `brain/<curso>/…`) para ver qué vale la pena, qué sobra o se repite, qué es falso o está muerto, y se **añade, quita o

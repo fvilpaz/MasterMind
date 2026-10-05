@@ -85,6 +85,9 @@
   "guarda en `sessions/`" no se cumplen. Quitarlas o pasarlas a la app.
 
 ## Decisiones de Nando (no se deshacen sin hablarlo)
+- (2026-10-05) **Sin temarios ni lectura de páginas por ahora** (aparcado, no descartado): Nando añade el contenido del
+  curso a medida que avanza y el tutor genera katas/lecturas/ejercicios/exámenes sobre eso; el modelo ya sabe Java.
+  No proponer de nuevo descargar W3Schools/Oracle ni crear `temario.md` sin que lo pida. Ver ROADMAP, punto 22.
 - Método híbrido MoureDev + CS50 (explicar → socratic → debug → exam). El tutor 42 igual, adaptado a estudiar
   desde el móvil: traza a mano y nunca pide compilar.
 - Se avanza de lección solo al aprobar el examen, de uno en uno y **sin botón**.
@@ -96,7 +99,8 @@
   `[[EXAM]]` que pone el tutor. Si la IA se olvida de ponerla, los comandos quedan abiertos en el examen.
 - `/read`: el fallo del fragmento es aleatorio y **lo decide la app**, no el modelo (50 %, `runCommand`); el tutor no
   avisa de cuál es el caso. Nando no quiere que haya siempre trampa: leería buscándola.
-- Sala de repaso (antes del curso, solo admin): charla libre sin examen ni guardado. La app, no el tutor, garantiza que
+- Sala de repaso (antes del curso, solo admin): charla libre sin examen ni guardado; la barra de arriba dice
+  "Entrenamiento" (`roomBadges`) y recupera la lección al salir. La app, no el tutor, garantiza que
   no avance: con `roomActive` ignora `[[DOMINADO]]`. Sale con el botón "Ir al curso" o la frase `ROOM_EXIT` (`app.js`).
   El tutor sigue recibiendo el material del tema actual (no el repasado) y `/kata` / `/read` van sobre el actual.
 - Examen largo (2026-10-05): MoureDev 3 rondas, CS50 y 42 4 fases (reglas en `agent/*.md`). Solo prompt: la app no cuenta
