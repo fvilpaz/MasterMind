@@ -481,7 +481,18 @@ inventa. Lo que no se pueda comprobar contra el código o contra el material rea
   abrir. **No ve `src/*.java`**, aunque `Mouredev.md` (líneas 23-25 y 48-49) le manda usarlo como ejemplo.
   Consecuencia: hoy el tutor no tiene ningún contenido del tema, solo lo que sabe el modelo. Es lo que justifica el
   temario. **Decisión pendiente de Nando:** que el temario lleve la información, o que la app también pase `src/`.
-- **`coach.md` no existe:** los 10 `enlaces.md` dicen "ver `coach.md`" (referencia rota de otra época).
+- **`coach.md` no está en este repo:** los 10 `enlaces.md` dicen "ver `coach.md`", y ese archivo vive en
+  `D:\Fernando\Coding\Cursos\coach\` (el proyecto anterior de Nando, donde metió todo). Es el **antepasado de
+  `Mouredev.md`**: de ahí salen las 4 reglas, la parte de Malan, las katas y la lectura de código ajeno. La
+  referencia sigue rota *aquí* (el tutor no la ve). En esa carpeta también están `progreso.md`,
+  `roadmap_entrenamiento.md` (el plan en seco por temas, con un tema 11 "Excepciones" aún sin lección) y
+  `temario_java.md`, que **no es un temario**: es una nota de "dónde voy" desfasada (dice POO). El temario real
+  sigue por crear.
+- **Comparado `coach.md` ↔ `Mouredev.md` (2026-10-05):** ya estaba lo de cambiar de ángulo y dejarlo reposar.
+  **Añadido** en `Mouredev.md`: sección "Qué NO hacer" y la metáfora para lo abstracto. **No añadido, a decidir:**
+  el recordatorio semanal de "entrenar 30-60 min en seco sin IA" (el tutor no tiene calendario ni memoria entre
+  sesiones: no puede cumplirlo solo), la regla 3 "ningún código sin interrogatorio" y "Continuidad entre sesiones"
+  (`progreso.md`: el tutor no puede escribir archivos).
 - **Instrucciones que el modelo no puede cumplir** (no tiene herramientas de archivos): "lee `config/local.json`"
   (líneas 15-16; lo hace el servidor) y "guarda un resumen en `weekN-c/sessions/`" (línea 138; "Guardar sesión" es un
   botón de la app). Mismo hueco que ya se vio con `topics_mastered`.
