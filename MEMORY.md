@@ -78,5 +78,7 @@
 - Sala de repaso (antes del curso, solo admin): charla libre sin examen ni guardado. La app, no el tutor, garantiza que
   no avance: con `roomActive` ignora `[[DOMINADO]]`. Sale con el botón "Ir al curso" o la frase `ROOM_EXIT` (`app.js`).
   El tutor sigue recibiendo el material del tema actual (no el repasado) y `/kata` / `/read` van sobre el actual.
+- Examen largo (2026-10-05): MoureDev 3 rondas, CS50 y 42 4 fases (reglas en `agent/*.md`). Solo prompt: la app no cuenta
+  rondas ni fases, así que el modelo puede acortarlas. Si el examen "pasa demasiado rápido", mirar aquí primero.
 - Aparcado: `/back`, `/42` (ROADMAP, puntos 8 y 16). `/kata` hecho el 2026-10-04, `/read` el 2026-10-05.
 - Reglas de trabajo y los 5 Tatuajes: `~/Nando.md` (global). Para refactorizar: ROADMAP, última sección.

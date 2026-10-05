@@ -349,7 +349,15 @@ modelo (`Mouredev.md`, `CS50.md`, `42malaga.md`, sección `exam`). Un ejercicio 
 siendo generoso, y sale `[[DOMINADO]]` (pasó con 42 el 2026-10-02). Como `[[DOMINADO]]` avanza **sin vuelta
 atrás** (aún no hay `/back`), aprobar de más sale caro.
 
-**Opciones (sin decidir):**
+**HECHO el paso 1 (2026-10-05), solo en las reglas de los tutores:** `Mouredev.md` → examen en **3 rondas** con
+ejercicios inventados (básico → combinando lo del tema → cambio de requisito + dato inesperado); `CS50.md` y
+`42malaga.md` → **4 fases** sobre el ejercicio del problem set / `subject.md` (código completo → traza a mano → caso
+límite → cambio de requisito). Si la respuesta es trivial, dudosa o de memoria, no se avanza: otra variante.
+Equivale a la opción 3 (MoureDev) y a la 2 (CS50 y 42, donde el ejercicio viene fijado). Las reglas de `[[EXAM]]` y
+`[[DOMINADO]]` no se tocaron. **Es solo prompt:** el modelo cuenta las rondas y puede saltárselas; sin comprobar con la
+IA real. **Falta:** el contador en la app, el `temario.md` por tema y la puerta de katas/reads (abajo).
+
+**Opciones que se barajaron:**
 1. **Varios ejercicios seguidos** (p. ej. 3–5), dificultad creciente; se aprueba solo con todos. Es la idea
    de Nando ("siguiente ejercicio… siguiente…"). Ojo con una decena: en el móvil, 10 ejercicios a ~20 min
    cada uno no caben en un pomodoro ni en un trayecto.
