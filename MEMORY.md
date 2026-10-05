@@ -74,11 +74,12 @@
 
 ## Plan de calidad por curso (ROADMAP, puntos 20 y 22): cómo se trabaja y qué está verificado
 - **Método (Nando, 2026-10-05):** curso a curso (MoureDev → CS50 → 42 Málaga), fase a fase, un commit por fase. En cada
-  fase se **revisan primero los `.md`** (el del tutor y los de `brain/`) y se añade, quita o cambia; el temario va
-  después. Nada de todo de golpe: se deja cosas o se las inventa. Tras cada fase, resumen de hecho / cambiado /
+  fase se **revisan primero los `.md`** (el del tutor y los de `brain/`) y se añade, quita o cambia (el temario está
+  aparcado, ver abajo). Nada de todo de golpe: se deja cosas o se las inventa. Tras cada fase, resumen de hecho / cambiado /
   quitado / pendiente, sacado de `git log`. Nada se borra de sus carpetas sin preguntar.
 - **El tutor solo recibe `sources/*.md`** (`build_system_prompt`, `app.py`): en MoureDev son los `enlaces.md`, solo URLs.
-  **No ve `src/*.java`** aunque `Mouredev.md` le mande usarlo. Hoy no tiene contenido propio de ningún tema.
+  **No ve `src/*.java`** aunque `Mouredev.md` le mande usarlo. No tiene contenido propio del tema, solo lo que sabe el modelo
+  (decidido por Nando: no hace falta más, ver Decisiones).
 - `coach.md` (citado en los 10 `enlaces.md`) vive en `D:\Fernando\Coding\Cursos\coach\`, proyecto anterior de Nando y
   antepasado de `Mouredev.md`. Allí `temario_java.md` NO es un temario, es una nota de progreso desfasada.
 - El modelo no puede leer ni escribir archivos: instrucciones tipo "lee `local.json`", "actualiza `progreso.md`" o

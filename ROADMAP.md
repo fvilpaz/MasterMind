@@ -359,9 +359,9 @@ ejercicios inventados (básico → combinando lo del tema → cambio de requisit
 límite → cambio de requisito). Si la respuesta es trivial, dudosa o de memoria, no se avanza: otra variante.
 Equivale a la opción 3 (MoureDev) y a la 2 (CS50 y 42, donde el ejercicio viene fijado). Las reglas de `[[EXAM]]` y
 `[[DOMINADO]]` no se tocaron. **Es solo prompt:** el modelo cuenta las rondas y puede saltárselas; sin comprobar con la
-IA real. **Falta:** el contador en la app, el `temario.md` por tema y la puerta de katas/reads (abajo).
+IA real. **Falta:** el contador en la app y la puerta de katas/reads (abajo). El `temario.md` está aparcado (punto 22).
 
-**Opciones que se barajaron:**
+**Opciones que se barajaron (ya elegidas, ver arriba):**
 1. **Varios ejercicios seguidos** (p. ej. 3–5), dificultad creciente; se aprueba solo con todos. Es la idea
    de Nando ("siguiente ejercicio… siguiente…"). Ojo con una decena: en el móvil, 10 ejercicios a ~20 min
    cada uno no caben en un pomodoro ni en un trayecto.
@@ -386,17 +386,16 @@ antes de poder entrar en `exam`. Cuenta la **app**, no el modelo (cada `/kata` y
 actual; el contador **en el progreso del servidor** (`config/progress/<curso>.json`), no en `localStorage`:
 así, si te bajas del tren a mitad, al volver (desde el móvil o el PC) sigue "llevas 2 de 3 katas"). Cosas a
 decidir:
-- **`/read` aún no existe** (punto 8, aparcado): sin él, la puerta solo puede pedir katas. Orden natural:
-  `/read` primero, puerta después.
+- `/read` ya existe (punto 8): la puerta puede pedir katas y lecturas.
 - **Qué cuenta como "hecha":** pedir una kata no es resolverla. Contar solo las que el tutor da por
   buenas (marca nueva, como `[[EXAM]]`), no las pedidas.
-- **X por tema**, no global: en operadores 3 katas pueden ser mucho y en punteros poco. Podría ir en el
-  `temario.md`.
+- **X por tema**, no global: en operadores 3 katas pueden ser mucho y en punteros poco. Dónde guardarlo: por decidir
+  (el `temario.md` está aparcado, punto 22).
 - **Qué pasa si se intenta examinar antes:** el tutor dice "te faltan 2 katas y 1 lectura" y propone la
   siguiente. Sin salida de emergencia: lo hecho se queda guardado y se sigue otro día.
 - Choca con los **pomodoros**: más ejercicios previos = más tiempo; que el plan de la sesión lo tenga en cuenta.
 
-Idea de implementación (sugerencia): una lista de subtemas **por tema** en `brain/<curso>/exN_…/` (p.
+**APARCADA (punto 22).** Idea de implementación (sugerencia): una lista de subtemas **por tema** en `brain/<curso>/exN_…/` (p.
 `sources/temario.md`), que se pasa al tutor y contra la que se comprueba el examen. Sin eso, "todo el tema" es
 lo que el modelo crea que es. Es trabajo de contenido tema a tema, no solo de código.
 
@@ -424,44 +423,11 @@ app **ignora** `[[DOMINADO]]` (`send()`). La barra de arriba dice "Entrenamiento
 (`_topic_folder`, `app.py`); `/kata` y `/read` dentro de la sala se refieren al tema actual; "Guardar sesión" en la
 sala guarda esa charla como log del curso. **Pendiente:** el resumen redactado por el tutor (opción (b)).
 
-*Lo apuntado antes de hacerlo:*
-
-**Idea de Nando:** hoy, al pulsar la tarjeta de un curso, se entra directo al chat y el tutor saluda
-(punto 9). En su lugar, una **pantalla intermedia**:
-
-1. **Saludo y resumen de dónde estoy:** tema actual, lo dominado, qué se ha visto (el "repaso de lo que llevo").
-2. **Dos caminos:** "Seguir con el curso" (como hoy) o "Repasar".
-3. **Repasar:** lista lo ya hecho (✅ de `mastered`) y eliges; p. ej. estando en Strings ej. 4, "repasar
-   operadores lógicos". Entonces el tutor pregunta, propone ejercicios, katas y lecturas **solo de ese tema**.
-
-**Aclarado por Nando (2026-10-05): la pantalla es una "sala previa" y el repaso es charla libre, "en seco".**
-Como un tema off-topic o hablar con ChatGPT: te pone un ejercicio, habláis, trabajáis. **No hay examen, ni
-`[[DOMINADO]]`, ni `[[EXAM]]`, no se guarda nada y no toca el progreso.** Cuando acaba, le dices "vamos con el
-curso" y salta al flujo de hoy (el saludo con la pregunta de los pomodoros). Es una sala **antes** de lo que ya
-existe, no un cambio dentro de ello.
-
-**Qué hay ya que sirve:** `mastered` / `current` del progreso por curso (`/progress`, `/ls`), la barra con la
-lección real, `/kata`, el saludo con estilos (`GREET_STYLES`) y los logs de `sessions/<curso-tema>/`.
-
-**Lo que falta o hay que decidir:**
-- **"Qué he aprendido" no está guardado como texto:** el progreso solo sabe *qué* temas están dominados, no qué
-  se vio dentro. Opciones: (a) resumen solo con los nombres de los temas (barato, sin IA); (b) que el tutor lo
-  redacte leyendo los logs de sesión del tema (más rico, gasta una llamada y los logs pueden no existir).
-- **El tutor no debe emitir marcas en la sala.** Con la regla de `Mouredev.md` / `CS50.md` / `42malaga.md`
-  (`exam` → `[[DOMINADO]]`) el modelo podría examinarte por inercia. La sala necesita su propio prompt, sin
-  `exam` ni marcas, y la app, aun así, debería **ignorar** un `[[DOMINADO]]` llegado desde la sala (cinturón y
-  tirantes: el modelo se equivoca). No es `/back exN` (punto 8): aquello rehace un tema; esto solo practica.
-- **Material del tutor en la sala:** `_topic_folder` toma el tema del progreso (`current`); aquí habría que
-  pasarle el tema elegido. Un tema que no es de la lista (off-topic libre) iría sin material.
-- **Sin guardar:** "Guardar sesión" no se ofrece en la sala (o se deja, pero sin tocar el progreso).
-- **Invitado:** no guarda nada ni ve material → entraría directo, sin la sala.
-- **Salir de la sala:** "vamos con el curso" lo puede interceptar la app (como un comando, tipo `/ls`) en vez
-  de depender de que el modelo lo entienda; al salir, vacía el chat y lanza el saludo de hoy (`__greet__` o
-  `__greet_plan__`, el que pregunta los pomodoros).
-
-**Orden razonable:** pantalla con resumen por nombres (a) y los dos botones → modo repaso con el tema elegido
-→ y solo si hace falta, el resumen redactado por el tutor (b). Enlaza con los puntos 8 (`/ls`, `/back`), 9
-(saludo) y 20 (si el examen se alarga, repasar antes de examinarse cobra más sentido).
+**Aclarado por Nando durante el diseño (2026-10-05):** la pantalla es una "sala previa" y el repaso es charla libre,
+"en seco", como un tema off-topic o hablar con ChatGPT: **sin examen, sin `[[DOMINADO]]`, sin `[[EXAM]]`, sin guardar
+y sin tocar el progreso.** Cuando acaba, "vamos con el curso" salta al flujo de siempre. Es una sala *antes* de lo que
+ya existe, no un cambio dentro de ello. En la pantalla va solo el tema actual ("Vas por Ej. N · Tema"); la lista de
+temas dominados se la pasa la app al tutor. (El diseño anterior a construirlo está en el historial: `3be1bd3`.)
 
 ## 22. Plan de calidad por curso: revisar los `.md`, aclarar, y solo entonces el temario (2026-10-05)
 
@@ -483,22 +449,21 @@ inventa. Lo que no se pueda comprobar contra el código o contra el material rea
 1. **Limpiar y aclarar el `.md` del tutor:** quitar lo muerto o falso, resolver contradicciones, sin tocar el método.
 2. **Limpiar `brain/<curso>/…`:** referencias rotas, duplicados, archivos que nadie lee (se avisa antes de borrar:
    nada se borra sin respaldo).
-3. **Temario por tema** (`sources/temario.md`): empezando por un tema de prueba, **de uno en uno**, contrastado con el
+3. **(APARCADA) Temario por tema** (`sources/temario.md`): empezando por un tema de prueba, **de uno en uno**, contrastado con el
    código real de `src/` y la documentación oficial, nunca inventado. Es la base del examen profundo (punto 20).
 4. **Prueba con IA real** y ajuste. Después, el siguiente curso.
 
 **MoureDev, fase 0 — hallazgos VERIFICADOS (2026-10-05):**
 - **El tutor solo recibe `sources/*.md`** (`app.py:186-201`), o sea los `enlaces.md`: 3-4 URLs que el modelo no puede
   abrir. **No ve `src/*.java`**, aunque `Mouredev.md` (líneas 23-25 y 48-49) le manda usarlo como ejemplo.
-  Consecuencia: hoy el tutor no tiene ningún contenido del tema, solo lo que sabe el modelo. Es lo que justifica el
-  temario. **Decisión pendiente de Nando:** que el temario lleve la información, o que la app también pase `src/`.
+  Consecuencia: el tutor no tiene contenido del tema, solo lo que sabe el modelo (que sabe Java). **Decidido por
+  Nando: no hace falta darle más** (ver la decisión de arriba); pasar `src/` queda aparcado con el temario.
 - **`coach.md` no está en este repo:** los 10 `enlaces.md` dicen "ver `coach.md`", y ese archivo vive en
   `D:\Fernando\Coding\Cursos\coach\` (el proyecto anterior de Nando, donde metió todo). Es el **antepasado de
   `Mouredev.md`**: de ahí salen las 4 reglas, la parte de Malan, las katas y la lectura de código ajeno. La
   referencia sigue rota *aquí* (el tutor no la ve). En esa carpeta también están `progreso.md`,
   `roadmap_entrenamiento.md` (el plan en seco por temas, con un tema 11 "Excepciones" aún sin lección) y
-  `temario_java.md`, que **no es un temario**: es una nota de "dónde voy" desfasada (dice POO). El temario real
-  sigue por crear.
+  `temario_java.md`, que **no es un temario**: es una nota de "dónde voy" desfasada (dice POO). Temario: aparcado.
 - **Comparado `coach.md` ↔ `Mouredev.md` (2026-10-05):** ya estaba lo de cambiar de ángulo y dejarlo reposar.
   **Añadido** en `Mouredev.md`: sección "Qué NO hacer" y la metáfora para lo abstracto. **No añadido, a decidir:**
   el recordatorio semanal de "entrenar 30-60 min en seco sin IA" (el tutor no tiene calendario ni memoria entre
@@ -507,12 +472,11 @@ inventa. Lo que no se pueda comprobar contra el código o contra el material rea
 - **Instrucciones que el modelo no puede cumplir** (no tiene herramientas de archivos): "lee `config/local.json`"
   (líneas 15-16; lo hace el servidor) y "guarda un resumen en `weekN-c/sessions/`" (línea 138; "Guardar sesión" es un
   botón de la app). Mismo hueco que ya se vio con `topics_mastered`.
-- **Contradicción:** la línea 52 aún dice "código real de GitHub", pero se decidió que `/read` lo inventa la IA.
 - **`brain/Moure/md_files/guia_saltos_pagina.md`:** apuntes de saltos de página para PDF (menciona C y MoureDev),
   nada que ver con el tutor; no lo lee la app. **Preguntar antes de tocar.**
 - **Fase 1 hecha en parte (2026-10-05, `Mouredev.md`):** quitada la instrucción de leer `config/local.json` (ahora dice
   que el material llega incluido y que no invente que lo tiene) y corregida la línea 52 ("código inventado por ti").
-  **Sigue pendiente de decisión o comprobación:** lo de `src/`, la regla 6 / "Formato de sesión guardada", el
+  **Sigue pendiente de decisión o comprobación:** la regla 6 / "Formato de sesión guardada", el
   modo/barra y `BREVITY_REMINDER`; y la fase 2 (`coach.md` roto, `guia_saltos_pagina.md`).
 - **Sin comprobar todavía:** si el "Formato de sesión guardada" (líneas 157-174) lo usa algo (la app guarda la
   conversación en bruto); que la barra enseña siempre `explain` porque el modo vive en `profile.json` y nada lo
