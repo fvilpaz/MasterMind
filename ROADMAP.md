@@ -459,6 +459,40 @@ lección real, `/kata`, el saludo con estilos (`GREET_STYLES`) y los logs de `se
 → y solo si hace falta, el resumen redactado por el tutor (b). Enlaza con los puntos 8 (`/ls`, `/back`), 9
 (saludo) y 20 (si el examen se alarga, repasar antes de examinarse cobra más sentido).
 
+## 22. Plan de calidad por curso: revisar los `.md`, aclarar, y solo entonces el temario (2026-10-05)
+
+**Método (pedido por Nando):** curso a curso, **MoureDev → CS50 → 42 Málaga**, y dentro de cada curso fase a fase, con
+un commit por fase. En cada fase se **revisan primero los `.md` implicados** (el del tutor en `agent/` y los de
+`brain/<curso>/…`) para ver qué vale la pena, qué sobra o se repite, qué es falso o está muerto, y se **añade, quita o
+cambia** lo que toque (limpiar, aclarar, refactorizar). Nada de hacerlo todo de golpe: así no se deja nada atrás ni se
+inventa. Lo que no se pueda comprobar contra el código o contra el material real, se pregunta o se apunta, no se supone.
+
+**Fases por curso** (la fase 1 y 2 no se mezclan con la 3):
+0. **Auditoría (solo lectura):** qué `.md` intervienen y qué llega de verdad al tutor (`build_system_prompt`).
+1. **Limpiar y aclarar el `.md` del tutor:** quitar lo muerto o falso, resolver contradicciones, sin tocar el método.
+2. **Limpiar `brain/<curso>/…`:** referencias rotas, duplicados, archivos que nadie lee (se avisa antes de borrar:
+   nada se borra sin respaldo).
+3. **Temario por tema** (`sources/temario.md`): empezando por un tema de prueba, **de uno en uno**, contrastado con el
+   código real de `src/` y la documentación oficial, nunca inventado. Es la base del examen profundo (punto 20).
+4. **Prueba con IA real** y ajuste. Después, el siguiente curso.
+
+**MoureDev, fase 0 — hallazgos VERIFICADOS (2026-10-05):**
+- **El tutor solo recibe `sources/*.md`** (`app.py:186-201`), o sea los `enlaces.md`: 3-4 URLs que el modelo no puede
+  abrir. **No ve `src/*.java`**, aunque `Mouredev.md` (líneas 23-25 y 48-49) le manda usarlo como ejemplo.
+  Consecuencia: hoy el tutor no tiene ningún contenido del tema, solo lo que sabe el modelo. Es lo que justifica el
+  temario. **Decisión pendiente de Nando:** que el temario lleve la información, o que la app también pase `src/`.
+- **`coach.md` no existe:** los 10 `enlaces.md` dicen "ver `coach.md`" (referencia rota de otra época).
+- **Instrucciones que el modelo no puede cumplir** (no tiene herramientas de archivos): "lee `config/local.json`"
+  (líneas 15-16; lo hace el servidor) y "guarda un resumen en `weekN-c/sessions/`" (línea 138; "Guardar sesión" es un
+  botón de la app). Mismo hueco que ya se vio con `topics_mastered`.
+- **Contradicción:** la línea 52 aún dice "código real de GitHub", pero se decidió que `/read` lo inventa la IA.
+- **`brain/Moure/md_files/guia_saltos_pagina.md`:** apuntes de saltos de página para PDF (menciona C y MoureDev),
+  nada que ver con el tutor; no lo lee la app. **Preguntar antes de tocar.**
+- **Sin comprobar todavía:** si el "Formato de sesión guardada" (líneas 157-174) lo usa algo (la app guarda la
+  conversación en bruto); que la barra enseña siempre `explain` porque el modo vive en `profile.json` y nada lo
+  cambia (el tutor "cambia de modo" solo en la conversación); si el recordatorio de brevedad
+  (`BREVITY_REMINDER`, "máximo 3 frases", `app.py:306`) choca con el examen por rondas.
+
 ## Hecho el 2026-10-04
 
 - **Reloj del pomodoro con hora real** (`0fe971d`): guarda la hora de fin y recalcula, en vez de restar 1 por segundo
