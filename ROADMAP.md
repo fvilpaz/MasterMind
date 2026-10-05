@@ -403,7 +403,8 @@ botones, **Repasar lo aprendido** / **Seguir con el curso** (este último, como 
 una instrucción oculta (`ROOM_PROMPT`) que lleva la lista de temas dominados; charla libre, sin examen. Se sale con
 el botón "Ir al curso ▶" (barra de arriba) **o** escribiendo "vamos/volvamos/sigamos/seguimos … curso"
 (`ROOM_EXIT`): vacía el chat y lanza el saludo normal con la pregunta de los pomodoros. Mientras `roomActive`, la
-app **ignora** `[[DOMINADO]]` (`send()`). Solo admin; el invitado entra directo, como antes. Solo `index.html` y
+app **ignora** `[[DOMINADO]]` (`send()`). La barra de arriba dice "Entrenamiento" en vez de la lección del curso
+(`roomBadges`; idea de Nando tras verlo en producción) y la recupera al salir. Solo admin; el invitado entra directo, como antes. Solo `index.html` y
 `app.js`, sin tocar `app.py`. Probado en navegador con IA falsa y copia aislada: sala, Repasar, guard del
 `[[DOMINADO]]` (con control: en el curso sí avanza), salida por frase y por botón, "Seguir con el curso".
 **Sin comprobar:** que la IA real haga caso de `ROOM_PROMPT` (sin examen, sin marcas); el móvil real.

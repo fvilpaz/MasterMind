@@ -497,8 +497,16 @@ async function showRoomStep() {
   document.getElementById('room-greeting').textContent = `¡Hola${name ? ', ' + name : ''}!${donde} ¿Repasamos lo aprendido o seguimos con el curso?`;
 }
 
+// En la sala la barra dice "Entrenamiento" en vez de la lección del curso (que aquí no se está haciendo).
+function roomBadges(on) {
+  document.getElementById('b-week').textContent = on ? 'Entrenamiento' : '';
+  ['b-topic', 'b-mode'].forEach(id => document.getElementById(id).style.display = on ? 'none' : '');
+  if (!on) loadProfile();                             // devuelve la lección real
+}
+
 async function startRoom() {
   roomActive = true;
+  roomBadges(true);
   document.getElementById('room-exit').style.display = '';
   const d = await (await fetch('/progress')).json();
   askHidden(ROOM_PROMPT((d.topics || []).filter(t => t.status === 'mastered').map(t => t.topic)));
@@ -507,6 +515,7 @@ async function startRoom() {
 function exitRoom() {
   roomActive = false;
   examActive = false;
+  roomBadges(false);
   document.getElementById('room-exit').style.display = 'none';
   messages.length = 0;                                // el curso arranca sin la charla del repaso
   addMessage('bot', '📚 Terminamos el repaso. Vamos con el curso.');
