@@ -63,6 +63,27 @@
   un contexto aislado por prueba. Login: nombre → "Tengo contraseña" → contraseña → tarjeta de curso; el
   nombre se recuerda en `localStorage` (`mm-name`).
 
+## Avisos a Nando por Telegram (cuando se va y deja trabajando)
+- Lo pide como "avísame por Telegram a través de Fervis" (Fervis = proyecto `nandis`, `D:\Fernando\Coding\nandis`). No hay
+  script de envío en ningún repo y el bot solo envía desde sus propios jobs; **Fervis no tiene que estar arrancado**.
+- Se hizo (2026-10-05, funcionó): un script Python **fuera del repo** (carpeta temporal) lee `TELEGRAM_BOT_TOKEN` y
+  `TELEGRAM_ALLOWED_USER_ID` del `.env` de `nandis` **dentro del proceso** y hace `POST` a
+  `https://api.telegram.org/bot<token>/sendMessage` con `{chat_id, text}`. Nunca imprimir ni copiar esos valores.
+  Nando lo autorizó dos veces. `PushNotification` de Claude Code no sirve: no envía con la terminal activa.
+- Mensajes cortos: qué se hizo y qué decisión necesito de él.
+
+## Plan de calidad por curso (ROADMAP, puntos 20 y 22): cómo se trabaja y qué está verificado
+- **Método (Nando, 2026-10-05):** curso a curso (MoureDev → CS50 → 42 Málaga), fase a fase, un commit por fase. En cada
+  fase se **revisan primero los `.md`** (el del tutor y los de `brain/`) y se añade, quita o cambia; el temario va
+  después. Nada de todo de golpe: se deja cosas o se las inventa. Tras cada fase, resumen de hecho / cambiado /
+  quitado / pendiente, sacado de `git log`. Nada se borra de sus carpetas sin preguntar.
+- **El tutor solo recibe `sources/*.md`** (`build_system_prompt`, `app.py`): en MoureDev son los `enlaces.md`, solo URLs.
+  **No ve `src/*.java`** aunque `Mouredev.md` le mande usarlo. Hoy no tiene contenido propio de ningún tema.
+- `coach.md` (citado en los 10 `enlaces.md`) vive en `D:\Fernando\Coding\Cursos\coach\`, proyecto anterior de Nando y
+  antepasado de `Mouredev.md`. Allí `temario_java.md` NO es un temario, es una nota de progreso desfasada.
+- El modelo no puede leer ni escribir archivos: instrucciones tipo "lee `local.json`", "actualiza `progreso.md`" o
+  "guarda en `sessions/`" no se cumplen. Quitarlas o pasarlas a la app.
+
 ## Decisiones de Nando (no se deshacen sin hablarlo)
 - Método híbrido MoureDev + CS50 (explicar → socratic → debug → exam). El tutor 42 igual, adaptado a estudiar
   desde el móvil: traza a mano y nunca pide compilar.
