@@ -3,7 +3,10 @@
 Todo lo de aquí es sobre código que **ya funciona hoy**, no bloquea el uso normal — son mejoras
 para la próxima sesión con calma.
 
-## 1. Editor de código en el chat (mejora de comodidad, sobre todo móvil)
+## 1. Editor de código en el chat (mejora de comodidad, sobre todo móvil) — HECHO
+
+**Estado (comprobado 2026-10-05):** el editor existe y está en uso: `code-editor.js` en `trainer/web/` y el botón `</>`
+"Modo código" junto a la caja de escribir (visto en el navegador). El texto de abajo es la idea original.
 
 **Ampliado (2026-09-27):** Java y C en el selector (modo `clike`); tema del editor a juego con el de la
 app vía `MutationObserver` sobre `data-theme` (`code-editor.js`). Elegidos midiendo 25 temas con código
@@ -56,9 +59,9 @@ Se quitó el panel (selector de Week, tema y botón) y su código: el progreso a
   enunciado del tema nuevo. Falta ver un examen real → marca → guardado automático.
 
 **Pendiente:**
-- Ver el **primer guardado real de progreso** en producción (`update: progress/…` en GitHub): el
-  `GITHUB_TOKEN` ya está en Cloud Run (punto 18) y el commit de perfil se comprobó, el de progreso no.
-  Y `/back exN` (punto 8) por si la IA aprueba por error.
+- ~~Ver el primer guardado real de progreso en producción~~ — **COMPROBADO**: hay commits `update: progress/mouredev.json`
+  de la app el 2026-10-04 y 2026-10-05 (`32a4849`, `90172ab`, `7014bd6`).
+  Sigue pendiente `/back exN` (punto 8) por si la IA aprueba por error.
 - Quitar de `profile.json` los campos viejos (`current_week`, `current_folder`, `current_topic`,
   `weeks_completed`, `topics_mastered`) cuando nadie los use: aún los usan la carpeta de sesiones de CS50
   (`week{current_week}-c`, en `build_system_prompt`) y el nombre del archivo de `/save-session`. El prompt ya
@@ -315,7 +318,7 @@ haría: crear el bucket, el permiso y la variable. Coste prácticamente cero.
   First Project"), región `europe-west1`. `fv-mastermind.com` apunta ahí (dominio asignado a Cloud Run).
 - `GITHUB_TOKEN` añadido a Cloud Run (token fine-grained `mastermind-sessions`: solo `fvilpaz/MasterMind`,
   Contents lectura y escritura, sin caducidad). Comprobado: la app hace `update: profile.json` y ese commit
-  **no** lanza despliegue. Sin comprobar aún: guardado real de progreso.
+  **no** lanza despliegue. Guardado real de progreso: comprobado (commits `update: progress/…` del 2026-10-04 y 05).
 - `ADMIN_PASSWORD` rotada (2026-10-02): la temporal que se usó para probar en producción ya no entra (comprobado: 401).
 - Al tocar variables desde `gcloud`, usar `--update-env-vars` y no `--set-env-vars` (este reemplaza todas;
   es una sospecha de por qué el token desapareció, no está comprobado).
