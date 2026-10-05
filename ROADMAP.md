@@ -145,6 +145,9 @@ Si siempre hubiera fallo, leería buscándolo en vez de entender. **La moneda la
 en `runCommand`) y se lo dice a la IA en la instrucción oculta (`READ_PROMPT`): el modelo "al azar" casi siempre
 pondría fallo. Pregunta neutra ("¿qué hace? ¿ves algo raro?"); si no había fallo y se inventa uno, se lo dice.
 `Mouredev.md` ya no habla de "fragmento real de GitHub". Bloqueado en el examen como `/kata`.
+Probado con la IA real en producción (2026-10-05): fragmento neutro, sin avisar del caso. **Sin comprobar:** que
+alguna vez salga uno *sin* fallo (los dos vistos lo tenían); Nando lo da por bueno, ya que en la conversación el
+tutor corrige igual si estaba bien o mal.
 **Siguiente:** `/back exN` (necesita `POST /progress/back`). `/read` ya nace bloqueado en el examen (`EXAM_BLOCKED` en `app.js`).
 
 **Nombres decididos por Nando (2026-09-27):** `/kata`, **`/read`** (lectura de código ajeno; no
