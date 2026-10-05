@@ -488,6 +488,10 @@ inventa. Lo que no se pueda comprobar contra el código o contra el material rea
 - **Contradicción:** la línea 52 aún dice "código real de GitHub", pero se decidió que `/read` lo inventa la IA.
 - **`brain/Moure/md_files/guia_saltos_pagina.md`:** apuntes de saltos de página para PDF (menciona C y MoureDev),
   nada que ver con el tutor; no lo lee la app. **Preguntar antes de tocar.**
+- **Fase 1 hecha en parte (2026-10-05, `Mouredev.md`):** quitada la instrucción de leer `config/local.json` (ahora dice
+  que el material llega incluido y que no invente que lo tiene) y corregida la línea 52 ("código inventado por ti").
+  **Sigue pendiente de decisión o comprobación:** lo de `src/`, la regla 6 / "Formato de sesión guardada", el
+  modo/barra y `BREVITY_REMINDER`; y la fase 2 (`coach.md` roto, `guia_saltos_pagina.md`).
 - **Sin comprobar todavía:** si el "Formato de sesión guardada" (líneas 157-174) lo usa algo (la app guarda la
   conversación en bruto); que la barra enseña siempre `explain` porque el modo vive en `profile.json` y nada lo
   cambia (el tutor "cambia de modo" solo en la conversación); si el recordatorio de brevedad
