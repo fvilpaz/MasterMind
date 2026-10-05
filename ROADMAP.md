@@ -139,9 +139,12 @@ el punto 10 (rutas de MoureDev).
 **Hecho (2026-09-28):** `/help` y `/ls`. La lista vive en `COMMANDS` (`app.js`): `/help` la enseña
 entera (los que faltan salen como "próximamente"). Pista fija "💡 Escribe /help…" encima de la caja de
 escribir. **Hecho (2026-10-04):** `/kata` — manda a la IA una instrucción oculta; no sale en el examen (ver "Hecho el 2026-10-04").
-**Siguientes:** `/back exN` (necesita `POST /progress/back`), luego `/read`. Para `/read`: código inventado por la IA, con
-alguna trampa realista (el código real de GitHub queda aparcado); `Mouredev.md` aún dice "fragmento real de GitHub" y
-hay que cambiar esa frase al hacerlo. `/read` ya nace bloqueado en el examen (`EXAM_BLOCKED` en `app.js`).
+**Siguientes:** `/back exN` (necesita `POST /progress/back`), luego `/read`. Para `/read`: código inventado por la IA
+(el código real de GitHub queda aparcado); `Mouredev.md` aún dice "fragmento real de GitHub" y hay que cambiar esa
+frase al hacerlo. **Decidido (Nando, 2026-10-05): la trampa es aleatoria**, a veces el código está bien y a veces
+falla algo; el tutor nunca avisa de cuál es el caso. Si siempre hubiera fallo, Nando leería buscándolo en vez de
+entender. La pregunta es neutra ("¿qué hace? ¿ves algo raro?") y, si no había fallo, se comprueba que no se
+inventa uno. `/read` ya nace bloqueado en el examen (`EXAM_BLOCKED` en `app.js`).
 
 **Nombres decididos por Nando (2026-09-27):** `/kata`, **`/read`** (lectura de código ajeno; no
 `/lectura`), **`/ls`** (lista de ejercicios: ✅ dominados, 👉 actual, 🔒 bloqueados) y **`/back exN`**
@@ -335,6 +338,99 @@ Siguiendo la regla del final: **pruebas antes de refactorizar**, nunca a ciegas.
 - Que `save_progress` avise al usuario cuando no puede subir a GitHub, en vez de decir `ok`.
 - Quitar los campos viejos de `profile.json` (punto 5).
 
+## 20. Exámenes más largos: que aprobar no sea gratis (apuntado 2026-10-05)
+
+**Problema (idea de Nando):** hoy el `exam` es **un único ejercicio** y el que decide si se aprueba es el
+modelo (`Mouredev.md`, `CS50.md`, `42malaga.md`, sección `exam`). Un ejercicio bien resuelto, o el modelo
+siendo generoso, y sale `[[DOMINADO]]` (pasó con 42 el 2026-10-02). Como `[[DOMINADO]]` avanza **sin vuelta
+atrás** (aún no hay `/back`), aprobar de más sale caro.
+
+**Opciones (sin decidir):**
+1. **Varios ejercicios seguidos** (p. ej. 3–5), dificultad creciente; se aprueba solo con todos. Es la idea
+   de Nando ("siguiente ejercicio… siguiente…"). Ojo con una decena: en el móvil, 10 ejercicios a ~20 min
+   cada uno no caben en un pomodoro ni en un trayecto.
+2. **Un ejercicio, pero por fases obligatorias:** código completo en un mensaje → traza a mano → caso límite
+   → cambio de requisito ("ahora que además haga X") → explicar por qué funciona. Cada fase se pasa o no.
+3. **Mixto:** 3 ejercicios cortos + una fase de "cambio de requisito" en el último.
+
+**Ampliado por Nando (2026-10-05): no es solo la duración, es la profundidad.** Ejemplo real: en operadores
+pasó el examen con cosas "muy muy simples", y mañana puede aparecer `cond && cond || cond` (¿da true o false?)
+y no estar preparado. El examen aprueba **lo que se preguntó**, no **todo el tema**. Lo que pide:
+- **Cubrir el tema entero, no un ejemplo:** el tutor lleva una lista de lo que abarca el tema (en operadores:
+  aritméticos, comparación, `&&` / `||` / `!`, **precedencia y combinaciones**, cortocircuito…) y no da por
+  bueno el examen hasta haber tocado todo, con casos que combinan cosas.
+- **Aprender por repetición antes de examinar:** varios ejercicios, katas y lecturas cortas del mismo
+  concepto con dificultad creciente, y solo entonces el examen. Hoy `Mouredev.md` ya pide "3 seguidas" en
+  `socratic` y katas antes de `exam`, pero es una guía que el modelo puede acortar si ve respuestas fáciles.
+- **Que lo fácil no cuente como dominado:** si las respuestas son muy simples, subir la dificultad, no
+  aprobar.
+
+**Puerta antes del examen (idea de Nando, 2026-10-05):** exigir haber hecho **X katas y X `/read`** del tema
+antes de poder entrar en `exam`. Cuenta la **app**, no el modelo (cada `/kata` y `/read` lanzado suma al tema
+actual; el contador **en el progreso del servidor** (`config/progress/<curso>.json`), no en `localStorage`:
+así, si te bajas del tren a mitad, al volver (desde el móvil o el PC) sigue "llevas 2 de 3 katas"). Cosas a
+decidir:
+- **`/read` aún no existe** (punto 8, aparcado): sin él, la puerta solo puede pedir katas. Orden natural:
+  `/read` primero, puerta después.
+- **Qué cuenta como "hecha":** pedir una kata no es resolverla. Contar solo las que el tutor da por
+  buenas (marca nueva, como `[[EXAM]]`), no las pedidas.
+- **X por tema**, no global: en operadores 3 katas pueden ser mucho y en punteros poco. Podría ir en el
+  `temario.md`.
+- **Qué pasa si se intenta examinar antes:** el tutor dice "te faltan 2 katas y 1 lectura" y propone la
+  siguiente. Sin salida de emergencia: lo hecho se queda guardado y se sigue otro día.
+- Choca con los **pomodoros**: más ejercicios previos = más tiempo; que el plan de la sesión lo tenga en cuenta.
+
+Idea de implementación (sugerencia): una lista de subtemas **por tema** en `brain/<curso>/exN_…/` (p.
+`sources/temario.md`), que se pasa al tutor y contra la que se comprueba el examen. Sin eso, "todo el tema" es
+lo que el modelo crea que es. Es trabajo de contenido tema a tema, no solo de código.
+
+**Dónde está el fallo de fondo:** el modelo no sabe contar de forma fiable ("llevas 3 de 5"). Lo sólido es que
+la **app lleve la cuenta**, como ya hace con `[[EXAM]]`: una marca nueva por ejercicio superado (nombre sin
+decidir) y la app solo deja dar `[[DOMINADO]]` cuando se ha llegado al número. Sin eso, es otra regla de
+prompt que el modelo puede saltarse.
+
+**Lo que se tocaría:** las 3 secciones `exam` de `agent/*.md` + el mensaje oculto de la app + un contador
+(`localStorage` o progreso). Enlaza con el criterio de aprobado de 42 (punto 16) y con `/back` (punto 8).
+
+## 21. Pantalla intermedia tras elegir curso: resumen + repasar o seguir (apuntado 2026-10-05)
+
+**Idea de Nando:** hoy, al pulsar la tarjeta de un curso, se entra directo al chat y el tutor saluda
+(punto 9). En su lugar, una **pantalla intermedia**:
+
+1. **Saludo y resumen de dónde estoy:** tema actual, lo dominado, qué se ha visto (el "repaso de lo que llevo").
+2. **Dos caminos:** "Seguir con el curso" (como hoy) o "Repasar".
+3. **Repasar:** lista lo ya hecho (✅ de `mastered`) y eliges; p. ej. estando en Strings ej. 4, "repasar
+   operadores lógicos". Entonces el tutor pregunta, propone ejercicios, katas y lecturas **solo de ese tema**.
+
+**Aclarado por Nando (2026-10-05): la pantalla es una "sala previa" y el repaso es charla libre, "en seco".**
+Como un tema off-topic o hablar con ChatGPT: te pone un ejercicio, habláis, trabajáis. **No hay examen, ni
+`[[DOMINADO]]`, ni `[[EXAM]]`, no se guarda nada y no toca el progreso.** Cuando acaba, le dices "vamos con el
+curso" y salta al flujo de hoy (el saludo con la pregunta de los pomodoros). Es una sala **antes** de lo que ya
+existe, no un cambio dentro de ello.
+
+**Qué hay ya que sirve:** `mastered` / `current` del progreso por curso (`/progress`, `/ls`), la barra con la
+lección real, `/kata`, el saludo con estilos (`GREET_STYLES`) y los logs de `sessions/<curso-tema>/`.
+
+**Lo que falta o hay que decidir:**
+- **"Qué he aprendido" no está guardado como texto:** el progreso solo sabe *qué* temas están dominados, no qué
+  se vio dentro. Opciones: (a) resumen solo con los nombres de los temas (barato, sin IA); (b) que el tutor lo
+  redacte leyendo los logs de sesión del tema (más rico, gasta una llamada y los logs pueden no existir).
+- **El tutor no debe emitir marcas en la sala.** Con la regla de `Mouredev.md` / `CS50.md` / `42malaga.md`
+  (`exam` → `[[DOMINADO]]`) el modelo podría examinarte por inercia. La sala necesita su propio prompt, sin
+  `exam` ni marcas, y la app, aun así, debería **ignorar** un `[[DOMINADO]]` llegado desde la sala (cinturón y
+  tirantes: el modelo se equivoca). No es `/back exN` (punto 8): aquello rehace un tema; esto solo practica.
+- **Material del tutor en la sala:** `_topic_folder` toma el tema del progreso (`current`); aquí habría que
+  pasarle el tema elegido. Un tema que no es de la lista (off-topic libre) iría sin material.
+- **Sin guardar:** "Guardar sesión" no se ofrece en la sala (o se deja, pero sin tocar el progreso).
+- **Invitado:** no guarda nada ni ve material → entraría directo, sin la sala.
+- **Salir de la sala:** "vamos con el curso" lo puede interceptar la app (como un comando, tipo `/ls`) en vez
+  de depender de que el modelo lo entienda; al salir, vacía el chat y lanza el saludo de hoy (`__greet__` o
+  `__greet_plan__`, el que pregunta los pomodoros).
+
+**Orden razonable:** pantalla con resumen por nombres (a) y los dos botones → modo repaso con el tema elegido
+→ y solo si hace falta, el resumen redactado por el tutor (b). Enlaza con los puntos 8 (`/ls`, `/back`), 9
+(saludo) y 20 (si el examen se alarga, repasar antes de examinarse cobra más sentido).
+
 ## Hecho el 2026-10-04
 
 - **Reloj del pomodoro con hora real** (`0fe971d`): guarda la hora de fin y recalcula, en vez de restar 1 por segundo
@@ -357,6 +453,8 @@ Siguiendo la regla del final: **pruebas antes de refactorizar**, nunca a ciegas.
 - Comando `/tiempo` para reiniciar el plan a mitad.
 - Curso de pruebas rápido (idea de Nando: "churros") para probar la app de punta a punta con datos absurdos.
 - Código real de GitHub en `/read`.
+- (2026-10-05) Que el tutor recuerde en qué se equivocó Nando la última vez (p. ej. "falló `&&` con `||`") y lo
+  retome al volver, guardando los fallos del tema en el progreso. Hoy solo lo sabe si Nando se lo dice.
 
 ## Hecho el 2026-10-02
 
