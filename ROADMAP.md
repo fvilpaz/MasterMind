@@ -421,7 +421,10 @@ app **ignora** `[[DOMINADO]]` (`send()`). La barra de arriba dice "Entrenamiento
 **Sin comprobar:** que la IA real haga caso de `ROOM_PROMPT` (sin examen, sin marcas); el móvil real.
 **Limitaciones conocidas:** el tutor sigue recibiendo el material del tema *actual* y no el del repasado
 (`_topic_folder`, `app.py`); `/kata` y `/read` dentro de la sala se refieren al tema actual; "Guardar sesión" en la
-sala guarda esa charla como log del curso. **Pendiente:** el resumen redactado por el tutor (opción (b)).
+sala guarda esa charla como log del curso. **Pendiente:** el resumen redactado por el tutor (opción (b)). Las dos opciones eran: (a) resumen solo con los nombres
+de los temas (lo que hay hoy: "Vas por Ej. N · Tema"; barato, sin IA) o (b) que el tutor lo redacte leyendo los logs de
+sesión del tema (más rico, pero gasta una llamada y los logs pueden no existir). Otra limitación: un tema fuera de la
+lista (off-topic libre) iría sin material. Enlaza con los puntos 8 (`/ls`, `/back`), 9 (saludo) y 20.
 
 **Aclarado por Nando durante el diseño (2026-10-05):** la pantalla es una "sala previa" y el repaso es charla libre,
 "en seco", como un tema off-topic o hablar con ChatGPT: **sin examen, sin `[[DOMINADO]]`, sin `[[EXAM]]`, sin guardar
