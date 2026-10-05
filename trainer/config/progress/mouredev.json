@@ -1,7 +1,8 @@
 {
-  "current": "ex3_DataTypes",
+  "current": "ex4_Operadores",
   "mastered": [
     "ex1_HelloWorld",
-    "ex2_VariablesAndConstants"
+    "ex2_VariablesAndConstants",
+    "ex3_DataTypes"
   ]
 }
