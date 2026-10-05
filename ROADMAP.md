@@ -116,8 +116,9 @@ el punto 10 (rutas de MoureDev).
 
 ## 6. Seguridad — antes de que esto sea de verdad público
 
-- `ADMIN_PASSWORD` actual es débil (puesta como prueba temporal) — cambiar antes de tomárselo en
-  serio.
+- ~~`ADMIN_PASSWORD` actual es débil~~ — **HECHO (2026-10-02)**: rotada; la temporal ya no entra (ver punto 18).
+- **Verificado contra el código el 2026-10-05:** siguen pendientes `USER` en el `Dockerfile` (no hay ninguna línea
+  `USER`) y el `.dockerignore` (no existe). El resto de este punto no se ha vuelto a comprobar.
 - Confirmar que `GROQ_API_KEY` está bien puesta en las variables de entorno de Cloud Run (el modo
   invitado depende de ella; en local no está configurada, así que no se pudo probar del todo aquí).
 - **El contenedor corre como `root`** (auditoría con trivy, 2026-09-27, DS-0002 HIGH): el
