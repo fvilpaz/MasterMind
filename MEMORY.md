@@ -64,12 +64,14 @@
   nombre se recuerda en `localStorage` (`mm-name`).
 
 ## Avisos a Nando por Telegram (cuando se va y deja trabajando)
-- Lo pide como "avísame por Telegram a través de Fervis" (Fervis = proyecto `nandis`, `D:\Fernando\Coding\nandis`). No hay
-  script de envío en ningún repo y el bot solo envía desde sus propios jobs; **Fervis no tiene que estar arrancado**.
-- Se hizo (2026-10-05, funcionó): un script Python **fuera del repo** (carpeta temporal) lee `TELEGRAM_BOT_TOKEN` y
-  `TELEGRAM_ALLOWED_USER_ID` del `.env` de `nandis` **dentro del proceso** y hace `POST` a
-  `https://api.telegram.org/bot<token>/sendMessage` con `{chat_id, text}`. Nunca imprimir ni copiar esos valores.
-  Nando lo autorizó dos veces. `PushNotification` de Claude Code no sirve: no envía con la terminal activa.
+- Lo pide como "avísame por Telegram a través de Fervis" (Fervis = proyecto `nandis`, `D:\Fernando\Coding\nandis`). El bot solo
+  envía desde sus propios jobs; **Fervis no tiene que estar arrancado** para avisar.
+- **Script permanente (2026-10-06):** `scripts/avisar-telegram.sh` en el repo privado **`nando-toolkit`** (WSL:
+  `~/code/github/nando-toolkit`; su README lo explica: claves, rutas, controles). Desde Windows:
+  `wsl -e bash -lc '~/code/github/nando-toolkit/scripts/avisar-telegram.sh "texto"'`; `--comprobar` no manda nada.
+  Lee `TELEGRAM_BOT_TOKEN` y `TELEGRAM_ALLOWED_USER_ID` del `.env` de `nandis` **dentro del proceso**; nunca imprimir ni
+  copiar esos valores. Nando lo autorizó dos veces. `PushNotification` de Claude Code no sirve: no envía con la terminal activa.
+  (Antes era un script Python en la carpeta temporal de una sesión; ya no se usa.)
 - Mensajes cortos: qué se hizo y qué decisión necesito de él.
 
 ## Plan de calidad por curso (ROADMAP, puntos 20 y 22): cómo se trabaja y qué está verificado
