@@ -1,9 +1,10 @@
 {
-  "current": "ex5_Strings",
+  "current": "ex6_Conditionales",
   "mastered": [
     "ex1_HelloWorld",
     "ex2_VariablesAndConstants",
     "ex3_DataTypes",
-    "ex4_Operadores"
+    "ex4_Operadores",
+    "ex5_Strings"
   ]
 }
