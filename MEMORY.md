@@ -69,7 +69,7 @@
   Desde Windows: `wsl -e bash -lc '~/code/github/nando-toolkit/scripts/avisar-telegram.sh "texto"'`; `--comprobar` no manda nada.
 - Nunca imprimir ni copiar el token. Nando lo autorizó. `PushNotification` de Claude Code no sirve: no envía con la terminal
   activa. Mensajes cortos: qué se hizo y qué decisión necesito de él.
-- **Vuelta (2026-10-06, en `nandis`, sin commit aún):** Fervis apunta lo que Nando escribe con prefijo `[alias]` en
+- **Vuelta (2026-10-06, en `nandis`, subido: `cc1d7e2`):** Fervis apunta lo que Nando escribe con prefijo `[alias]` en
   `D:\Fernando\Coding\_bandeja\bandeja.jsonl` (fuera de repos y de `vault/`). Alias en `alias.json` (alfa, bravo… directos;
   `claude`/`cc`/`equipo` = todos, con `reclamos.jsonl` para no actuar dos sesiones; `fervis` = charla normal). Sin prefijo,
   le contesta el modelo de Fervis y **nosotras no vemos nada**. Cada sesión vigila con `Monitor` (30 min, se rearma) y su

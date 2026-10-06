@@ -486,15 +486,17 @@ inventa. Lo que no se pueda comprobar contra el código o contra el material rea
   cambia (el tutor "cambia de modo" solo en la conversación); si el recordatorio de brevedad
   (`BREVITY_REMINDER`, "máximo 3 frases", `app.py:306`) choca con el examen por rondas.
 
-## 23. Canal de vuelta por Telegram con Fervis (2026-10-06) — HECHO EN LOCAL, sin commit en `nandis`
+## 23. Canal de vuelta por Telegram con Fervis (2026-10-06) — HECHO Y SUBIDO (`nandis` `cc1d7e2`)
 
 **Idea de Nando:** escribir por Telegram y que las sesiones de Claude lo lean (ida ya existía: `avisar-telegram.sh`).
 Un token de bot solo admite un consumidor, así que Fervis sigue siendo el único y apunta los mensajes en una bandeja.
 **Hecho (código en `nandis`, no en este repo):** handler antes del modelo de Fervis, solo el user id de Nando, solo texto,
-prefijo `[alias]`, archivo fuera de repos y de `vault/`, alias editables, eco «📥 Recibido…», 31 pruebas con control.
-Cómo se usa y las trampas: `MEMORY.md` (sección Telegram). **Falta:** probar de punta a punta con el móvil de Nando
-(alfa / equipo), revisión del `guardrail-reviewer` de `nandis`, commit (lo confirma Nando), y documentarlo en el README de
-`nando-toolkit`. **Aparcado:** `/para alfa` para fijar destino sin teclear el prefijo; el Channels nativo de Claude Code
+prefijo `[alias]` y `/alias`, archivo fuera de repos y de `vault/`, alias editables, eco «📥 Recibido…», 39 pruebas con control.
+**Probado de punta a punta con el móvil de Nando (2026-10-06):** sus mensajes a `[alfa]` y `[claude]` llegaron a las sesiones.
+Cómo se usa y las trampas: `MEMORY.md` (sección Telegram). **Falta:** probar `[equipo]` y `/alfa` desde el móvil; que el
+`guardrail-reviewer` de `nandis` lo repase (el diff lo revisó una sesión a mano, sin él); documentarlo en el README de
+`nando-toolkit`; decidir cómo rotar o borrar `bandeja.jsonl` (acumula lo que Nando escriba). **Decidido:** fotos, audios y
+reenvíos NO se reciben (solo texto); las capturas se copian al PC. **Aparcado:** `/para alfa` para fijar destino sin teclear el prefijo; el Channels nativo de Claude Code
 (necesita Bun y un segundo bot) como alternativa; que Fervis dé opinión en los debates (idea, no pedida).
 El plan del health-tracker vive en su propio repo (`docs/PLAN.md`), no aquí.
 
