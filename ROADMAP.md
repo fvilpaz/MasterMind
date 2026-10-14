@@ -536,7 +536,7 @@ enseña su progreso (p. ej. 3/10); (8) solo datos que ya existen.
 ya estaban en `test_profile.py`) · 2 `GET /dashboard` + tests **HECHO (2026-10-14)**: endpoint en `app.py`
 (`_resumen_curso`, `_logros`, `dashboard`; solo lee) y `trainer/tests/test_dashboard.py` (30 comprobaciones, escritas
 antes que el código; con control: 5 roturas a propósito, las 5 detectadas) ·
-3 `dashboard.js` y `dashboard.css` con datos reales, probado en navegador con copia aislada (~220) · 4 animaciones,
+3 `dashboard.js` y `dashboard.css` con datos reales **HECHO (2026-10-14)**, ver "Paso 3" abajo · 4 animaciones,
 puntos, interruptor y `sw.js` (~60) · 5 docs, push, despliegue y prueba en el móvil.
 
 **Riesgos vistos:** en producción `get_progress` lee de GitHub, así que 3 cursos son 3 llamadas por carga (medir la
@@ -550,6 +550,16 @@ vive hoy dentro de `.login-box` (380 px), por eso el panel pide pantalla propia.
 `half_course`, `course_complete`, `all_courses_started`). **Los nombres de los campos los propuse yo y están por
 confirmar con Nando antes del paso 3**; se cambian en un sitio y en los tests. Con datos reales: 42malaga 1/54,
 cs50 0/10, mouredev 9/10 (90 %, en el último tema, sin siguiente).
+
+**Paso 3, lo que hay:** `dashboard.js` (`window.mostrarDashboard`) y `dashboard.css`, con las variables del tema de la
+app. Tarjetas por curso (hechos/total, barra, ahora, último dominado o siguiente, 🏅 n/3) y Logros debajo (los 6 del
+servidor más "racha" y "pomodoros" como "pronto"). Elegir una tarjeta llama a `elegirCurso()` (extraída de `app.js`, hace
+lo de siempre: `POST /update-profile` y la sala previa). `showCourseStep()` prueba el panel y, **si falla, deja las
+tarjetas pequeñas**. Rutas `/dashboard.js` y `/dashboard.css` y huella del service worker en `app.py`; `sw.js` las
+guarda. **No hay animaciones, interruptor deslizable/apilado ni puntos (paso 4):** hoy en el móvil van apiladas, una por
+pantalla. Probado en navegador real sobre una copia aislada con el progreso y el `brain/` reales: tarjetas y números,
+clic → `update-profile` → sala, invitado sin panel (403), plan B con el panel roto, móvil 390 px sin scroll lateral ni
+textos cortados. **Sin comprobar:** en producción y en el móvil real; otros temas de color; cursos > 3.
 
 **Pendiente de Nando (dicho el 2026-10-14):** al llegar al **último** tema de un curso y aprobarlo, la app debe
 **preguntarle si ha terminado el curso** y, si dice que sí, pasar ese último tema a dominado. Hoy `POST /progress/next`

@@ -162,6 +162,35 @@ try:
     check('producción: una lectura de GitHub por curso (3)', len(llamadas) == 3)
     check('producción: solo lee archivos de progreso',
           len(llamadas) > 0 and all(x.startswith('trainer/config/progress/') for x in llamadas))
+
+    # 11. Los archivos del panel se sirven y el service worker se entera de ellos (paso 3).
+    mm.ROOT = REAL_ROOT                        # los estáticos viven en web/, no en la copia temporal
+    web = REAL_ROOT / 'web'
+    js, css = invitado.get('/dashboard.js'), invitado.get('/dashboard.css')
+    check('/dashboard.js: 200 y es JavaScript (no text/plain)', js.status_code == 200 and 'javascript' in js.content_type)
+    check('/dashboard.css: 200 y es CSS', css.status_code == 200 and 'css' in css.content_type)
+    check('/dashboard.js y .css llevan Cache-Control: no-cache como el resto de la interfaz',
+          js.headers.get('Cache-Control') == 'no-cache' and css.headers.get('Cache-Control') == 'no-cache')
+    check('index.html carga dashboard.css y dashboard.js (el JS ANTES que app.js)',
+          'href="dashboard.css"' in (web / 'index.html').read_text(encoding='utf-8')
+          and (web / 'index.html').read_text(encoding='utf-8').index('src="dashboard.js"') < (web / 'index.html').read_text(encoding='utf-8').index('src="app.js"'))
+    sw = invitado.get('/sw.js').get_data(as_text=True)
+    check("sw.js guarda '/dashboard.js' y '/dashboard.css' en su caché", "'/dashboard.js'" in sw and "'/dashboard.css'" in sw)
+    # La huella se calcula sobre una COPIA de web/ (la prueba no toca los archivos reales).
+    copia = tmp / 'web'
+    copia.mkdir()
+    for nombre in set(mm._ARCHIVOS_INTERFAZ) | {'dashboard.js', 'dashboard.css'}:   # siempre estos dos, estén o no en la lista
+        if (web / nombre).exists():
+            shutil.copy2(web / nombre, copia / nombre)
+    raiz_real = mm.app.root_path
+    mm.app.root_path = str(copia)
+    try:
+        v1 = mm._version_interfaz()
+        (copia / 'dashboard.js').write_bytes((copia / 'dashboard.js').read_bytes() + b'\n// prueba\n')
+        v2 = mm._version_interfaz()
+    finally:
+        mm.app.root_path = raiz_real
+    check('cambiar dashboard.js cambia la versión del service worker (el móvil se entera)', v1 != v2)
 finally:
     mm.ROOT = REAL_ROOT
     os.environ.pop('MASTERMIND_PATH', None)

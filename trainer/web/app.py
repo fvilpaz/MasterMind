@@ -355,6 +355,16 @@ def code_editor_js():
     return _sin_cache(send_from_directory('.', 'code-editor.js', mimetype='application/javascript'))
 
 
+@app.route('/dashboard.js')
+def dashboard_js():
+    return _sin_cache(send_from_directory('.', 'dashboard.js', mimetype='application/javascript'))
+
+
+@app.route('/dashboard.css')
+def dashboard_css():
+    return _sin_cache(send_from_directory('.', 'dashboard.css', mimetype='text/css'))
+
+
 # --- PWA ---
 # Mimetypes puestos a mano: en Windows el registro puede mapear .js a text/plain, y el
 # navegador rechaza registrar un service worker que no llegue como JavaScript.
@@ -365,7 +375,8 @@ def manifest():
 
 
 # Archivos cuyo contenido decide la versión de la caché del service worker
-_ARCHIVOS_INTERFAZ = ('index.html', 'styles.css', 'app.js', 'code-editor.js', 'manifest.json', 'sw.js')
+_ARCHIVOS_INTERFAZ = ('index.html', 'styles.css', 'app.js', 'code-editor.js', 'dashboard.js', 'dashboard.css',
+                      'manifest.json', 'sw.js')
 
 
 def _version_interfaz():

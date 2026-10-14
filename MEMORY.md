@@ -60,8 +60,8 @@
 - Elegir curso o `/progress/next` **modifica** `trainer/config/progress/*.json` y `profile.json`: copiar antes,
   restaurar después, y comprobar que `git status` queda limpio.
 - Pruebas: `python trainer/tests/test_greet.py`, `test_profile.py`, `test_courses.py` (`GET /courses`) y
-  `test_dashboard.py` (`GET /dashboard`, con un `brain/` inventado; en producción son N lecturas de GitHub, una por
-  curso) (sin dependencias,
+  `test_dashboard.py` (`GET /dashboard` y los archivos del panel, con un `brain/` inventado; en producción son N
+  lecturas de GitHub, una por curso) (sin dependencias,
   sobre una copia temporal).
 - Navegador: MCP `chrome-devtools` (`claude mcp add chrome-devtools -- npx -y chrome-devtools-mcp@latest`),
   un contexto aislado por prueba. Login: nombre → "Tengo contraseña" → contraseña → tarjeta de curso; el

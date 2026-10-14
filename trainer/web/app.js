@@ -601,17 +601,28 @@ async function showCourseStep() {
   document.getElementById('course-cards').innerHTML = courses.map(c =>
     `<button class="course-card" data-course="${c}">${COURSE_LABELS[c] || c}${c === p.course ? ' <span class="course-chip">último</span>' : ''}</button>`
   ).join('');
+  // Panel de cursos a pantalla completa (dashboard.js, punto 24 del ROADMAP). Si falla, quedan las tarjetas de arriba.
+  try {
+    await window.mostrarDashboard({ etiquetas: COURSE_LABELS, ultimo: p.course, alElegir: elegirCurso,
+                                    saludo: document.getElementById('course-greeting').textContent });
+    step.style.display = 'none';
+  } catch {}
+}
+
+// Elegir un curso (tarjeta pequeña o panel): guarda el curso en el perfil y abre la sala previa.
+async function elegirCurso(course) {
+  await fetch('/update-profile', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ course })
+  });
+  showRoomStep();
 }
 
 document.getElementById('course-cards').addEventListener('click', async e => {
   const card = e.target.closest('button[data-course]');
   if (!card) return;
-  await fetch('/update-profile', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ course: card.dataset.course })
-  });
-  showRoomStep();
+  await elegirCurso(card.dataset.course);
 });
 
 document.getElementById('login-password').addEventListener('keydown', e => {
