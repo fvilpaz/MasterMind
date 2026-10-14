@@ -1,6 +1,6 @@
 /* Panel de cursos (punto 24 del ROADMAP): tarjetas con progreso y Logros. Usa las variables del tema de la app.
    Sin .slide en .dash-grid = apilado (móvil) / desplegado (ordenador); con .slide = una fila que se desliza. */
-#dashboard { width: 100%; height: 100%; overflow-y: auto; padding: 64px 0 40px; }
+#dashboard { display: none; flex-direction: column; height: 100dvh; width: 100%; overflow-y: auto; padding: 64px 0 40px; }
 .dash-wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; flex-direction: column; gap: 20px; }
 .dash-top { display: flex; align-items: center; gap: 12px; }
 .dash-hola { flex: 1; min-width: 0; font-size: 20px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

@@ -187,8 +187,6 @@
   .qr-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 999px; color: var(--primary-on-surface, var(--primary)); font-size: 12px; padding: 6px 14px; cursor: pointer; font-family: inherit; transition: background 0.15s, color 0.15s; }
 .qr-btn:hover { background: var(--primary); color: var(--primary-text); }
 
-#dashboard { display: none; flex-direction: column; height: 100dvh; }
-
 .site-footer { background: var(--surface); border-top: 1px solid var(--border); padding: 8px 16px; display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--muted); flex-shrink: 0; }
   .site-footer-links { display: flex; gap: 12px; }
   .site-footer-links a { color: var(--muted); text-decoration: none; transition: color 0.15s; }
