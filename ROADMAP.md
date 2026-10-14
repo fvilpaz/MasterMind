@@ -509,8 +509,9 @@ El plan del health-tracker vive en su propio repo (`docs/PLAN.md`), no aquí.
 - **Login: el campo de contraseña ya declara `name="password"` y `autocomplete="current-password"`**
   (`index.html`) para que Chrome/Google Password Manager ofrezca guardarla y rellenarla con la huella en el móvil.
   No se envolvió en un `<form>` a propósito: Enter dispararía el envío además del `keydown` de `app.js` y recargaría.
-  Verificado en local (atributo servido; `/login` da 200 con la buena y 401 con la mala). **Sin comprobar:** que el
-  Pixel ofrezca guardar y rellenar de verdad; solo se ve en el móvil tras el despliegue.
+  Verificado en local (atributo servido; `/login` da 200 con la buena y 401 con la mala). **Comprobado por Nando
+  (2026-10-14):** en el navegador del PC ofreció guardarla y, sincronizada, el móvil ya la rellena. La app instalada
+  (`display: standalone`) no ofreció guardarla; por eso se guardó desde el PC. La passkey queda aparcada.
 
 ## Hecho el 2026-10-04
 
