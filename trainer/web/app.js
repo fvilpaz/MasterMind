@@ -623,7 +623,8 @@ async function showCourseStep() {
   document.getElementById('login-overlay').classList.add('hidden');
   document.getElementById('dashboard').style.display = 'flex';
   // Ocultar elementos de chat
-  document.getElementById('nav-brand')?.parentElement.style.display = 'none';
+  const nav = document.getElementById('nav-brand')?.parentElement;
+  if (nav) nav.style.display = 'none';
   document.getElementById('messages').style.display = 'none';
   document.getElementById('quick-replies').style.display = 'none';
   document.getElementById('cmd-hint').style.display = 'none';
