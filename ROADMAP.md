@@ -504,6 +504,43 @@ reenvíos NO se reciben (solo texto); las capturas se copian al PC. **Aparcado:*
 (necesita Bun y un segundo bot) como alternativa; que Fervis dé opinión en los debates (idea, no pedida).
 El plan del health-tracker vive en su propio repo (`docs/PLAN.md`), no aquí.
 
+## 24. Dashboard de cursos: tarjetas con progreso y logros (2026-10-14) — ESPECIFICACIÓN, SIN CÓDIGO
+
+**Idea de Nando:** sustituir la selección de curso por un panel como los de `health-tracker` y `auryapp`: tarjetas con
+progreso, animaciones y logros. **Maqueta aprobada** ("muy chulo", "me gusta tu diseño de logros"): un solo HTML con datos
+inventados en la carpeta `maquetas` (fuera de los repos). Medida a 390 px y a 1280 px, sin tocar la app.
+
+**Qué se ve.** Móvil: **una tarjeta por pantalla**, con interruptor *deslizable ↔ apilado* y puntos de página, más una
+cuarta pantalla de **Logros**. Escritorio: tarjetas una al lado de otra y Logros en una franja debajo. Cada tarjeta:
+nombre y color, `hechos / total`, barra, "Ahora: …" (efecto Solari), una línea que rota (último dominado, siguiente) y un
+resumen "🏅 n/3". Se respeta `prefers-reduced-motion`. Solo admin; el invitado entra directo, como hoy.
+
+**De dónde salen los datos (nada inventado).** `config/progress/<curso>.json` (`current`, `mastered`) y `course_topics`.
+Falta un endpoint que dé **todos los cursos a la vez**: `GET /courses/summary` (nombre por confirmar), solo admin, 403 al
+invitado. Los **logros se calculan en el servidor** y viajan como `achievements` (`id`, `unlocked`, `progress`, `target`),
+para probarlos con los tests de Python (el frontend no tiene tests).
+
+**Logros de esta fase (solo con lo que ya existe):** `first_topic`, `topics_5`, `topics_10`, `half_course`,
+`course_complete`, `all_courses_started`. **Fuera de alcance (fase 3):** rachas de días y pomodoros. Hoy no dejan rastro
+fiable: los commits de progreso son uno por tema dominado (8, solo MoureDev, en 4 días) y los pomodoros viven en el
+`localStorage` de cada navegador. Haría falta guardar a propósito una fecha por día de actividad en el archivo de progreso
+y sembrarla una vez con el historial de git; después del punto 17 (progreso fuera del repo). En la maqueta salen como "pronto".
+
+**Criterios de aceptación:** (1) los números salen de `mastered` y `course_topics`; (2) `/courses/summary` da 403 a un
+invitado; (3) un curso sin archivo de progreso sale con 0 hechos, sin error; (4) pulsar una tarjeta hace lo de hoy
+(`/update-profile` y luego la sala); (5) móvil y escritorio como arriba; (6) el invitado no cambia; (7) un logro bloqueado
+enseña su progreso (p. ej. 3/10); (8) solo datos que ya existen.
+
+**Pasos, uno por commit y con su prueba, sin avanzar sin OK:** 0 esta especificación · 1 pruebas de caracterización de
+`/courses`, `/profile` y `/progress` (~40 líneas) · 2 `/courses/summary` + tests, con control de invitado (~70) ·
+3 `dashboard.js` y `dashboard.css` con datos reales, probado en navegador con copia aislada (~220) · 4 animaciones,
+puntos, interruptor y `sw.js` (~60) · 5 docs, push, despliegue y prueba en el móvil.
+
+**Riesgos vistos:** en producción `get_progress` lee de GitHub, así que 3 cursos son 3 llamadas por carga (medir la
+latencia); `app.js` ya tiene ~575 líneas (el panel va en archivos aparte y se añaden a `SHELL` de `sw.js`); la selección
+vive hoy dentro de `.login-box` (380 px), por eso el panel pide pantalla propia. **Por decidir:** nombre del endpoint y qué
+pone "Siguiente" cuando el curso está terminado.
+
 ## Hecho el 2026-10-14
 
 - **Login: el campo de contraseña ya declara `name="password"` y `autocomplete="current-password"`**
