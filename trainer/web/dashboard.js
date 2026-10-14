@@ -3,9 +3,15 @@
 // y app.js deja las tarjetas pequeñas de siempre.
 // Un solo método para móvil y ordenador: dos modos ("deslizable" = .slide, o apilado/desplegado) y "cuántas caben".
 (function () {
-  const COLORES = { cs50: '#a51c30', mouredev: '#1a6fc4', '42malaga': '#0f8b8d' };
+  // ÚNICA tabla de identidad de cada curso (nombre, color e icono): el panel y las tarjetas pequeñas del plan B (app.js)
+  // la leen de window.CURSOS. Un curso que no esté aquí se enseña con su id y el color del tema / de PALETA.
+  const CURSOS = {
+    cs50: { nombre: 'CS50', color: '#a51c30', icono: '🎓' },
+    mouredev: { nombre: 'MoureDev', color: '#1a6fc4', icono: '☕' },
+    '42malaga': { nombre: '42 Málaga', color: '#0f8b8d', icono: '🧩' },
+  };
+  window.CURSOS = CURSOS;
   const PALETA = ['#7c4dff', '#e67e22', '#2e9d5b', '#1d8fe1', '#8e8e93'];
-  const ICONOS = { cs50: '🎓', mouredev: '☕', '42malaga': '🧩' };
   const LOGROS = {   // id del servidor → [icono, título, descripción]
     first_topic: ['🥉', 'Primer tema', 'Domina tu primer tema'],
     topics_5: ['🖐️', 'Cinco temas', '5 temas dominados en total'],
@@ -22,7 +28,7 @@
   let panel = null, timers = [], escuchando = false;
 
   const tarjeta = (c, i, o) => {
-    const color = COLORES[c.course] || PALETA[i % PALETA.length];
+    const color = (CURSOS[c.course] || {}).color || PALETA[i % PALETA.length];
     const nombre = (o.etiquetas || {})[c.course] || c.course;
     const logros = [1, Math.ceil(c.total / 2), c.total].filter((n) => n > 0 && c.done >= n).length;
     const ahora = c.finished ? 'Curso completo' : (c.current_label || 'Sin empezar');
@@ -31,7 +37,7 @@
     if (c.next_label) lineas.push(['Siguiente', c.next_label]);
     if (c.finished) lineas.push(['Estado', 'Terminado']);
     return `<button class="dash-card" type="button" data-course="${esc(c.course)}" style="--c:${color};--i:${i}">
-      <header><span class="dash-ico">${ICONOS[c.course] || '📘'}</span><h2>${esc(nombre)}</h2>
+      <header><span class="dash-ico">${(CURSOS[c.course] || {}).icono || '📘'}</span><h2>${esc(nombre)}</h2>
         ${c.course === o.ultimo ? '<span class="dash-chip">último</span>' : ''}</header>
       <div class="dash-big"><span class="dash-num" data-n="${c.done}">${c.done}</span><span class="dash-den">/ ${c.total}</span>
         <small>temas dominados · ${c.percent}%</small></div>

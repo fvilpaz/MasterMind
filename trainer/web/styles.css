@@ -348,8 +348,8 @@
     font-family: inherit; padding: 4px 0;
   }
   .login-box .btn-guest:hover { color: var(--text); }
-  /* Tarjetas de curso: cada curso con su color, fijo en todos los temas (es su identidad).
-     Un curso sin color asignado usa el del tema. */
+  /* Tarjetas de curso: el color (--course-color) lo pone app.js desde la tabla única window.CURSOS (dashboard.js),
+     fijo en todos los temas (es su identidad). Un curso sin color asignado usa el del tema. */
   .login-box .course-card {
     width: 100%; padding: 13px; border: none; border-radius: var(--radius);
     background: var(--course-color, var(--primary)); color: var(--course-text, var(--primary-text));
@@ -358,8 +358,6 @@
     transition: filter 0.15s;
   }
   .login-box .course-card:hover { filter: brightness(0.88); }
-  .login-box .course-card[data-course="cs50"]     { --course-color: #a51c30; --course-text: #fff; } /* carmesí Harvard */
-  .login-box .course-card[data-course="mouredev"] { --course-color: #1a6fc4; --course-text: #fff; }
   .course-chip {
     font-size: 11px; font-weight: 600; padding: 2px 8px;
     border-radius: 999px; background: rgba(255, 255, 255, 0.25);

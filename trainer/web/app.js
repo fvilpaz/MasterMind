@@ -605,8 +605,9 @@ document.getElementById('login-btn').addEventListener('click', async () => {
   else { err.style.display = 'block'; }
 });
 
-// Nombre bonito de cada curso; uno que no esté aquí se enseña tal cual (nombre del archivo en agent/).
-const COURSE_LABELS = { cs50: 'CS50', mouredev: 'MoureDev', '42malaga': '42 Málaga' };
+// Nombre bonito de cada curso, de la tabla única window.CURSOS (dashboard.js); uno que no esté se enseña tal cual
+// (nombre del archivo en agent/).
+const COURSE_LABELS = Object.fromEntries(Object.entries(window.CURSOS || {}).map(([id, c]) => [id, c.nombre]));
 
 const COURSE_GREETINGS = [
   '¿A qué le atacamos hoy?',
@@ -649,7 +650,7 @@ async function showCourseStep() {
         const [courses, p] = await Promise.all([
           fetch('/courses').then(r => r.json()).then(j => j.courses), fetch('/profile').then(r => r.json())]);
         document.getElementById('course-cards').innerHTML = courses.map(c =>
-          `<button class="course-card" data-course="${c}">${COURSE_LABELS[c] || c}${c === p.course ? ' <span class="course-chip">último</span>' : ''}</button>`
+          `<button class="course-card" data-course="${c}"${(window.CURSOS || {})[c] ? ` style="--course-color:${window.CURSOS[c].color};--course-text:#fff"` : ''}>${COURSE_LABELS[c] || c}${c === p.course ? ' <span class="course-chip">último</span>' : ''}</button>`
         ).join('');
       } catch {}
     }
