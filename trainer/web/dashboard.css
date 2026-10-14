@@ -11,10 +11,13 @@
 .dash-dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--border); cursor: pointer; transition: .25s; }
 .dash-dots i.on { background: var(--text); transform: scale(1.25); }
 .dash-pager { display: none; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
-.dash-pager button, .dash-mode { background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; font: inherit; cursor: pointer; }
+.dash-pager button { background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; font: inherit; cursor: pointer; }
 .dash-pager button { width: 30px; height: 30px; font-size: 18px; line-height: 1; }
 .dash-pager button:disabled { opacity: .35; cursor: default; }
-.dash-mode { display: none; padding: 5px 10px; font-size: 12px; }
+.dash-mode { display: none; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--surface2); }
+.dash-mode button { display: grid; place-items: center; width: 36px; height: 30px; border: 0; background: none; color: var(--muted); cursor: pointer; transition: background .15s, color .15s; }
+.dash-mode button[aria-pressed="true"] { background: var(--primary); color: var(--primary-text); }
+.dash-mode button:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
 
 .dash-grid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(clamp(260px, 30%, 400px), 1fr)); }
 .dash-grid:focus-visible { outline: 2px solid var(--primary); outline-offset: 4px; border-radius: 12px; }
@@ -59,7 +62,7 @@
 
 /* Ordenador: desplegado por defecto; deslizable = UNA fila con 3 visibles, de 3 en 3. Los controles solo si no caben */
 @media (min-width: 900px) {
-  #dashboard[data-sobran="1"] .dash-mode { display: inline-block; }
+  #dashboard[data-sobran="1"] .dash-mode { display: inline-flex; }
   #dashboard[data-sobran="1"].es-slide .dash-pager { display: flex; }
   .dash-grid.slide { display: flex; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; scrollbar-width: none; padding-block: 6px; margin-block: -6px; }
   .dash-grid.slide::-webkit-scrollbar { display: none; }
@@ -72,7 +75,7 @@
   #dashboard { overflow: hidden; padding: 56px 0 0; }
   .dash-wrap { height: 100%; padding: 0 16px 16px; gap: 12px; }
   .dash-hola { font-size: 17px; }
-  .dash-mode { display: inline-block; }
+  .dash-mode { display: inline-flex; }
   .dash-dots { display: flex; }
   .dash-grid { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; overflow-x: hidden;
                scroll-snap-type: y mandatory; scrollbar-width: none; }

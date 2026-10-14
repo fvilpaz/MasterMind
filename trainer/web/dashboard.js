@@ -21,6 +21,9 @@
     all_courses_started: ['🧭', 'Todos los cursos', 'Empieza todos los cursos'],
   };
   const PRONTO = [['🔥', 'Racha de 7 días'], ['🍅', '10 pomodoros']];   // aún no hay dato fiable (punto 24)
+  // Iconos del interruptor de vista (heredan el color del botón): filas de tarjetas en carrusel / pila de tarjetas
+  const ICO_SLIDE = '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><rect x="2" y="6" width="5" height="12" rx="1.5"/><rect x="9.5" y="6" width="5" height="12" rx="1.5"/><rect x="17" y="6" width="5" height="12" rx="1.5"/></svg>';
+  const ICO_PILA = '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><rect x="3" y="3" width="18" height="5" rx="1.5"/><rect x="3" y="9.5" width="18" height="5" rx="1.5"/><rect x="3" y="16" width="18" height="5" rx="1.5"/></svg>';
   const VISTAS = 3;                                                    // tarjetas visibles a la vez en el ordenador
   const ordenador = matchMedia('(min-width: 900px)');
   const reducir = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -106,8 +109,8 @@
     panel.querySelector('.dash-next').disabled = p >= paginas - 1;
     [...panel.querySelector('.dash-dots').children].forEach((d, j) => d.classList.toggle('on', j === p));
   };
-  const textoModo = () => {
-    panel.querySelector('.dash-mode').textContent = horizontal() ? '↔ Deslizable' : (ordenador.matches ? '▦ Desplegado' : '↕ Apilado');
+  const textoModo = () => {                                // el interruptor muestra el modo activo (aria-pressed)
+    panel.querySelectorAll('.dash-mode button').forEach((b) => b.setAttribute('aria-pressed', String((b.dataset.modo === 'slide') === horizontal())));
   };
   const aplicarModo = (slide) => {
     grid().classList.toggle('slide', slide);
@@ -152,7 +155,10 @@
       <div class="dash-top"><div class="dash-hola">${esc(o.saludo || '¿Qué entrenamos hoy?')}</div>
         <div class="dash-ctl"><div class="dash-dots"></div>
           <div class="dash-pager"><button type="button" class="dash-prev" aria-label="Anterior">‹</button><span class="dash-pag"></span><button type="button" class="dash-next" aria-label="Siguiente">›</button></div>
-          <button type="button" class="dash-mode"></button></div></div>
+          <div class="dash-mode" role="group" aria-label="Vista">
+            <button type="button" data-modo="slide" aria-label="Vista deslizable" title="Deslizable">${ICO_SLIDE}</button>
+            <button type="button" data-modo="pila" aria-label="${ordenador.matches ? 'Vista desplegada' : 'Vista apilada'}" title="${ordenador.matches ? 'Desplegado' : 'Apilado'}">${ICO_PILA}</button>
+          </div></div></div>
       <div class="dash-grid" tabindex="0">${d.courses.map((c, i) => tarjeta(c, i, o)).join('')}</div>
       <section class="dash-logros"><h2>🏅 Logros <span class="dash-chip">${desbloqueados}/${d.achievements.length}</span></h2>
         <ul class="dash-lista">${d.achievements.map(logro).join('')}${PRONTO.map(([ic, t]) =>
@@ -165,7 +171,7 @@
         parar(); panel.style.display = 'none';
         return o.alElegir(b.dataset.course);
       }
-      if (b.classList.contains('dash-mode')) return aplicarModo(!horizontal());
+      if (b.dataset.modo) return aplicarModo(b.dataset.modo === 'slide');
       if (b.classList.contains('dash-prev')) return irA(pagina().p - 1);
       if (b.classList.contains('dash-next')) return irA(pagina().p + 1);
       if (b.parentElement.classList.contains('dash-dots')) irA([...b.parentElement.children].indexOf(b));
