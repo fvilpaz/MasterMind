@@ -1,11 +1,12 @@
 {
-  "current": "ex7_Estructuras",
+  "current": "ex8_Bucles",
   "mastered": [
     "ex1_HelloWorld",
     "ex2_VariablesAndConstants",
     "ex3_DataTypes",
     "ex4_Operadores",
     "ex5_Strings",
-    "ex6_Conditionales"
+    "ex6_Conditionales",
+    "ex7_Estructuras"
   ]
 }
