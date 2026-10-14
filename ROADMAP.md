@@ -121,10 +121,10 @@ el punto 10 (rutas de MoureDev).
   `USER`) y el `.dockerignore` (no existe). El resto de este punto no se ha vuelto a comprobar.
 - Confirmar que `GROQ_API_KEY` está bien puesta en las variables de entorno de Cloud Run (el modo
   invitado depende de ella; en local no está configurada, así que no se pudo probar del todo aquí).
-- **`SECRET_KEY` (visto el 2026-10-14, sin comprobar en Cloud Run):** `app.py` usa
-  `os.environ.get('SECRET_KEY', 'mastermind-dev-key')`. Si la variable no está puesta en el servicio, la clave de
-  las cookies de sesión es la del repo público y alguien podría falsificar `is_admin`. Mirarlo en la consola de
-  Cloud Run y, si falta, ponerla (valor aleatorio largo, fuera del repo).
+- ~~**`SECRET_KEY`**~~ — **COMPROBADO (2026-10-14)**: Nando confirmó que la variable `SECRET_KEY` existe en el
+  servicio de Cloud Run. `app.py` usa `os.environ.get('SECRET_KEY', 'mastermind-dev-key')`: sin la variable, la
+  clave de las cookies sería la del repo público y se podría falsificar `is_admin`. Solo se comprobó que existe,
+  no su valor (no debe ser `mastermind-dev-key`).
 - **El contenedor corre como `root`** (auditoría con trivy, 2026-09-27, DS-0002 HIGH): el
   `Dockerfile` no tiene `USER`. No tiene que ver con el login admin/invitado (eso es dentro de la
   app): es con qué usuario de Linux corre `python app.py`. Si alguien explotara un fallo de la app,
