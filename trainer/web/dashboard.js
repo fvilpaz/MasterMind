@@ -81,7 +81,8 @@
     });
   };
 
-  // ── Disposición: carrusel de tarjetas (.dash-grid). En el móvil Logros es su última pantalla; en el ordenador, una zona aparte.
+  // ── Disposición: carrusel de tarjetas (.dash-grid). Logros va FUERA del carrusel (debajo) salvo en el móvil apilado,
+  // donde es la última tarjeta de la pila.
   const grid = () => panel.querySelector('.dash-grid');
   const vistas = () => (ordenador.matches ? VISTAS : 1);
   const horizontal = () => grid().classList.contains('slide');
@@ -111,16 +112,17 @@
   const aplicarModo = (slide) => {
     grid().classList.toggle('slide', slide);
     panel.classList.toggle('es-slide', slide);
+    colocarLogros();
     grid().scrollTo(0, 0); textoModo(); marca();
   };
   const colocarLogros = () => {
     const lg = panel.querySelector('.dash-logros'), g = grid();
-    (ordenador.matches ? panel.querySelector('.dash-wrap') : g).appendChild(lg);
+    (ordenador.matches || horizontal() ? panel.querySelector('.dash-wrap') : g).appendChild(lg);
     panel.querySelector('.dash-dots').innerHTML = [...g.children].map(() => '<i></i>').join('');
   };
   const alCambiarAncho = () => {                           // por defecto: móvil = deslizable; ordenador = desplegado
     if (!panel || !grid()) return;
-    colocarLogros(); aplicarModo(!ordenador.matches);
+    aplicarModo(!ordenador.matches);
   };
 
   // Marco vacío al instante, mientras llegan los datos

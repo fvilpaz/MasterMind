@@ -78,6 +78,10 @@
                scroll-snap-type: y mandatory; scrollbar-width: none; }
   .dash-grid::-webkit-scrollbar { display: none; }
   .dash-grid.slide { flex-direction: row; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; }
+  /* Deslizable: el carrusel tiene su alto y Logros queda debajo, fuera de él; el panel hace scroll vertical */
+  #dashboard.es-slide { overflow-y: auto; }
+  #dashboard.es-slide .dash-wrap { height: auto; }
+  #dashboard.es-slide .dash-grid.slide { flex: none; height: calc(100dvh - 190px); min-height: 380px; }
   .dash-grid > * { flex: 0 0 100%; min-height: 0; overflow-y: auto; scroll-snap-align: start; scroll-snap-stop: always; }
 }
 
