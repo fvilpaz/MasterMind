@@ -593,6 +593,13 @@ y de quitar `/profile`; con ambos baja un poco más). Animaciones recortadas (en
 por Nando: hoy sale arriba del panel porque es hermana de la caja del login. **Sin medir en producción** (no hay URL ni
 acceso); los números son de la simulación.
 
+**Regresión encontrada el 2026-10-15** tras la reorganización posterior del panel (commits `34ce55f`, `8ed308f`,
+`4ca7f0f`, que lo cuelgan del `body`): el **plan B** dejaba la **pantalla en blanco**, porque `showCourseStep` esconde el
+`login-overlay` antes del `try` y la caja vieja salía dentro de algo oculto. Reproducido con `/dashboard` devolviendo 500
+(nada visible, ningún botón pulsable). Arreglo de una línea: en el plan B se vuelve a mostrar el overlay
+(`classList.remove('hidden')`). Probado: salen las 3 tarjetas pequeñas y elegir curso lleva a la sala; caso normal,
+elegir curso e invitado siguen bien.
+
 **Pendiente de Nando (dicho el 2026-10-14):** al llegar al **último** tema de un curso y aprobarlo, la app debe
 **preguntarle si ha terminado el curso** y, si dice que sí, pasar ese último tema a dominado. Hoy `POST /progress/next`
 responde 400 ahí ("Ya estás en el último tema del curso"), así que un curso no se puede terminar y `finished` /

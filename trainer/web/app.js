@@ -644,6 +644,9 @@ async function showCourseStep() {
     if (panel && panel.dataset.esqueleto === '1') { panel.style.display = 'none'; delete panel.dataset.esqueleto; }
     const sigueElPanel = panel && panel.style.display !== 'none' && panel.innerHTML;
     if (!sigueElPanel) {
+      // Plan B: el overlay del login se había escondido al empezar; sin volver a mostrarlo la caja salía dentro de
+      // algo oculto y la pantalla se quedaba en blanco.
+      document.getElementById('login-overlay').classList.remove('hidden');
       caja.style.display = '';
       step.style.display = 'flex';
       try {
