@@ -187,7 +187,9 @@
   .qr-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 999px; color: var(--primary-on-surface, var(--primary)); font-size: 12px; padding: 6px 14px; cursor: pointer; font-family: inherit; transition: background 0.15s, color 0.15s; }
 .qr-btn:hover { background: var(--primary); color: var(--primary-text); }
 
-.site-footer { background: var(--surface); border-top: 1px solid var(--border); padding: 8px 16px; display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--muted); flex-shrink: 0; }
+/* La única franja de enlaces: siempre abajo (margin-top:auto) y por encima del login (z-index > 999), que antes llevaba
+   su propia copia. */
+.site-footer { position: relative; z-index: 1000; margin-top: auto; background: var(--surface); border-top: 1px solid var(--border); padding: 8px 16px; display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--muted); flex-shrink: 0; }
   .site-footer-links { display: flex; gap: 12px; }
   .site-footer-links a { color: var(--muted); text-decoration: none; transition: color 0.15s; }
   .site-footer-links a:hover { color: var(--primary); }
