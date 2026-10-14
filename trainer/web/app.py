@@ -548,6 +548,52 @@ def progress_list():
     return jsonify({'course': course, 'topics': topics})
 
 
+def _resumen_curso(course):
+    """Resumen de UN curso para el panel. Solo lee: el progreso y las carpetas de temas de brain/. Un tema
+    "dominado" que ya no existe en brain/ no cuenta, así que hechos nunca supera al total."""
+    folders = [t['folder'] for t in course_topics(course)]
+    prog = get_progress(course)
+    hechos = [f for f in folders if f in prog.get('mastered', [])]          # en el orden del curso
+    current = prog.get('current')
+    i = folders.index(current) if current in folders else None
+    siguiente = folders[i + 1] if i is not None and i + 1 < len(folders) else None
+    ultimo = hechos[-1] if hechos else None
+    return {'course': course, 'done': len(hechos), 'total': len(folders),
+            'percent': round(len(hechos) / len(folders) * 100) if folders else 0,
+            'finished': bool(folders) and len(hechos) == len(folders),
+            'current': current, 'current_label': folder_label(current),
+            'last_mastered': ultimo, 'last_mastered_label': folder_label(ultimo),
+            'next': siguiente, 'next_label': folder_label(siguiente)}
+
+
+def _logros(resumenes):
+    """Logros del panel, derivados SOLO de los resúmenes (temas dominados y total). Rachas y pomodoros no
+    están: no hay un dato fiable de actividad (ver ROADMAP, punto 24)."""
+    total_hechos = sum(r['done'] for r in resumenes)
+
+    def mas_cercano(meta):          # el curso que más cerca está de la meta → (progreso, objetivo)
+        cand = [(min(r['done'], meta(r)), meta(r)) for r in resumenes if meta(r) > 0]
+        return max(cand, key=lambda pn: pn[0] / pn[1]) if cand else (0, 0)
+
+    mitad = mas_cercano(lambda r: (r['total'] + 1) // 2)                    # la mitad, redondeando hacia arriba
+    completo = mas_cercano(lambda r: r['total'])
+    definidos = [('first_topic', min(total_hechos, 1), 1), ('topics_5', min(total_hechos, 5), 5),
+                 ('topics_10', min(total_hechos, 10), 10), ('half_course', *mitad), ('course_complete', *completo),
+                 ('all_courses_started', sum(1 for r in resumenes if r['done'] > 0), len(resumenes))]
+    return [{'id': i, 'progress': p, 'target': t, 'unlocked': t > 0 and p >= t} for i, p, t in definidos]
+
+
+@app.route('/dashboard')
+def dashboard():
+    """Panel de cursos: el resumen de TODOS los cursos a la vez y los logros. Solo con contraseña: el invitado
+    no tiene panel. Solo lee, no guarda nada."""
+    if not session.get('is_admin', False):
+        return jsonify({'error': 'Solo con contraseña'}), 403
+    nombres = [c for c in courses().get_json()['courses'] if re.fullmatch(r'[a-z0-9_-]+', c)]
+    resumenes = [_resumen_curso(c) for c in nombres]
+    return jsonify({'courses': resumenes, 'achievements': _logros(resumenes)})
+
+
 @app.route('/progress/next', methods=['POST'])
 def progress_next():
     """Guardar la partida tras aprobar el examen: el tema actual pasa a dominado y el SIGUIENTE a

@@ -533,7 +533,9 @@ enseña su progreso (p. ej. 3/10); (8) solo datos que ya existen.
 
 **Pasos, uno por commit y con su prueba, sin avanzar sin OK:** 0 esta especificación · 1 pruebas de caracterización
 **HECHO (2026-10-14)**: `trainer/tests/test_courses.py` (13 comprobaciones; `/profile`, `/progress` y `/update-profile`
-ya estaban en `test_profile.py`) · 2 `GET /dashboard` + tests, con control de invitado (~70) ·
+ya estaban en `test_profile.py`) · 2 `GET /dashboard` + tests **HECHO (2026-10-14)**: endpoint en `app.py`
+(`_resumen_curso`, `_logros`, `dashboard`; solo lee) y `trainer/tests/test_dashboard.py` (30 comprobaciones, escritas
+antes que el código; con control: 5 roturas a propósito, las 5 detectadas) ·
 3 `dashboard.js` y `dashboard.css` con datos reales, probado en navegador con copia aislada (~220) · 4 animaciones,
 puntos, interruptor y `sw.js` (~60) · 5 docs, push, despliegue y prueba en el móvil.
 
@@ -541,6 +543,19 @@ puntos, interruptor y `sw.js` (~60) · 5 docs, push, despliegue y prueba en el m
 latencia); `app.js` ya tiene ~575 líneas (el panel va en archivos aparte y se añaden a `SHELL` de `sw.js`); la selección
 vive hoy dentro de `.login-box` (380 px), por eso el panel pide pantalla propia. **Decidido (2026-10-14, por Telegram):** el endpoint es
 `GET /dashboard`, y "Siguiente" en un curso terminado pone "Curso completo" con la insignia.
+
+**Paso 2: lo que devuelve** (probado con el `brain/` y el progreso reales, sobre una copia). Por curso: `course`,
+`done`, `total`, `percent`, `finished`, `current`, `current_label`, `last_mastered`, `last_mastered_label`, `next`,
+`next_label`; y `achievements` con `id`, `progress`, `target`, `unlocked` (`first_topic`, `topics_5`, `topics_10`,
+`half_course`, `course_complete`, `all_courses_started`). **Los nombres de los campos los propuse yo y están por
+confirmar con Nando antes del paso 3**; se cambian en un sitio y en los tests. Con datos reales: 42malaga 1/54,
+cs50 0/10, mouredev 9/10 (90 %, en el último tema, sin siguiente).
+
+**Pendiente de Nando (dicho el 2026-10-14):** al llegar al **último** tema de un curso y aprobarlo, la app debe
+**preguntarle si ha terminado el curso** y, si dice que sí, pasar ese último tema a dominado. Hoy `POST /progress/next`
+responde 400 ahí ("Ya estás en el último tema del curso"), así que un curso no se puede terminar y `finished` /
+`course_complete` no pueden darse. No se ha tocado `/progress/next`. `finished` se calcula como "todos los temas
+dominados", sin estado aparte.
 
 **Visto en el paso 1 (sin arreglar, no estaba pedido):** el orden de `GET /courses` depende del sistema. `sorted()` sobre
 rutas ignora mayúsculas en Windows (`['42malaga', 'alfa', 'zeta']`) y no en Linux/Cloud Run (`['42malaga', 'zeta', 'alfa']`),
