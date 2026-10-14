@@ -467,16 +467,18 @@ try {
 pomoRender();
 
 // ── LOGIN ─────────────────────────────────────────────
+// La interfaz del chat son estas 6 piezas (cada una con su display de siempre). Antes, esta lista estaba copiada en
+// cuatro funciones; ahora hay un solo sitio.
+const CHAT_UI = [['nav', 'flex'], ['#messages', 'flex'], ['#quick-replies', 'flex'],
+                 ['#cmd-hint', 'block'], ['footer', 'flex'], ['#pomo-progress', 'block']];
+function mostrarChatUI(visible) {
+  CHAT_UI.forEach(([sel, display]) => { document.querySelector(sel).style.display = visible ? display : 'none'; });
+}
+
 async function startApp(room = false) {
   document.getElementById('login-overlay').classList.add('hidden');
   document.getElementById('dashboard').style.display = 'none';
-  // Mostrar chat UI
-  document.querySelector('nav').style.display = 'flex';
-  document.getElementById('messages').style.display = 'flex';
-  document.getElementById('quick-replies').style.display = 'flex';
-  document.getElementById('cmd-hint').style.display = 'block';
-  document.querySelector('footer').style.display = 'flex';
-  document.getElementById('pomo-progress').style.display = 'block';
+  mostrarChatUI(true);
   if (isAdmin) {
     document.getElementById('model-row').style.display = 'flex';
   }
@@ -496,22 +498,28 @@ const ROOM_PROMPT = hechos => 'El estudiante entra en la SALA DE REPASO, antes d
   'Cuando elija, pregúntale, proponle ejercicios, katas y lecturas de código de ese tema, con tus modos habituales pero sin ' +
   'examinarle. No des la solución antes de su intento.';
 
-async function showRoomStep() {
+// `listo` = lo que hay que esperar antes de saludar (guardar el curso elegido). La sala se ve YA y sus botones esperan:
+// guardar el curso son varias llamadas a GitHub y, mientras tanto, antes la pantalla quedaba en blanco.
+async function showRoomStep(listo = Promise.resolve()) {
   // Sala: overlay visible con step-room, dashboard oculto, chat UI oculta
   document.getElementById('dashboard').style.display = 'none';
-  document.querySelector('nav').style.display = 'none';
-  document.getElementById('messages').style.display = 'none';
-  document.getElementById('quick-replies').style.display = 'none';
-  document.getElementById('cmd-hint').style.display = 'none';
-  document.querySelector('footer').style.display = 'none';
-  document.getElementById('pomo-progress').style.display = 'none';
+  mostrarChatUI(false);
   document.getElementById('login-overlay').classList.remove('hidden');
   document.getElementById('step-course').style.display = 'none';
   document.getElementById('step-room').style.display = 'flex';
   const name = document.getElementById('login-name').value.trim();
-  const pr = (await (await fetch('/profile')).json()).progress || {};
-  const donde = pr.n ? ` Vas por ${pr.course === 'cs50' ? 'Week' : 'Ej.'} ${pr.n} · ${pr.topic}.` : '';
-  document.getElementById('room-greeting').textContent = `¡Hola${name ? ', ' + name : ''}!${donde} ¿Repasamos lo aprendido o seguimos con el curso?`;
+  const botones = ['room-review-btn', 'room-continue-btn'].map(id => document.getElementById(id));
+  botones.forEach(b => { b.disabled = true; });
+  document.getElementById('room-greeting').textContent = 'Preparando tu sala…';
+  try {
+    await listo;
+    const pr = (await (await fetch('/profile')).json()).progress || {};
+    const donde = pr.n ? ` Vas por ${pr.course === 'cs50' ? 'Week' : 'Ej.'} ${pr.n} · ${pr.topic}.` : '';
+    document.getElementById('room-greeting').textContent = `¡Hola${name ? ', ' + name : ''}!${donde} ¿Repasamos lo aprendido o seguimos con el curso?`;
+  } catch {
+    document.getElementById('room-greeting').textContent = `¡Hola${name ? ', ' + name : ''}! ¿Repasamos lo aprendido o seguimos con el curso?`;
+  }
+  botones.forEach(b => { b.disabled = false; });
 }
 
 // En la sala la barra dice "Entrenamiento" en vez de la lección del curso (que aquí no se está haciendo).
@@ -537,12 +545,7 @@ function exitRoom() {
   // Ocultar overlay y dashboard, mostrar chat UI
   document.getElementById('login-overlay').classList.add('hidden');
   document.getElementById('dashboard').style.display = 'none';
-  document.querySelector('nav').style.display = 'flex';
-  document.getElementById('messages').style.display = 'flex';
-  document.getElementById('quick-replies').style.display = 'flex';
-  document.getElementById('cmd-hint').style.display = 'block';
-  document.querySelector('footer').style.display = 'flex';
-  document.getElementById('pomo-progress').style.display = 'block';
+  mostrarChatUI(true);
   messages.length = 0;
   addMessage('bot', '📚 Terminamos el repaso. Vamos con el curso.');
   greet();
@@ -622,14 +625,7 @@ async function showCourseStep() {
   // Ocultar overlay de login y mostrar dashboard en body
   document.getElementById('login-overlay').classList.add('hidden');
   document.getElementById('dashboard').style.display = 'flex';
-  // Ocultar elementos de chat
-  const nav = document.getElementById('nav-brand')?.parentElement;
-  if (nav) nav.style.display = 'none';
-  document.getElementById('messages').style.display = 'none';
-  document.getElementById('quick-replies').style.display = 'none';
-  document.getElementById('cmd-hint').style.display = 'none';
-  document.querySelector('footer').style.display = 'none';
-  document.getElementById('pomo-progress').style.display = 'none';
+  mostrarChatUI(false);
   // Un marco vacío AL INSTANTE (dashboard.js)
   try { window.esqueletoDashboard(); } catch {}
   try {
@@ -662,12 +658,11 @@ async function showCourseStep() {
 
 // Elegir un curso (tarjeta pequeña o panel): guarda el curso en el perfil y abre la sala previa.
 async function elegirCurso(course) {
-  await fetch('/update-profile', {
+  await showRoomStep(fetch('/update-profile', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ course })
-  });
-  showRoomStep();
+  }));
 }
 
 document.getElementById('course-cards').addEventListener('click', async e => {
