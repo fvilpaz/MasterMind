@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, send_from_directory, session, Response, stream_with_context
 import hashlib, json, os, random, re
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -601,8 +602,17 @@ def dashboard():
     if not session.get('is_admin', False):
         return jsonify({'error': 'Solo con contraseña'}), 403
     nombres = [c for c in courses().get_json()['courses'] if re.fullmatch(r'[a-z0-9_-]+', c)]
-    resumenes = [_resumen_curso(c) for c in nombres]
-    return jsonify({'courses': resumenes, 'achievements': _logros(resumenes)})
+    # Cada curso lee su progreso (en producción, una ida y vuelta a GitHub): a la vez, no uno tras otro. map() conserva
+    # el orden de `nombres`, así que el panel sale igual que antes.
+    # También el último curso usado (perfil), en paralelo con los progresos: así el navegador no pide /profile aparte.
+    with ThreadPoolExecutor(max_workers=max(1, min(8, len(nombres) + 1))) as pool:
+        perfil = pool.submit(get_admin_profile)
+        resumenes = list(pool.map(_resumen_curso, nombres))
+        try:
+            ultimo = (perfil.result() or {}).get('course', '').lower()
+        except Exception:
+            ultimo = ''                       # sin perfil legible, el panel sale igual (solo sin la etiqueta "último")
+    return jsonify({'courses': resumenes, 'achievements': _logros(resumenes), 'last_course': ultimo})
 
 
 @app.route('/progress/next', methods=['POST'])

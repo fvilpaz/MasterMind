@@ -60,7 +60,7 @@
         barra.style.width = '0%';
         requestAnimationFrame(() => requestAnimationFrame(() => { barra.style.width = barra.dataset.pct + '%'; }));
         const t0 = performance.now();
-        const paso = (t) => { const p = Math.min(1, (t - t0) / 900); num.textContent = Math.round(fin * p); if (p < 1) requestAnimationFrame(paso); };
+        const paso = (t) => { const p = Math.min(1, (t - t0) / 500); num.textContent = Math.round(fin * p); if (p < 1) requestAnimationFrame(paso); };
         num.textContent = '0'; requestAnimationFrame(paso);
       }
       const live = card.querySelector('.dash-live');
@@ -117,17 +117,36 @@
     colocarLogros(); aplicarModo(!ordenador.matches);
   };
 
-  // opciones: { etiquetas: {curso: 'Nombre'}, ultimo: 'curso', saludo: 'texto', alElegir: (curso) => ... }
+  // Marco vacío al instante, mientras llegan los datos: sin esto, tras la contraseña solo se veía la fila de enlaces.
+  // mostrarDashboard() lo sustituye por el panel; si falla, app.js lo quita (dataset.esqueleto) y deja el plan B.
+  window.esqueletoDashboard = function () {
+    const overlay = document.getElementById('login-overlay');
+    caja = overlay.querySelector('.login-box');
+    panel = document.getElementById('dashboard');
+    if (!panel) { panel = document.createElement('div'); panel.id = 'dashboard'; overlay.appendChild(panel); }
+    panel.dataset.esqueleto = '1';
+    panel.innerHTML = `<div class="dash-wrap"><div class="dash-top"><div class="dash-hola dash-esq-t"></div></div>
+      <div class="dash-grid">${'<div class="dash-card dash-esq"><i></i><i></i><i></i></div>'.repeat(3)}</div></div>`;
+    caja.style.display = 'none';
+    panel.style.display = '';
+  };
+
+  // opciones: { etiquetas: {curso: 'Nombre'}, ultimo: 'curso', saludo: 'texto', alElegir: (curso) => ...,
+  //             datos: respuesta de /dashboard si ya se pidió (si no, se pide aquí) }
   window.mostrarDashboard = async function (o) {
-    const r = await fetch('/dashboard');
-    if (!r.ok) throw new Error('dashboard ' + r.status);
-    const d = await r.json();
+    let d = o.datos;
+    if (!d) {
+      const r = await fetch('/dashboard');
+      if (!r.ok) throw new Error('dashboard ' + r.status);
+      d = await r.json();
+    }
     if (!d.courses || !d.courses.length) throw new Error('dashboard sin cursos');
     const overlay = document.getElementById('login-overlay');
     caja = overlay.querySelector('.login-box');
     panel = document.getElementById('dashboard');
     if (!panel) { panel = document.createElement('div'); panel.id = 'dashboard'; overlay.appendChild(panel); }
     const desbloqueados = d.achievements.filter((a) => a.unlocked).length;
+    delete panel.dataset.esqueleto;                                  // ya no es el marco vacío
     panel.dataset.sobran = d.courses.length > VISTAS ? '1' : '0';    // el interruptor del ordenador solo sale si no caben
     panel.innerHTML = `<div class="dash-wrap">
       <div class="dash-top"><div class="dash-hola">${esc(o.saludo || '¿Qué entrenamos hoy?')}</div>

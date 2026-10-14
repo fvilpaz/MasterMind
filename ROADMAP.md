@@ -581,6 +581,18 @@ Ahora la caja entera se oculta mientras carga y solo reaparece si el panel falla
 documentada en el código con la línea que la recupera como paso normal. Comprobado el plan B con el panel roto y con
 `/courses` caído (sale la caja, nunca una pantalla vacía).
 
+**Segunda corrección: tardaba y se veía "primero el pie y luego el dashboard" (Nando, 2026-10-14).** Dos causas, las dos
+mías, medidas en dos copias aisladas con 250 ms simulados por lectura de GitHub y tus tres cursos reales:
+(1) con la caja vieja escondida, durante la espera **solo quedaba visible la fila de enlaces** (520 ms de 553), por eso
+parecía que el pie cargaba antes; ahora sale un **marco con huecos grises al instante** (`esqueletoDashboard`).
+(2) la carga hacía 5 lecturas de GitHub en fila y 3 peticiones del navegador en serie. Ahora `/dashboard` lee los
+progresos **a la vez** (`ThreadPoolExecutor`) y trae también `last_course`, y el navegador pide **solo `/dashboard`**:
+`/courses` y `/profile` solo si el panel falla. Medida: del clic a ver el panel, **~1356 ms → ~540 ms** (antes del marco
+y de quitar `/profile`; con ambos baja un poco más). Animaciones recortadas (entrada .7→.4 s, Solari 1.2→.7 s, barra
+1.1→.6 s, contador .9→.5 s). **La fila de enlaces ("MasterMind · GitHub · LinkedIn · CV") se queda donde está**, decidido
+por Nando: hoy sale arriba del panel porque es hermana de la caja del login. **Sin medir en producción** (no hay URL ni
+acceso); los números son de la simulación.
+
 **Pendiente de Nando (dicho el 2026-10-14):** al llegar al **último** tema de un curso y aprobarlo, la app debe
 **preguntarle si ha terminado el curso** y, si dice que sí, pasar ese último tema a dominado. Hoy `POST /progress/next`
 responde 400 ahí ("Ya estás en el último tema del curso"), así que un curso no se puede terminar y `finished` /

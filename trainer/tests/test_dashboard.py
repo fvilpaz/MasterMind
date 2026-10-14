@@ -92,6 +92,10 @@ try:
     check('GET /dashboard no crea ni modifica ningún archivo de config/ (primera petición)', foto() == base)
     check('admin: salen cs50, mouredev y 42malaga (sin AGENT)', {c['course'] for c in d.get('courses', [])} == {'cs50', 'mouredev', '42malaga'})
 
+    # 2b. El panel trae también el último curso usado (así el navegador no necesita pedir /profile).
+    check("last_course: el curso del perfil ('mouredev' o 'cs50' según el profile.json de la copia)",
+          d.get('last_course') in ('mouredev', 'cs50', '42malaga'))
+
     # 3. Los números salen del progreso y de las carpetas de temas.
     c = curso(d, 'cs50')
     check('cs50: 1 de 3 dominado (33 %)', (c.get('done'), c.get('total'), c.get('percent')) == (1, 3, 33))
@@ -159,9 +163,38 @@ try:
     finally:
         os.environ.pop('GITHUB_TOKEN', None)
         mm.github_get = original
-    check('producción: una lectura de GitHub por curso (3)', len(llamadas) == 3)
-    check('producción: solo lee archivos de progreso',
-          len(llamadas) > 0 and all(x.startswith('trainer/config/progress/') for x in llamadas))
+    check('producción: una lectura de GitHub por curso (3) y una del perfil (el último curso usado)', len(llamadas) == 4)
+    check('producción: solo lee progreso y perfil',
+          len(llamadas) > 0 and all(x.startswith('trainer/config/progress/') or x == 'trainer/config/profile.json' for x in llamadas))
+    check('producción: no pide más que eso (nada de sesiones ni otros archivos)',
+          sum(1 for x in llamadas if x.startswith('trainer/config/progress/')) == 3 and llamadas.count('trainer/config/profile.json') == 1)
+
+    # 10b. Producción: los progresos de los cursos se leen A LA VEZ, no uno tras otro (cada lectura es una ida y vuelta
+    #      a GitHub; en fila, 3 cursos son 3 esperas seguidas).
+    import threading
+    import time as _t
+    estado = {'ahora': 0, 'maximo': 0}
+    cerrojo = threading.Lock()
+
+    def lento(ruta):
+        with cerrojo:
+            estado['ahora'] += 1
+            estado['maximo'] = max(estado['maximo'], estado['ahora'])
+        _t.sleep(0.15)
+        with cerrojo:
+            estado['ahora'] -= 1
+        return json.dumps({'current': None, 'mastered': []})
+    original = mm.github_get
+    mm.github_get = lento
+    os.environ['GITHUB_TOKEN'] = 'falso'
+    try:
+        r, d = pedir()
+    finally:
+        os.environ.pop('GITHUB_TOKEN', None)
+        mm.github_get = original
+    check('producción: los progresos de los 3 cursos se leen a la vez (hay lecturas simultáneas)', estado['maximo'] >= 2)
+    check('producción: leídos a la vez, siguen saliendo los 3 cursos y en el mismo orden',
+          [c['course'] for c in d.get('courses', [])] == ['42malaga', 'cs50', 'mouredev'])
 
     # 11. Los archivos del panel se sirven y el service worker se entera de ellos (paso 3).
     mm.ROOT = REAL_ROOT                        # los estáticos viven en web/, no en la copia temporal

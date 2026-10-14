@@ -590,32 +590,41 @@ async function showCourseStep() {
   document.getElementById('step-password').style.display = 'none';
   const step = document.getElementById('step-course');
   const caja = document.querySelector('.login-box');
+  const name = document.getElementById('login-name').value.trim();
+  const greeting = COURSE_GREETINGS[Math.floor(Math.random() * COURSE_GREETINGS.length)];
+  document.getElementById('course-greeting').textContent = name ? `¡Hola, ${name}! ${greeting}` : greeting;
   // La caja vieja de las tarjetas pequeñas YA NO se enseña de paso entre la contraseña y el panel (parpadeaba
   // mientras cargaban los datos). Se oculta la caja entera; solo reaparece si el panel falla (plan B, abajo).
   // Recuperarla como paso normal: volver a poner  step.style.display = 'flex';  justo aquí.
   caja.style.display = 'none';
+  // Un marco vacío AL INSTANTE (dashboard.js): sin él, mientras llegaban los datos solo se veía la fila de enlaces.
+  try { window.esqueletoDashboard(); } catch {}
   try {
-    const name = document.getElementById('login-name').value.trim();
-    const greeting = COURSE_GREETINGS[Math.floor(Math.random() * COURSE_GREETINGS.length)];
-    document.getElementById('course-greeting').textContent = name ? `¡Hola, ${name}! ${greeting}` : greeting;
-    const r = await fetch('/courses');
-    const { courses } = await r.json();
-    const p = await (await fetch('/profile')).json();
-    // Una tarjeta por curso, con su color (styles.css); el último que usaste lleva el chip "último"
-    // (como hacía el select preseleccionando p.course). Hoy solo se ven si el panel falla.
-    document.getElementById('course-cards').innerHTML = courses.map(c =>
-      `<button class="course-card" data-course="${c}">${COURSE_LABELS[c] || c}${c === p.course ? ' <span class="course-chip">último</span>' : ''}</button>`
-    ).join('');
-    // Panel de cursos a pantalla completa (dashboard.js, punto 24 del ROADMAP).
-    await window.mostrarDashboard({ etiquetas: COURSE_LABELS, ultimo: p.course, alElegir: elegirCurso,
+    // Solo /dashboard: trae todo lo que el panel necesita (también el último curso usado). Las tarjetas pequeñas
+    // (/courses y /profile) solo se piden si el panel falla.
+    const rd = await fetch('/dashboard');
+    if (!rd.ok) throw new Error('dashboard ' + rd.status);
+    const datos = await rd.json();
+    await window.mostrarDashboard({ etiquetas: COURSE_LABELS, ultimo: datos.last_course, alElegir: elegirCurso, datos,
                                     saludo: document.getElementById('course-greeting').textContent });
     step.style.display = 'none';
   } catch {
-    // Plan B: si algo falló ANTES de que el panel se viera, vuelven las tarjetas pequeñas de siempre (nunca una pantalla vacía).
+    // Plan B: si algo falló ANTES de que el panel se viera, se quita el marco vacío y vuelven las tarjetas pequeñas
+    // de siempre (nunca una pantalla vacía).
     const panel = document.getElementById('dashboard');
-    if (!panel || panel.style.display === 'none' || !panel.innerHTML) {
+    if (panel && panel.dataset.esqueleto === '1') { panel.style.display = 'none'; delete panel.dataset.esqueleto; }
+    const sigueElPanel = panel && panel.style.display !== 'none' && panel.innerHTML;
+    if (!sigueElPanel) {
       caja.style.display = '';
       step.style.display = 'flex';
+      try {
+        const [courses, p] = await Promise.all([
+          fetch('/courses').then(r => r.json()).then(j => j.courses), fetch('/profile').then(r => r.json())]);
+        // Una tarjeta por curso, con su color (styles.css); el último que usaste lleva el chip "último".
+        document.getElementById('course-cards').innerHTML = courses.map(c =>
+          `<button class="course-card" data-course="${c}">${COURSE_LABELS[c] || c}${c === p.course ? ' <span class="course-chip">último</span>' : ''}</button>`
+        ).join('');
+      } catch {}
     }
   }
 }

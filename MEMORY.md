@@ -30,6 +30,10 @@
   oculta `.login-box` entera mientras carga y solo la vuelve a mostrar si el panel falla (plan B). Si algún día se quiere
   como paso normal: poner `step.style.display = 'flex'` donde lo dice el comentario. Para medir un parpadeo así, meter
   latencia artificial en el `fetch` de `/dashboard`: en `localhost` va tan rápido que ni se ve.
+- **Tras la contraseña NO dejar nunca un vacío:** `showCourseStep` pinta primero un marco (`esqueletoDashboard`) y
+  pide solo `/dashboard`; si se esconde algo sin poner nada en su sitio, queda a la vista lo único que no se escondió
+  (la fila de enlaces del login, que es hermana de la caja). Y cada lectura de `get_progress`/`get_admin_profile` es una
+  ida y vuelta a GitHub en producción: leerlas a la vez (hecho en `/dashboard`) o no pedirlas.
 - El archivo del tutor, en minúsculas (`42malaga.md`): Linux distingue mayúsculas, Windows no.
 - `course_topics` solo ve carpetas `exN_…` / `weekN…` dentro de la raíz del curso en `brain/`; `COURSE_ROOTS`
   (`app.py`) mapea curso → carpeta. Un curso sin `config/progress/<curso>.json` empieza con `current: None`
