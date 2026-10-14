@@ -35,6 +35,8 @@
 - `[[DOMINADO]]` lo escribe el tutor y la app avanza sola: si lo emite sin que haya aprobado, se avanza sin
   vuelta atrás (aún no hay `/back`). Pasó con 42 el 2026-10-02.
 - `/update-profile` y `save_progress` no avisan si fallan en GitHub.
+- El campo `#login-password` **no está en un `<form>`** a propósito: Enter lo gestiona `keydown` en `app.js`; con
+  `<form>` se enviaría además y recargaría la página. Para que el navegador lo guarde basta `name` y `autocomplete`.
 
 ## Pomodoro, plan y marcas (cómo funciona)
 - Todo en `localStorage`, por navegador: `pomo-state` (`{mode, remaining, endsAt}`; `endsAt` = hora real de fin, 0 si

@@ -121,6 +121,10 @@ el punto 10 (rutas de MoureDev).
   `USER`) y el `.dockerignore` (no existe). El resto de este punto no se ha vuelto a comprobar.
 - Confirmar que `GROQ_API_KEY` está bien puesta en las variables de entorno de Cloud Run (el modo
   invitado depende de ella; en local no está configurada, así que no se pudo probar del todo aquí).
+- **`SECRET_KEY` (visto el 2026-10-14, sin comprobar en Cloud Run):** `app.py` usa
+  `os.environ.get('SECRET_KEY', 'mastermind-dev-key')`. Si la variable no está puesta en el servicio, la clave de
+  las cookies de sesión es la del repo público y alguien podría falsificar `is_admin`. Mirarlo en la consola de
+  Cloud Run y, si falta, ponerla (valor aleatorio largo, fuera del repo).
 - **El contenedor corre como `root`** (auditoría con trivy, 2026-09-27, DS-0002 HIGH): el
   `Dockerfile` no tiene `USER`. No tiene que ver con el login admin/invitado (eso es dentro de la
   app): es con qué usuario de Linux corre `python app.py`. Si alguien explotara un fallo de la app,
@@ -500,6 +504,14 @@ reenvíos NO se reciben (solo texto); las capturas se copian al PC. **Aparcado:*
 (necesita Bun y un segundo bot) como alternativa; que Fervis dé opinión en los debates (idea, no pedida).
 El plan del health-tracker vive en su propio repo (`docs/PLAN.md`), no aquí.
 
+## Hecho el 2026-10-14
+
+- **Login: el campo de contraseña ya declara `name="password"` y `autocomplete="current-password"`**
+  (`index.html`) para que Chrome/Google Password Manager ofrezca guardarla y rellenarla con la huella en el móvil.
+  No se envolvió en un `<form>` a propósito: Enter dispararía el envío además del `keydown` de `app.js` y recargaría.
+  Verificado en local (atributo servido; `/login` da 200 con la buena y 401 con la mala). **Sin comprobar:** que el
+  Pixel ofrezca guardar y rellenar de verdad; solo se ve en el móvil tras el despliegue.
+
 ## Hecho el 2026-10-04
 
 - **Reloj del pomodoro con hora real** (`0fe971d`): guarda la hora de fin y recalcula, en vez de restar 1 por segundo
@@ -522,6 +534,9 @@ El plan del health-tracker vive en su propio repo (`docs/PLAN.md`), no aquí.
 - Comando `/tiempo` para reiniciar el plan a mitad.
 - Curso de pruebas rápido (idea de Nando: "churros") para probar la app de punta a punta con datos absurdos.
 - Código real de GitHub en `/read`.
+- (2026-10-14) Passkey (WebAuthn) para entrar con la huella sin contraseña: ~150 líneas (2 rutas en Flask + front),
+  la clave pública iría en una variable de Cloud Run y queda ligada al dominio `*.run.app`. Solo si el autorrelleno
+  con huella (arriba) no basta; antes, pruebas de caracterización del login.
 - (2026-10-05) Que el tutor recuerde en qué se equivocó Nando la última vez (p. ej. "falló `&&` con `||`") y lo
   retome al volver, guardando los fallos del tema en el progreso. Hoy solo lo sabe si Nando se lo dice.
 
