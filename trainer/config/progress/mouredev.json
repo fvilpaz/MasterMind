@@ -1,5 +1,5 @@
 {
-  "current": "ex9_Funciones",
+  "current": "ex10_OOP",
   "mastered": [
     "ex1_HelloWorld",
     "ex2_VariablesAndConstants",
@@ -8,6 +8,7 @@
     "ex5_Strings",
     "ex6_Conditionales",
     "ex7_Estructuras",
-    "ex8_Bucles"
+    "ex8_Bucles",
+    "ex9_Funciones"
   ]
 }
