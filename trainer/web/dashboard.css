@@ -1,15 +1,27 @@
-/* Panel de cursos (punto 24 del ROADMAP): tarjetas con progreso y Logros. Usa las variables del tema de la app. */
+/* Panel de cursos (punto 24 del ROADMAP): tarjetas con progreso y Logros. Usa las variables del tema de la app.
+   Sin .slide en .dash-grid = apilado (móvil) / desplegado (ordenador); con .slide = una fila que se desliza. */
 #dashboard { width: 100%; height: 100%; overflow-y: auto; padding: 64px 0 40px; }
 .dash-wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; flex-direction: column; gap: 20px; }
-.dash-hola { font-size: 20px; font-weight: 700; color: var(--text); }
-.dash-hola small { display: block; font-size: 13px; font-weight: 400; color: var(--muted); margin-top: 2px; }
+.dash-top { display: flex; align-items: center; gap: 12px; }
+.dash-hola { flex: 1; min-width: 0; font-size: 20px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dash-ctl { display: flex; align-items: center; gap: 10px; }
+.dash-dots { display: none; gap: 7px; }
+.dash-dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--border); cursor: pointer; transition: .25s; }
+.dash-dots i.on { background: var(--text); transform: scale(1.25); }
+.dash-pager { display: none; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+.dash-pager button, .dash-mode { background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; font: inherit; cursor: pointer; }
+.dash-pager button { width: 30px; height: 30px; font-size: 18px; line-height: 1; }
+.dash-pager button:disabled { opacity: .35; cursor: default; }
+.dash-mode { display: none; padding: 5px 10px; font-size: 12px; }
 
 .dash-grid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(clamp(260px, 30%, 400px), 1fr)); }
+.dash-grid:focus-visible { outline: 2px solid var(--primary); outline-offset: 4px; border-radius: 12px; }
 .dash-card {
   --c: var(--primary); text-align: left; font: inherit; color: var(--text); cursor: pointer;
   display: flex; flex-direction: column; gap: 16px; padding: 24px 22px;
   background: linear-gradient(160deg, color-mix(in srgb, var(--c) 20%, var(--surface)) 0%, var(--surface) 60%);
   border: 1px solid var(--border); border-radius: 20px; transition: transform .15s, border-color .15s;
+  animation: dash-deal .7s cubic-bezier(.2, .8, .2, 1) backwards; animation-delay: calc(var(--i, 0) * 130ms);
 }
 .dash-card:hover { transform: translateY(-2px); border-color: var(--c); }
 .dash-card:focus-visible { outline: 3px solid var(--c); outline-offset: 2px; }
@@ -22,13 +34,17 @@
 .dash-den { font-size: 26px; color: var(--muted); }
 .dash-big small { flex-basis: 100%; color: var(--muted); font-size: 13px; }
 .dash-bar { height: 12px; background: var(--surface2); border-radius: 999px; overflow: hidden; }
-.dash-bar i { display: block; height: 100%; background: var(--c); border-radius: 999px; }
+.dash-bar i { display: block; height: 100%; background: var(--c); border-radius: 999px; transition: width 1.1s cubic-bezier(.2, .8, .2, 1); }
 .dash-k { display: block; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
-.dash-v { font-size: 16px; font-weight: 600; }
+.dash-v { display: inline-block; font-size: 16px; font-weight: 600; }
+.dash-v.in { animation: dash-up .6s ease both; }
+.dash-now { perspective: 400px; }
+.dash-solari { transform-origin: center; animation: dash-solari 1.2s ease backwards; animation-delay: calc(var(--i, 0) * 130ms + .3s); }
+.dash-live { min-height: 44px; }
 .dash-mini { font-size: 13px; color: var(--muted); }
 .dash-cta { margin-top: auto; padding: 13px; border-radius: var(--radius); background: var(--c); color: #fff; font-weight: 700; text-align: center; }
 
-.dash-logros { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 24px 22px; }
+.dash-logros { --c: var(--primary); background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 24px 22px; }
 .dash-logros h2 { font-size: 20px; margin: 0 0 14px; display: flex; gap: 12px; align-items: center; }
 .dash-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
 .dash-lg { display: grid; grid-template-columns: 40px 1fr auto; gap: 2px 12px; align-items: center; padding: 12px; border-radius: 14px; background: var(--surface2); border: 1px solid var(--border); }
@@ -39,11 +55,34 @@
 .dash-lg .dash-bar { grid-column: 2 / 4; height: 6px; margin-top: 6px; }
 .dash-lg.pronto { border-style: dashed; opacity: .65; }
 
-/* Móvil: una tarjeta por pantalla, apiladas (scroll vertical que encaja de una en una) */
-@media (max-width: 899px) {
-  #dashboard { scroll-snap-type: y proximity; padding-top: 56px; }
-  .dash-wrap { padding: 0 16px; }
-  .dash-grid { grid-template-columns: 1fr; }
-  .dash-card { min-height: calc(100vh - 150px); min-height: calc(100dvh - 150px); scroll-snap-align: start; }
+/* Ordenador: desplegado por defecto; deslizable = UNA fila con 3 visibles, de 3 en 3. Los controles solo si no caben */
+@media (min-width: 900px) {
+  #dashboard[data-sobran="1"] .dash-mode { display: inline-block; }
+  #dashboard[data-sobran="1"].es-slide .dash-pager { display: flex; }
+  .dash-grid.slide { display: flex; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; scrollbar-width: none; padding-block: 6px; margin-block: -6px; }
+  .dash-grid.slide::-webkit-scrollbar { display: none; }
+  .dash-grid.slide .dash-card { flex: 0 0 calc((100% - 40px) / 3); scroll-snap-align: none; }
+  .dash-grid.slide .dash-card:nth-child(3n+1) { scroll-snap-align: start; }
 }
-@media (prefers-reduced-motion: reduce) { .dash-card { transition: none; } }
+
+/* Móvil: una tarjeta (o Logros) por pantalla. Por defecto deslizable de lado; apilado = scroll vertical que encaja */
+@media (max-width: 899px) {
+  #dashboard { overflow: hidden; padding: 56px 0 0; }
+  .dash-wrap { height: 100%; padding: 0 16px 16px; gap: 12px; }
+  .dash-hola { font-size: 17px; }
+  .dash-mode { display: inline-block; }
+  .dash-dots { display: flex; }
+  .dash-grid { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; overflow-x: hidden;
+               scroll-snap-type: y mandatory; scrollbar-width: none; }
+  .dash-grid::-webkit-scrollbar { display: none; }
+  .dash-grid.slide { flex-direction: row; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; }
+  .dash-grid > * { flex: 0 0 100%; min-height: 0; overflow-y: auto; scroll-snap-align: start; scroll-snap-stop: always; }
+}
+
+@keyframes dash-deal { from { opacity: 0; transform: translateX(32px) rotate(4deg) scale(.92); } }
+@keyframes dash-solari { from { opacity: 0; transform: rotateX(-80deg) scaleY(.3); } 65% { opacity: 1; } }
+@keyframes dash-up { from { opacity: 0; transform: translateY(10px); } }
+@media (prefers-reduced-motion: reduce) {
+  .dash-card, .dash-solari, .dash-v.in { animation: none; }
+  .dash-card, .dash-bar i, .dash-dots i { transition: none; }
+}

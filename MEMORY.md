@@ -47,6 +47,9 @@
   `hideMark` (`app.js`) las quita al mostrar, también a medias (`[[EX`).
 
 ## Cómo probar en local
+- **Trampa del navegador de pruebas (extensión de Chrome):** `scrollTo({behavior:'smooth'})` NO anima: se queda quieto
+  ~1,8 s y salta de golpe, así que las lecturas de `scrollLeft` salen "una acción por detrás". Medido con un `scrollTo`
+  suelto, sin código de la app. Esperar ≥ 3 s tras cada acción o usar `behavior:'instant'`. En un navegador normal anima.
 - **Probar de punta a punta sin tocar nada real** (así se hizo el 2026-10-04): `git archive HEAD trainer` a una
   carpeta temporal (sin `.env`, sin `GITHUB_TOKEN`) y un `run.py` que importa `app`, fija `ADMIN_PASSWORD` temporal,
   `GITHUB_TOKEN=''`, `MASTERMIND_PATH` = ruta de `brain/` del repo real (solo lectura) y cambia `stream_gemini` y

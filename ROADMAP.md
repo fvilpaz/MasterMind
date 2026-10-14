@@ -537,7 +537,7 @@ ya estaban en `test_profile.py`) · 2 `GET /dashboard` + tests **HECHO (2026-10-
 (`_resumen_curso`, `_logros`, `dashboard`; solo lee) y `trainer/tests/test_dashboard.py` (30 comprobaciones, escritas
 antes que el código; con control: 5 roturas a propósito, las 5 detectadas) ·
 3 `dashboard.js` y `dashboard.css` con datos reales **HECHO (2026-10-14)**, ver "Paso 3" abajo · 4 animaciones,
-puntos, interruptor y `sw.js` (~60) · 5 docs, push, despliegue y prueba en el móvil.
+puntos, interruptor y `sw.js` **HECHO (2026-10-14)**, ver "Paso 4" abajo · 5 docs, push, despliegue y prueba en el móvil.
 
 **Riesgos vistos:** en producción `get_progress` lee de GitHub, así que 3 cursos son 3 llamadas por carga (medir la
 latencia); `app.js` ya tiene ~575 líneas (el panel va en archivos aparte y se añaden a `SHELL` de `sw.js`); la selección
@@ -560,6 +560,19 @@ guarda. **No hay animaciones, interruptor deslizable/apilado ni puntos (paso 4):
 pantalla. Probado en navegador real sobre una copia aislada con el progreso y el `brain/` reales: tarjetas y números,
 clic → `update-profile` → sala, invitado sin panel (403), plan B con el panel roto, móvil 390 px sin scroll lateral ni
 textos cortados. **Sin comprobar:** en producción y en el móvil real; otros temas de color; cursos > 3.
+
+**Paso 4, lo que hay** (+133 líneas en `dashboard.js` y `dashboard.css`; estimé ~60, me quedé corto: no conté el
+movimiento de Logros ni la paginación): **entrada de tarjetas** (`deal`), **Solari** en "Ahora", **número y barra que
+suben**, **línea que rota** entre "Último dominado" y "Siguiente" (si hay una sola, queda fija), todo apagado con
+`prefers-reduced-motion`. **Interruptor** deslizable ↔ apilado/desplegado y **puntos de página**. Móvil: por defecto
+deslizable, una pantalla por tarjeta y Logros como última; apilado = scroll vertical que encaja. Ordenador: desplegado
+por defecto (3 columnas centradas, Logros debajo del mismo ancho); **el interruptor solo sale si hay más de 3 cursos** y
+entonces "deslizable" es una fila con 3 visibles, de 3 en 3, con flechas ‹ ›, contador "1 / 3" y teclado ← →. Los
+destinos de página son absolutos (pulsar rápido no se acumula). Al cruzar los 900 px Logros cambia de sitio y el modo
+vuelve al de por defecto. **No se guarda la elección entre visitas** (idea, no pedida). Probado en navegador real sobre
+una copia aislada con tu progreso y `brain/` reales, con 8 y con 3 cursos (5 tutores de relleno): carrusel y páginas,
+dos clics seguidos, teclado, 390 y 1300 px, elegir curso en el móvil. **Con 9 puntos el saludo se corta con "…"** en un
+móvil estrecho (conocido, aceptado). **Sin comprobar:** en el móvil real (arrastre con el dedo) y en producción.
 
 **Pendiente de Nando (dicho el 2026-10-14):** al llegar al **último** tema de un curso y aprobarlo, la app debe
 **preguntarle si ha terminado el curso** y, si dice que sí, pasar ese último tema a dominado. Hoy `POST /progress/next`
