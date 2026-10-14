@@ -335,8 +335,10 @@ haría: crear el bucket, el permiso y la variable. Coste prácticamente cero.
 Siguiendo la regla del final: **pruebas antes de refactorizar**, nunca a ciegas.
 
 **Pruebas que faltan**
-- Frontend: nada con tests (`saveProgress`, `greet`, login que recuerda el nombre, `COMMANDS`). Todo se
-  comprobó a mano con el navegador (MCP de Chrome DevTools).
+- Frontend: nada con tests en el repo (`saveProgress`, `greet`, login que recuerda el nombre, `COMMANDS`). Todo se
+  comprobó a mano con el navegador (MCP de Chrome DevTools). **Desde el 2026-10-15** hay una prueba de caracterización de
+  las pantallas con jsdom (qué se ve en login, panel, sala, chat, invitado y plan B) usada en los refactors del punto 24,
+  pero vive fuera del repo; falta decidir si entra en `trainer/tests/`.
 - Servidor: `[[DOMINADO]]` real de punta a punta, `build_system_prompt` con el curso 42, y qué pasa cuando
   GitHub falla en `get_admin_profile` / `/update-profile` / `save_progress`.
 - CI: `deploy.yml` despliega **sin pasar los tests**. Añadir un paso que ejecute `test_greet.py` y
@@ -504,7 +506,7 @@ reenvíos NO se reciben (solo texto); las capturas se copian al PC. **Aparcado:*
 (necesita Bun y un segundo bot) como alternativa; que Fervis dé opinión en los debates (idea, no pedida).
 El plan del health-tracker vive en su propio repo (`docs/PLAN.md`), no aquí.
 
-## 24. Dashboard de cursos: tarjetas con progreso y logros (2026-10-14) — ESPECIFICACIÓN, SIN CÓDIGO
+## 24. Dashboard de cursos: tarjetas con progreso y logros (2026-10-14) — HECHO Y EN PRODUCCIÓN (pasos 0–4); pendientes abajo
 
 **Idea de Nando:** sustituir la selección de curso por un panel como los de `health-tracker` y `auryapp`: tarjetas con
 progreso, animaciones y logros. **Maqueta aprobada** ("muy chulo", "me gusta tu diseño de logros"): un solo HTML con datos
@@ -610,6 +612,34 @@ dominados", sin estado aparte.
 rutas ignora mayúsculas en Windows (`['42malaga', 'alfa', 'zeta']`) y no en Linux/Cloud Run (`['42malaga', 'zeta', 'alfa']`),
 comprobado en los dos. Con `42malaga.md`, `CS50.md` y `Mouredev.md` sale igual; solo se notaría con un tutor cuyo archivo
 empiece por minúscula. El dashboard debería ordenar de forma explícita.
+
+**Estado actual (2026-10-15).** Todo subido a `main` y desplegado. Sesión de limpieza tras la reorganización de OpenCode
+(`34ce55f`, `8ed308f`, `4ca7f0f`), cada cambio con su comprobación en navegador:
+- `46e1f47` **fix de ancho:** `.dash-wrap` sin `width:100%` en un `#dashboard` en columna flex se ensanchaba al contenido
+  (carrusel de ~10 000 px: en móvil cada pantalla medía 1168 px y en el PC salía una sola columna). Medido ya: 355 px por
+  tarjeta en 390 px; 3 columnas de 371 px en 1552 px.
+- `36f5737` plan B: vuelve a mostrar el overlay (la pantalla se quedaba en blanco).
+- `9ea148c` `mostrarChatUI()`: la lista de 6 elementos del chat estaba copiada en 4 funciones de `app.js`; ahora una.
+  Y **la sala sale al instante** al elegir curso (con "Preparando tu sala…" y botones parados): guardar el curso son 3
+  llamadas a GitHub y antes el panel se escondía y solo quedaba a la vista la franja de pie.
+- `8313429` **un solo pie de enlaces** (`.site-footer`, siempre abajo y por encima del login); se borró la copia con estilos
+  en línea que llevaba la caja del login. `dcb5a68` la caja de escribir deja de llamarse `<footer>` y es `#input-bar`.
+- `eb4401e` **tabla única `window.CURSOS`** (nombre, color, icono) en `dashboard.js`; antes repartida entre CSS, `COLORES`,
+  `ICONOS` y `COURSE_LABELS`. Efecto: en el plan B, 42 Málaga lleva su turquesa.
+- `612609a` en **deslizable, Logros va fuera del carrusel** (debajo; el panel hace scroll). En apilado móvil sigue siendo
+  la última de la pila. **Esto sustituye** lo de "Logros como última pantalla" del paso 4.
+- `928bde8` el botón de texto Deslizable/Apilado pasa a un **interruptor de dos iconos** (`aria-pressed`, `aria-label`).
+**Sin comprobar:** en el móvil real (arrastre con el dedo, altura del carrusel `100dvh − 190 px`) y las medidas de latencia
+en producción.
+
+**Lo que falta del 24:** (1) decisión de Nando sobre los **nombres de campos** de `/dashboard`; (2) **terminar un curso**:
+`/progress/next` da 400 en el último tema (ver arriba); (3) probarlo en el Pixel; (4) paso 5: README/ROADMAP al día (esto)
+y fase 3 de logros (racha y pomodoros, después del punto 17).
+
+**Refactor del frontend en marcha (candidatos, uno por commit con la prueba de pantallas):** `postJSON` para los 4 `fetch`
+POST+JSON repetidos; el logo `🧠 MasterMind` + `<hr>` repetido 4 veces en el login; los ~38 `style="…"` en línea de
+`index.html`; `.dash-chip` y `.course-chip` casi iguales; el CSS de `.site-footer` repartido en 3 sitios. **Aparcado:**
+meter la prueba de pantallas (jsdom, ahora fuera del repo) en `trainer/tests/` como dependencia de desarrollo.
 
 ## Hecho el 2026-10-14
 

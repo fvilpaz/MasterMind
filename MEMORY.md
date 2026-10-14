@@ -34,6 +34,16 @@
   pide solo `/dashboard`; si se esconde algo sin poner nada en su sitio, queda a la vista lo único que no se escondió
   (la fila de enlaces del login, que es hermana de la caja). Y cada lectura de `get_progress`/`get_admin_profile` es una
   ida y vuelta a GitHub en producción: leerlas a la vez (hecho en `/dashboard`) o no pedirlas.
+- **`#dashboard` es una columna flex:** un hijo con `margin: 0 auto` necesita `width: 100%` o se ajusta a su contenido (el
+  carrusel de tarjetas lo ensanchaba a ~10 000 px). Es lo que rompió móvil y escritorio el 2026-10-15.
+- **Tres cosas que parecían "footer":** `#input-bar` (caja de escribir del chat, con el botón `</>`), `.site-footer`
+  (único pie de enlaces, siempre abajo, por encima del login) y, antes, una copia de enlaces dentro del login (borrada).
+- **Nombre, color e icono de cada curso: solo en `window.CURSOS`** (`dashboard.js`, que carga antes que `app.js`). No
+  repetirlos en CSS ni en `app.js`.
+- **Elegir curso guarda con 3 llamadas a GitHub** (`/update-profile`): la UI no debe esperar en blanco; `showRoomStep`
+  recibe esa promesa y enseña la sala al instante. Para probar el panel sin token: `fetch` envuelto con retraso.
+- Probando en el navegador tras cambiar JS/CSS: el service worker y la caché devuelven lo viejo; desregistrar el SW y
+  borrar `caches` (o Ctrl+F5) antes de medir, o se miden archivos antiguos.
 - El archivo del tutor, en minúsculas (`42malaga.md`): Linux distingue mayúsculas, Windows no.
 - `course_topics` solo ve carpetas `exN_…` / `weekN…` dentro de la raíz del curso en `brain/`; `COURSE_ROOTS`
   (`app.py`) mapea curso → carpeta. Un curso sin `config/progress/<curso>.json` empieza con `current: None`
