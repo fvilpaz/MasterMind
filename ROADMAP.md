@@ -516,7 +516,7 @@ nombre y color, `hechos / total`, barra, "Ahora: …" (efecto Solari), una líne
 resumen "🏅 n/3". Se respeta `prefers-reduced-motion`. Solo admin; el invitado entra directo, como hoy.
 
 **De dónde salen los datos (nada inventado).** `config/progress/<curso>.json` (`current`, `mastered`) y `course_topics`.
-Falta un endpoint que dé **todos los cursos a la vez**: `GET /courses/summary` (nombre por confirmar), solo admin, 403 al
+Falta un endpoint que dé **todos los cursos a la vez**: `GET /dashboard` (nombre decidido el 2026-10-14), solo admin, 403 al
 invitado. Los **logros se calculan en el servidor** y viajan como `achievements` (`id`, `unlocked`, `progress`, `target`),
 para probarlos con los tests de Python (el frontend no tiene tests).
 
@@ -526,20 +526,26 @@ fiable: los commits de progreso son uno por tema dominado (8, solo MoureDev, en 
 `localStorage` de cada navegador. Haría falta guardar a propósito una fecha por día de actividad en el archivo de progreso
 y sembrarla una vez con el historial de git; después del punto 17 (progreso fuera del repo). En la maqueta salen como "pronto".
 
-**Criterios de aceptación:** (1) los números salen de `mastered` y `course_topics`; (2) `/courses/summary` da 403 a un
+**Criterios de aceptación:** (1) los números salen de `mastered` y `course_topics`; (2) `/dashboard` da 403 a un
 invitado; (3) un curso sin archivo de progreso sale con 0 hechos, sin error; (4) pulsar una tarjeta hace lo de hoy
 (`/update-profile` y luego la sala); (5) móvil y escritorio como arriba; (6) el invitado no cambia; (7) un logro bloqueado
 enseña su progreso (p. ej. 3/10); (8) solo datos que ya existen.
 
-**Pasos, uno por commit y con su prueba, sin avanzar sin OK:** 0 esta especificación · 1 pruebas de caracterización de
-`/courses`, `/profile` y `/progress` (~40 líneas) · 2 `/courses/summary` + tests, con control de invitado (~70) ·
+**Pasos, uno por commit y con su prueba, sin avanzar sin OK:** 0 esta especificación · 1 pruebas de caracterización
+**HECHO (2026-10-14)**: `trainer/tests/test_courses.py` (13 comprobaciones; `/profile`, `/progress` y `/update-profile`
+ya estaban en `test_profile.py`) · 2 `GET /dashboard` + tests, con control de invitado (~70) ·
 3 `dashboard.js` y `dashboard.css` con datos reales, probado en navegador con copia aislada (~220) · 4 animaciones,
 puntos, interruptor y `sw.js` (~60) · 5 docs, push, despliegue y prueba en el móvil.
 
 **Riesgos vistos:** en producción `get_progress` lee de GitHub, así que 3 cursos son 3 llamadas por carga (medir la
 latencia); `app.js` ya tiene ~575 líneas (el panel va en archivos aparte y se añaden a `SHELL` de `sw.js`); la selección
-vive hoy dentro de `.login-box` (380 px), por eso el panel pide pantalla propia. **Por decidir:** nombre del endpoint y qué
-pone "Siguiente" cuando el curso está terminado.
+vive hoy dentro de `.login-box` (380 px), por eso el panel pide pantalla propia. **Decidido (2026-10-14, por Telegram):** el endpoint es
+`GET /dashboard`, y "Siguiente" en un curso terminado pone "Curso completo" con la insignia.
+
+**Visto en el paso 1 (sin arreglar, no estaba pedido):** el orden de `GET /courses` depende del sistema. `sorted()` sobre
+rutas ignora mayúsculas en Windows (`['42malaga', 'alfa', 'zeta']`) y no en Linux/Cloud Run (`['42malaga', 'zeta', 'alfa']`),
+comprobado en los dos. Con `42malaga.md`, `CS50.md` y `Mouredev.md` sale igual; solo se notaría con un tutor cuyo archivo
+empiece por minúscula. El dashboard debería ordenar de forma explícita.
 
 ## Hecho el 2026-10-14
 

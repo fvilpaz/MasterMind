@@ -59,7 +59,7 @@
   variables ya definidas). Parar el servidor en Windows con PowerShell (no hay `pkill`).
 - Elegir curso o `/progress/next` **modifica** `trainer/config/progress/*.json` y `profile.json`: copiar antes,
   restaurar después, y comprobar que `git status` queda limpio.
-- Pruebas: `python trainer/tests/test_greet.py` y `python trainer/tests/test_profile.py` (sin dependencias,
+- Pruebas: `python trainer/tests/test_greet.py`, `test_profile.py` y `test_courses.py` (`GET /courses`) (sin dependencias,
   sobre una copia temporal).
 - Navegador: MCP `chrome-devtools` (`claude mcp add chrome-devtools -- npx -y chrome-devtools-mcp@latest`),
   un contexto aislado por prueba. Login: nombre → "Tengo contraseña" → contraseña → tarjeta de curso; el
