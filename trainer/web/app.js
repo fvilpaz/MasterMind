@@ -589,24 +589,35 @@ const COURSE_GREETINGS = [
 async function showCourseStep() {
   document.getElementById('step-password').style.display = 'none';
   const step = document.getElementById('step-course');
-  step.style.display = 'flex';
-  const name = document.getElementById('login-name').value.trim();
-  const greeting = COURSE_GREETINGS[Math.floor(Math.random() * COURSE_GREETINGS.length)];
-  document.getElementById('course-greeting').textContent = name ? `¡Hola, ${name}! ${greeting}` : greeting;
-  const r = await fetch('/courses');
-  const { courses } = await r.json();
-  const p = await (await fetch('/profile')).json();
-  // Una tarjeta por curso, con su color (styles.css); el último que usaste lleva el chip "último"
-  // (como hacía el select preseleccionando p.course).
-  document.getElementById('course-cards').innerHTML = courses.map(c =>
-    `<button class="course-card" data-course="${c}">${COURSE_LABELS[c] || c}${c === p.course ? ' <span class="course-chip">último</span>' : ''}</button>`
-  ).join('');
-  // Panel de cursos a pantalla completa (dashboard.js, punto 24 del ROADMAP). Si falla, quedan las tarjetas de arriba.
+  const caja = document.querySelector('.login-box');
+  // La caja vieja de las tarjetas pequeñas YA NO se enseña de paso entre la contraseña y el panel (parpadeaba
+  // mientras cargaban los datos). Se oculta la caja entera; solo reaparece si el panel falla (plan B, abajo).
+  // Recuperarla como paso normal: volver a poner  step.style.display = 'flex';  justo aquí.
+  caja.style.display = 'none';
   try {
+    const name = document.getElementById('login-name').value.trim();
+    const greeting = COURSE_GREETINGS[Math.floor(Math.random() * COURSE_GREETINGS.length)];
+    document.getElementById('course-greeting').textContent = name ? `¡Hola, ${name}! ${greeting}` : greeting;
+    const r = await fetch('/courses');
+    const { courses } = await r.json();
+    const p = await (await fetch('/profile')).json();
+    // Una tarjeta por curso, con su color (styles.css); el último que usaste lleva el chip "último"
+    // (como hacía el select preseleccionando p.course). Hoy solo se ven si el panel falla.
+    document.getElementById('course-cards').innerHTML = courses.map(c =>
+      `<button class="course-card" data-course="${c}">${COURSE_LABELS[c] || c}${c === p.course ? ' <span class="course-chip">último</span>' : ''}</button>`
+    ).join('');
+    // Panel de cursos a pantalla completa (dashboard.js, punto 24 del ROADMAP).
     await window.mostrarDashboard({ etiquetas: COURSE_LABELS, ultimo: p.course, alElegir: elegirCurso,
                                     saludo: document.getElementById('course-greeting').textContent });
     step.style.display = 'none';
-  } catch {}
+  } catch {
+    // Plan B: si algo falló ANTES de que el panel se viera, vuelven las tarjetas pequeñas de siempre (nunca una pantalla vacía).
+    const panel = document.getElementById('dashboard');
+    if (!panel || panel.style.display === 'none' || !panel.innerHTML) {
+      caja.style.display = '';
+      step.style.display = 'flex';
+    }
+  }
 }
 
 // Elegir un curso (tarjeta pequeña o panel): guarda el curso en el perfil y abre la sala previa.

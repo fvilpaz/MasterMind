@@ -26,6 +26,10 @@
 - Plan: sacar el progreso de git a un bucket (ROADMAP, punto 17).
 
 ## Trampas
+- **Tras la contraseña, la caja vieja (`#step-course`, tarjetas pequeñas) ya no se enseña de paso:** `showCourseStep`
+  oculta `.login-box` entera mientras carga y solo la vuelve a mostrar si el panel falla (plan B). Si algún día se quiere
+  como paso normal: poner `step.style.display = 'flex'` donde lo dice el comentario. Para medir un parpadeo así, meter
+  latencia artificial en el `fetch` de `/dashboard`: en `localhost` va tan rápido que ni se ve.
 - El archivo del tutor, en minúsculas (`42malaga.md`): Linux distingue mayúsculas, Windows no.
 - `course_topics` solo ve carpetas `exN_…` / `weekN…` dentro de la raíz del curso en `brain/`; `COURSE_ROOTS`
   (`app.py`) mapea curso → carpeta. Un curso sin `config/progress/<curso>.json` empieza con `current: None`

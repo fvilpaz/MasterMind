@@ -574,6 +574,13 @@ una copia aislada con tu progreso y `brain/` reales, con 8 y con 3 cursos (5 tut
 dos clics seguidos, teclado, 390 y 1300 px, elegir curso en el móvil. **Con 9 puntos el saludo se corta con "…"** en un
 móvil estrecho (conocido, aceptado). **Sin comprobar:** en el móvil real (arrastre con el dedo) y en producción.
 
+**Corrección al paso 4 (pedida por Nando por Telegram, 2026-10-14):** entre la contraseña y el panel se veía la **caja
+vieja** de las tarjetas pequeñas (`showCourseStep` la mostraba en su primera línea, antes de pedir los datos). Medido con
+una latencia artificial de 700 ms en `/dashboard`: 750 ms de caja vieja visible antes del arreglo, **0 ms** después.
+Ahora la caja entera se oculta mientras carga y solo reaparece si el panel falla (plan B); no se borró, está
+documentada en el código con la línea que la recupera como paso normal. Comprobado el plan B con el panel roto y con
+`/courses` caído (sale la caja, nunca una pantalla vacía).
+
 **Pendiente de Nando (dicho el 2026-10-14):** al llegar al **último** tema de un curso y aprobarlo, la app debe
 **preguntarle si ha terminado el curso** y, si dice que sí, pasar ese último tema a dominado. Hoy `POST /progress/next`
 responde 400 ahí ("Ya estás en el último tema del curso"), así que un curso no se puede terminar y `finished` /
