@@ -469,6 +469,14 @@ pomoRender();
 // ── LOGIN ─────────────────────────────────────────────
 async function startApp(room = false) {
   document.getElementById('login-overlay').classList.add('hidden');
+  document.getElementById('dashboard').style.display = 'none';
+  // Mostrar chat UI
+  document.querySelector('nav').style.display = 'flex';
+  document.getElementById('messages').style.display = 'flex';
+  document.getElementById('quick-replies').style.display = 'flex';
+  document.getElementById('cmd-hint').style.display = 'block';
+  document.querySelector('footer').style.display = 'flex';
+  document.getElementById('pomo-progress').style.display = 'block';
   if (isAdmin) {
     document.getElementById('model-row').style.display = 'flex';
   }
@@ -489,6 +497,15 @@ const ROOM_PROMPT = hechos => 'El estudiante entra en la SALA DE REPASO, antes d
   'examinarle. No des la solución antes de su intento.';
 
 async function showRoomStep() {
+  // Sala: overlay visible con step-room, dashboard oculto, chat UI oculta
+  document.getElementById('dashboard').style.display = 'none';
+  document.querySelector('nav').style.display = 'none';
+  document.getElementById('messages').style.display = 'none';
+  document.getElementById('quick-replies').style.display = 'none';
+  document.getElementById('cmd-hint').style.display = 'none';
+  document.querySelector('footer').style.display = 'none';
+  document.getElementById('pomo-progress').style.display = 'none';
+  document.getElementById('login-overlay').classList.remove('hidden');
   document.getElementById('step-course').style.display = 'none';
   document.getElementById('step-room').style.display = 'flex';
   const name = document.getElementById('login-name').value.trim();
@@ -517,7 +534,16 @@ function exitRoom() {
   examActive = false;
   roomBadges(false);
   document.getElementById('room-exit').style.display = 'none';
-  messages.length = 0;                                // el curso arranca sin la charla del repaso
+  // Ocultar overlay y dashboard, mostrar chat UI
+  document.getElementById('login-overlay').classList.add('hidden');
+  document.getElementById('dashboard').style.display = 'none';
+  document.querySelector('nav').style.display = 'flex';
+  document.getElementById('messages').style.display = 'flex';
+  document.getElementById('quick-replies').style.display = 'flex';
+  document.getElementById('cmd-hint').style.display = 'block';
+  document.querySelector('footer').style.display = 'flex';
+  document.getElementById('pomo-progress').style.display = 'block';
+  messages.length = 0;
   addMessage('bot', '📚 Terminamos el repaso. Vamos con el curso.');
   greet();
 }
@@ -593,15 +619,19 @@ async function showCourseStep() {
   const name = document.getElementById('login-name').value.trim();
   const greeting = COURSE_GREETINGS[Math.floor(Math.random() * COURSE_GREETINGS.length)];
   document.getElementById('course-greeting').textContent = name ? `¡Hola, ${name}! ${greeting}` : greeting;
-  // La caja vieja de las tarjetas pequeñas YA NO se enseña de paso entre la contraseña y el panel (parpadeaba
-  // mientras cargaban los datos). Se oculta la caja entera; solo reaparece si el panel falla (plan B, abajo).
-  // Recuperarla como paso normal: volver a poner  step.style.display = 'flex';  justo aquí.
-  caja.style.display = 'none';
-  // Un marco vacío AL INSTANTE (dashboard.js): sin él, mientras llegaban los datos solo se veía la fila de enlaces.
+  // Ocultar overlay de login y mostrar dashboard en body
+  document.getElementById('login-overlay').classList.add('hidden');
+  document.getElementById('dashboard').style.display = 'flex';
+  // Ocultar elementos de chat
+  document.getElementById('nav-brand')?.parentElement.style.display = 'none';
+  document.getElementById('messages').style.display = 'none';
+  document.getElementById('quick-replies').style.display = 'none';
+  document.getElementById('cmd-hint').style.display = 'none';
+  document.querySelector('footer').style.display = 'none';
+  document.getElementById('pomo-progress').style.display = 'none';
+  // Un marco vacío AL INSTANTE (dashboard.js)
   try { window.esqueletoDashboard(); } catch {}
   try {
-    // Solo /dashboard: trae todo lo que el panel necesita (también el último curso usado). Las tarjetas pequeñas
-    // (/courses y /profile) solo se piden si el panel falla.
     const rd = await fetch('/dashboard');
     if (!rd.ok) throw new Error('dashboard ' + rd.status);
     const datos = await rd.json();
@@ -609,8 +639,6 @@ async function showCourseStep() {
                                     saludo: document.getElementById('course-greeting').textContent });
     step.style.display = 'none';
   } catch {
-    // Plan B: si algo falló ANTES de que el panel se viera, se quita el marco vacío y vuelven las tarjetas pequeñas
-    // de siempre (nunca una pantalla vacía).
     const panel = document.getElementById('dashboard');
     if (panel && panel.dataset.esqueleto === '1') { panel.style.display = 'none'; delete panel.dataset.esqueleto; }
     const sigueElPanel = panel && panel.style.display !== 'none' && panel.innerHTML;
@@ -620,7 +648,6 @@ async function showCourseStep() {
       try {
         const [courses, p] = await Promise.all([
           fetch('/courses').then(r => r.json()).then(j => j.courses), fetch('/profile').then(r => r.json())]);
-        // Una tarjeta por curso, con su color (styles.css); el último que usaste lleva el chip "último".
         document.getElementById('course-cards').innerHTML = courses.map(c =>
           `<button class="course-card" data-course="${c}">${COURSE_LABELS[c] || c}${c === p.course ? ' <span class="course-chip">último</span>' : ''}</button>`
         ).join('');

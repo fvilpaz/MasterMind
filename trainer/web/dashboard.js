@@ -19,7 +19,7 @@
   const ordenador = matchMedia('(min-width: 900px)');
   const reducir = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  let panel = null, caja = null, timers = [], escuchando = false;
+  let panel = null, timers = [], escuchando = false;
 
   const tarjeta = (c, i, o) => {
     const color = COLORES[c.course] || PALETA[i % PALETA.length];
@@ -117,18 +117,13 @@
     colocarLogros(); aplicarModo(!ordenador.matches);
   };
 
-  // Marco vacío al instante, mientras llegan los datos: sin esto, tras la contraseña solo se veía la fila de enlaces.
-  // mostrarDashboard() lo sustituye por el panel; si falla, app.js lo quita (dataset.esqueleto) y deja el plan B.
+  // Marco vacío al instante, mientras llegan los datos
   window.esqueletoDashboard = function () {
-    const overlay = document.getElementById('login-overlay');
-    caja = overlay.querySelector('.login-box');
     panel = document.getElementById('dashboard');
-    if (!panel) { panel = document.createElement('div'); panel.id = 'dashboard'; overlay.appendChild(panel); }
     panel.dataset.esqueleto = '1';
     panel.innerHTML = `<div class="dash-wrap"><div class="dash-top"><div class="dash-hola dash-esq-t"></div></div>
       <div class="dash-grid">${'<div class="dash-card dash-esq"><i></i><i></i><i></i></div>'.repeat(3)}</div></div>`;
-    caja.style.display = 'none';
-    panel.style.display = '';
+    panel.style.display = 'flex';
   };
 
   // opciones: { etiquetas: {curso: 'Nombre'}, ultimo: 'curso', saludo: 'texto', alElegir: (curso) => ...,
@@ -141,13 +136,10 @@
       d = await r.json();
     }
     if (!d.courses || !d.courses.length) throw new Error('dashboard sin cursos');
-    const overlay = document.getElementById('login-overlay');
-    caja = overlay.querySelector('.login-box');
     panel = document.getElementById('dashboard');
-    if (!panel) { panel = document.createElement('div'); panel.id = 'dashboard'; overlay.appendChild(panel); }
     const desbloqueados = d.achievements.filter((a) => a.unlocked).length;
-    delete panel.dataset.esqueleto;                                  // ya no es el marco vacío
-    panel.dataset.sobran = d.courses.length > VISTAS ? '1' : '0';    // el interruptor del ordenador solo sale si no caben
+    delete panel.dataset.esqueleto;
+    panel.dataset.sobran = d.courses.length > VISTAS ? '1' : '0';
     panel.innerHTML = `<div class="dash-wrap">
       <div class="dash-top"><div class="dash-hola">${esc(o.saludo || '¿Qué entrenamos hoy?')}</div>
         <div class="dash-ctl"><div class="dash-dots"></div>
@@ -163,7 +155,6 @@
       if (!b) return;
       if (b.dataset && b.dataset.course) {
         parar(); panel.style.display = 'none';
-        caja.style.display = '';                     // la sala previa vive dentro de la caja del login
         return o.alElegir(b.dataset.course);
       }
       if (b.classList.contains('dash-mode')) return aplicarModo(!horizontal());
@@ -173,13 +164,12 @@
     };
     const g = grid();
     g.addEventListener('scroll', marca, { passive: true });
-    g.addEventListener('keydown', (e) => {          // teclado: ← → pasan de página
+    g.addEventListener('keydown', (e) => {
       if (!horizontal() || !['ArrowLeft', 'ArrowRight'].includes(e.key)) return;
       e.preventDefault(); irA(pagina().p + (e.key === 'ArrowRight' ? 1 : -1));
     });
     if (!escuchando) { ordenador.addEventListener('change', alCambiarAncho); escuchando = true; }
-    caja.style.display = 'none';
-    panel.style.display = '';
+    panel.style.display = 'flex';
     alCambiarAncho();
     animar();
   };
