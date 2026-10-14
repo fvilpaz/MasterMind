@@ -470,7 +470,7 @@ pomoRender();
 // La interfaz del chat son estas 6 piezas (cada una con su display de siempre). Antes, esta lista estaba copiada en
 // cuatro funciones; ahora hay un solo sitio.
 const CHAT_UI = [['nav', 'flex'], ['#messages', 'flex'], ['#quick-replies', 'flex'],
-                 ['#cmd-hint', 'block'], ['footer', 'flex'], ['#pomo-progress', 'block']];
+                 ['#cmd-hint', 'block'], ['#input-bar', 'flex'], ['#pomo-progress', 'block']];
 function mostrarChatUI(visible) {
   CHAT_UI.forEach(([sel, display]) => { document.querySelector(sel).style.display = visible ? display : 'none'; });
 }
@@ -762,7 +762,7 @@ document.getElementById('code-mode-btn').addEventListener('click', () => {
 
 document.getElementById('code-cancel').addEventListener('click', () => {
   document.getElementById('code-panel').style.display = 'none';
-  document.querySelector('footer').style.display = 'flex';
+  document.querySelector('#input-bar').style.display = 'flex';
   document.getElementById('input').focus();
 });
 
@@ -773,7 +773,7 @@ document.getElementById('code-send').addEventListener('click', () => {
   const lang = document.getElementById('code-lang').value === 'text' ? '' : document.getElementById('code-lang').value;
   document.getElementById('input').value = '```' + lang + '\n' + code + '\n```';
   document.getElementById('code-panel').style.display = 'none';
-  document.querySelector('footer').style.display = 'flex';
+  document.querySelector('#input-bar').style.display = 'flex';
   window.cmEditor.setValue('');
   send();
 });

@@ -59,7 +59,7 @@
 
   window.toggleCodeEditor = function() {
     const panel = document.getElementById('code-panel');
-    const footer = document.querySelector('footer');
+    const footer = document.querySelector('#input-bar');
     const isOpen = panel.style.display === 'flex';
     if (isOpen) {
       panel.style.display = 'none';

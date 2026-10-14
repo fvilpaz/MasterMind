@@ -165,8 +165,8 @@
   .bubble.streaming::after { content: '▋'; animation: blink 0.7s step-end infinite; color: var(--primary); margin-left: 1px; }
   @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
 
-  /* FOOTER */
-  footer { background: var(--surface); border-top: 1px solid var(--border); padding: 12px 16px; display: flex; gap: 8px; flex-shrink: 0; }
+  /* CAJA DE ESCRIBIR (#input-bar). El pie de página con los enlaces es .site-footer, más abajo. */
+  #input-bar { background: var(--surface); border-top: 1px solid var(--border); padding: 12px 16px; display: flex; gap: 8px; flex-shrink: 0; }
   textarea { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); padding: 10px 12px; font-size: 14px; resize: none; outline: none; min-height: 42px; max-height: 120px; font-family: inherit; transition: border 0.15s; }
   textarea:focus { border-color: var(--primary); }
   /* Pista fija encima de la caja de escribir: que se sepa que existen los comandos /help, /ls… */
@@ -257,7 +257,7 @@
     .nav-badges { order: 3; flex: 0 0 100%; padding-bottom: 2px; }
     .bubble { max-width: 92%; }
     #messages { padding: 14px 10px; gap: 12px; }
-    footer { padding: 10px 10px; }
+    #input-bar { padding: 10px 10px; }
     .site-footer { justify-content: center; gap: 12px; flex-wrap: wrap; }
     #settings-dropdown { right: 0; left: auto; min-width: 0; width: calc(100vw - 24px); max-width: 280px; }
   }
