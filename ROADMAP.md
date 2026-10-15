@@ -677,6 +677,9 @@ meter la prueba de pantallas (jsdom, ahora fuera del repo) en `trainer/tests/` c
   con huella (arriba) no basta; antes, pruebas de caracterización del login.
 - (2026-10-05) Que el tutor recuerde en qué se equivocó Nando la última vez (p. ej. "falló `&&` con `||`") y lo
   retome al volver, guardando los fallos del tema en el progreso. Hoy solo lo sabe si Nando se lo dice.
+- (2026-10-15) **HECHO el mismo día (en local, sin subir):** `GET /dashboard` ya devuelve los cursos con `last_course`
+  primero y el resto en su orden (`app.py`; logros calculados antes de reordenar; pruebas en `test_dashboard.py`, 8b).
+  Lo de abajo es el planteamiento original, se deja como contexto.
 - (2026-10-15) **Paneles dinámicos: el último curso en el que se trabajó, el primero.** Hoy las tarjetas del dashboard
   (punto 24) salen en orden fijo; la idea es que la del curso más reciente aparezca arriba/primera y el resto detrás.
   Mismo patrón que se acaba de aplicar en `nplayer` (la pista que suena va la primera en el shuffle). **El dato ya

@@ -148,6 +148,29 @@ try:
           len(d.get('courses', [])) == 3 and all(' ' not in c['course'] for c in d['courses']))
     (tmp / 'agent' / 'Mi Curso Raro.md').unlink()
 
+    # 8b. El último curso usado sale PRIMERO; el resto conserva su orden y los logros no cambian con el orden.
+    perfil_path = tmp / 'config' / 'profile.json'
+    perfil_orig = perfil_path.read_text(encoding='utf-8')
+
+    def con_curso(c):
+        p = json.loads(perfil_orig)
+        p['course'] = c
+        perfil_path.write_text(json.dumps(p), encoding='utf-8')
+
+    con_curso('curso-que-no-existe')
+    _, d = pedir()
+    base = [c['course'] for c in d['courses']]
+    logros_base = d['achievements']
+    check('último curso desconocido: no se reordena ni se rompe (siguen los 3)', len(base) == 3 and base == sorted(base, key=base.index))
+    for ult in base:
+        con_curso(ult)
+        _, d = pedir()
+        orden = [c['course'] for c in d['courses']]
+        check(f"último curso '{ult}': sale el primero", orden[0] == ult)
+        check(f"último curso '{ult}': el resto conserva su orden", orden[1:] == [x for x in base if x != ult])
+        check(f"último curso '{ult}': los logros no dependen del orden", d['achievements'] == logros_base)
+    perfil_path.write_text(perfil_orig, encoding='utf-8')
+
     # 9. Solo lee, también al repetirlo: no escribe progreso ni perfil.
     antes = foto()
     codigos = [pedir()[0].status_code, pedir()[0].status_code]

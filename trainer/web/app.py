@@ -603,7 +603,7 @@ def dashboard():
         return jsonify({'error': 'Solo con contraseña'}), 403
     nombres = [c for c in courses().get_json()['courses'] if re.fullmatch(r'[a-z0-9_-]+', c)]
     # Cada curso lee su progreso (en producción, una ida y vuelta a GitHub): a la vez, no uno tras otro. map() conserva
-    # el orden de `nombres`, así que el panel sale igual que antes.
+    # el orden de `nombres`; después el último curso usado pasa al principio (ver más abajo).
     # También el último curso usado (perfil), en paralelo con los progresos: así el navegador no pide /profile aparte.
     with ThreadPoolExecutor(max_workers=max(1, min(8, len(nombres) + 1))) as pool:
         perfil = pool.submit(get_admin_profile)
@@ -612,7 +612,10 @@ def dashboard():
             ultimo = (perfil.result() or {}).get('course', '').lower()
         except Exception:
             ultimo = ''                       # sin perfil legible, el panel sale igual (solo sin la etiqueta "último")
-    return jsonify({'courses': resumenes, 'achievements': _logros(resumenes), 'last_course': ultimo})
+    logros = _logros(resumenes)               # antes de reordenar: ante un empate, `max` se queda con el primero
+    if ultimo:
+        resumenes.sort(key=lambda r: r['course'] != ultimo)       # sort es estable: el último usado, primero; el resto igual
+    return jsonify({'courses': resumenes, 'achievements': logros, 'last_course': ultimo})
 
 
 @app.route('/progress/next', methods=['POST'])
