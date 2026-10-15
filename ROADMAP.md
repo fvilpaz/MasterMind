@@ -677,6 +677,12 @@ meter la prueba de pantallas (jsdom, ahora fuera del repo) en `trainer/tests/` c
   con huella (arriba) no basta; antes, pruebas de caracterización del login.
 - (2026-10-05) Que el tutor recuerde en qué se equivocó Nando la última vez (p. ej. "falló `&&` con `||`") y lo
   retome al volver, guardando los fallos del tema en el progreso. Hoy solo lo sabe si Nando se lo dice.
+- (2026-10-15) **Paneles dinámicos: el último curso en el que se trabajó, el primero.** Hoy las tarjetas del dashboard
+  (punto 24) salen en orden fijo; la idea es que la del curso más reciente aparezca arriba/primera y el resto detrás.
+  Mismo patrón que se acaba de aplicar en `nplayer` (la pista que suena va la primera en el shuffle). **Ojo:** hace falta
+  saber "cuándo se trabajó por última vez" cada curso y hoy el progreso no guarda fecha de actividad (ver fase 3 del 24:
+  solo hay `current` y `mastered`); habría que guardar una fecha al aprobar/avanzar o sacarla del historial de git.
+  **Orden de trabajo: después de `nplayer`.**
 
 ## Hecho el 2026-10-02
 
