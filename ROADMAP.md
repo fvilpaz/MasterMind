@@ -679,10 +679,12 @@ meter la prueba de pantallas (jsdom, ahora fuera del repo) en `trainer/tests/` c
   retome al volver, guardando los fallos del tema en el progreso. Hoy solo lo sabe si Nando se lo dice.
 - (2026-10-15) **Paneles dinámicos: el último curso en el que se trabajó, el primero.** Hoy las tarjetas del dashboard
   (punto 24) salen en orden fijo; la idea es que la del curso más reciente aparezca arriba/primera y el resto detrás.
-  Mismo patrón que se acaba de aplicar en `nplayer` (la pista que suena va la primera en el shuffle). **Ojo:** hace falta
-  saber "cuándo se trabajó por última vez" cada curso y hoy el progreso no guarda fecha de actividad (ver fase 3 del 24:
-  solo hay `current` y `mastered`); habría que guardar una fecha al aprobar/avanzar o sacarla del historial de git.
-  **Orden de trabajo: después de `nplayer`.**
+  Mismo patrón que se acaba de aplicar en `nplayer` (la pista que suena va la primera en el shuffle). **El dato ya
+  existe:** `GET /dashboard` devuelve `last_course` (= `course` de `profile.json`, que `elegirCurso` escribe con
+  `/update-profile`) y `dashboard.js` ya pinta el chip "último" con él (`c.course === o.ultimo`). Falta solo reordenar
+  `d.courses` con `last_course` primero (en `dashboard.js` o en `app.py`; los tests de `test_dashboard.py` fijan el orden
+  actual). **Matiz:** es el último curso *elegido*, no el último en el que se *avanzó*; para eso sí haría falta fecha
+  de actividad (fase 3 del punto 24). **Orden de trabajo: después de `nplayer`.**
 
 ## Hecho el 2026-10-02
 
