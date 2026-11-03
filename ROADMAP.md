@@ -697,6 +697,18 @@ internet al preparar cada sección**: qué es, para qué sirve, cómo se hace, r
 Con palabras propias, sin copiar páginas. Esto **sustituye** lo decidido en el punto 22 ("el modelo ya sabe Java, no
 necesita páginas"). Ojo con el tamaño: va en el prompt de cada mensaje (Strings tiene 10 puntos), apuntes concisos.
 
+**Preguntas de repaso por sección (idea de Nando, 2026-11-03):** Nando guardó fotos de los tests del curso
+(`preguntas.png` en cada carpeta de `Cursos\MoureDev\java\src\exN_…`, de Primeros pasos a Funciones). El tutor las hace
+**de vez en cuando**, mezcladas con su repertorio (al cerrar un punto, al volver de una pausa), y entran en el test del
+examen global. Como el repo es público y los tests son del curso de pago, en el `temario.md` van como **lista de
+conceptos con palabras propias**, no copiadas tal cual. Hecho en la prueba local para la sección 1.
+
+**Ajustes tras la primera prueba de Nando (2026-11-03):** el saludo hacía dos preguntas (el tiempo y un "reto" de
+uno de los `GREET_STYLES`) → el saludo solo pregunta el tiempo; el tutor empezó por la JVM y el bytecode → los subpuntos
+van de lo práctico a lo teórico y "nunca preguntes por algo que aún no has explicado". **Sin resolver:** una vez salieron
+dos respuestas seguidas del tutor sin mensaje de Nando entre medias (dos `POST /chat/stream` con 2 s de diferencia en el
+registro); no se ha reproducido.
+
 **Prueba en local (2026-11-03):** copia aislada en el scratchpad de la sesión (sin GitHub, progreso a cero, IA real),
 con `ex1_PrimerosPasos` y el `Mouredev.md` adaptado (secciones, ciclo, examen por subpuntos con la cuenta a la vista
 `Subpuntos: 1✅ 2⏳ 3⬜`, `[[DOMINADO]]` solo en el examen global). Comprobado que el tutor recibe todo. **Falta:** que
