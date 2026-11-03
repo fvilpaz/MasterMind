@@ -739,21 +739,27 @@ dominados). Apuntes de la sección 1 (`ex01_PrimerosPasos/sources/apuntes.md`, `
 Formatter y JEP 330; 15 mensajes de error reales de `javac` y salidas ejecutadas (p. ej. en el PC de Nando `%.2f`
 saca `3,14`, con coma). El tutor recibe apuntes + temario (~9.000 tokens por mensaje).
 
-**SIGUIENTE (para arrancar la próxima sesión sin pensar): sección 2 · Operadores**, despacio y con buena letra
-(Nando: "no tengo prisa, ve poco a poco y bien"). Mismo método que la sección 1:
-1. Puntos, en el orden de la foto `02. Operadores.png` (en `Cursos\MoureDev\java\src\ex02_Operadores\`): aritméticos,
-   asignación, comparación, lógicos, unarios (+ examen global). Preguntas de repaso de su `preguntas.png`, con
-   palabras propias (repo público).
-2. `ex02_Operadores/sources/temario.md` (subpuntos de lo práctico a lo teórico) y `apuntes.md` desde la documentación
-   oficial, comprobando cada mensaje de error y cada salida con el Java de IntelliJ
-   (`C:\Program Files\JetBrains\IntelliJ IDEA 2026.2.2\jbr\bin\javac.exe`; el `javac` del sistema es Java 17).
-   Incluir precedencia y combinaciones (`a && b || c`, cortocircuito): fue lo que Nando echó en falta (punto 20).
-3. Enseñárselo a Nando y subir solo con su OK. Avisar por Telegram al terminar.
+**Hecho (2026-11-03): sección 2 · Operadores**, con el mismo método. `ex02_Operadores/sources/temario.md` (5 puntos
+de la foto, preguntas de repaso de `preguntas.png` con palabras propias, examen global cuyo programa son los ejercicios
+8–10 del curso que Nando dejó sin hacer) y `apuntes.md` (Oracle Tutorials + JLS 21 cap. 15; precedencia completa,
+cortocircuito y `a || b && c`, lo que echó en falta en el punto 20). ~80 salidas y 15 errores de `javac` comprobados
+con el Java de IntelliJ, que es el **25** (`C:\Program Files\JetBrains\IntelliJ IDEA 2026.2.2\jbr\bin\javac.exe`; el
+del sistema es el 17). Comprobado en una copia que el tutor lo recibe (con control negativo); prompt ~33.000
+caracteres, como la sección 1. `enlaces.md` de `ex02` quitado (sobraba: las fuentes van en el temario), con OK de Nando.
+
+**SIGUIENTE (para arrancar la próxima sesión sin pensar): sección 3 · Strings**, mismo método y despacio (foto y
+`preguntas.png` en `Cursos\MoureDev\java\src\ex03_Strings\`). Ojo al tamaño: el curso tiene 10 puntos, apuntes concisos.
+Enseñárselo a Nando y subir solo con su OK.
+
+**Sin resolver (Nando, 2026-11-03):** al entrar sale la sala previa ("Preparando tu sala…" + 2 botones) aunque no hay
+nada dominado. Hipótesis: `showRoomStep` (`app.js`) enseña la sala mientras espera a GitHub y solo después decide
+saltarla. Falta que Nando diga si pasa sola al chat a los segundos (entonces: "Entrando…" sin botones hasta decidir,
+~6 líneas) o se queda colgada.
 
 **Pendiente:**
 1. Comprobar en producción con la app de Nando (panel 8 secciones, saludo solo hola + tiempo). Él no lo ha confirmado aún.
 2. ~~Apuntes de la sección 1~~ hecho.
-3. Secciones 2–8, una por una (temario + apuntes oficiales + preguntas de repaso de las fotos).
+3. Secciones 3–8, una por una (la 2 hecha) (temario + apuntes oficiales + preguntas de repaso de las fotos).
 4. **Si el modelo se salta subpuntos en el examen:** que cuente la app, como se planteó en el punto 20.
 5. **Ojo en producción:** cada `[[PUNTO]]` que avanza es un commit `update: progress` en `main` (no despliega, pero
    llena el historial). Lo arregla el punto 17 (progreso en un bucket).
