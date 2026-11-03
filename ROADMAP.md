@@ -666,38 +666,52 @@ con un **examen global** de todo lo de la sección.
 3. **Ejercicios** para que los escriba él.
 4. **Preguntas** y los modos que ya tenemos: `socratic`, `debug`, `/kata`, `/read`…
 5. **Examen del punto**, que pasa por **todos** sus subpuntos (la lista del `temario.md`), no por uno.
-6. Aprobado → `[[DOMINADO]]` → siguiente punto (en el ejemplo, Variables y constantes) y vuelta a empezar.
+6. Aprobado → "Punto aprobado" → siguiente punto (en el ejemplo, Variables y constantes) y vuelta a empezar.
 
 **Al final de la sección:** examen global (todo lo de la sección mezclado y combinado), que hace de "Test de
-conocimientos" del curso. Se aprueba igual, con `[[DOMINADO]]`.
+conocimientos" del curso. **Solo este** da `[[DOMINADO]]` y la app pasa a la siguiente sección.
 
 **Sección 1 · Primeros pasos** (foto del 2026-11-03): Hola Mundo · Comentarios · Ejercicios: Primeros pasos · Variables y
 constantes · Tipos de datos primitivos · Ejercicios: Variables y constantes · Test de conocimientos (10 preguntas). Las
 "Ejercicios: …" del curso van dentro del paso 3 de cada punto; el test es nuestro examen global.
 
-**Cómo encaja en la app sin reescribirla (propuesta):** la app ya avanza de carpeta en carpeta (`exN_` en orden,
-`course_topics`, `/progress/next`, panel). Si **cada carpeta es un punto** y **el examen global es una carpeta más** al
-final de la sección, todo lo de hoy sirve tal cual. Sección 1 quedaría: `ex1_HolaMundo`, `ex2_Comentarios`,
-`ex3_VariablesYConstantes`, `ex4_TiposDeDatosPrimitivos`, `ex5_ExamenPrimerosPasos` (nombres por confirmar). Cada
-carpeta con su `sources/temario.md`: la lista de subpuntos que el examen tiene que recorrer (y, en la del examen
-global, qué puntos entran). El `src/` de Nando se mueve a la carpeta del punto que le toque.
+**DECIDIDO (Nando, 2026-11-03): una carpeta = una sección = una foto.** `brain/Moure/java/` pasa de 10 carpetas a 8,
+numeradas como las fotos: `ex1_PrimerosPasos` (junta los `src/` de HelloWorld, VariablesAndConstants y DataTypes),
+`ex2_Operadores`, `ex3_Strings`, `ex4_Condicionales`, `ex5_Estructuras`, `ex6_Bucles`, `ex7_Funciones`, `ex8_POO`.
+Cada carpeta con un `sources/temario.md` que trae **todos los puntos** de la sección, cada uno con sus subpuntos, y el
+examen global al final. La app no cambia: sigue avanzando de carpeta en carpeta. **Pega conocida:** la app guarda en
+qué sección vas, no en qué punto de dentro; al volver, el tutor lo sabe por la sesión guardada (o pregunta). Guardar
+también el punto en el progreso, más adelante si hace falta.
+- **Progreso: empezar de cero** (decidido por Nando: "así me sale de repaso"), con copia del actual (temas 1–9) antes.
+- **El proyecto de IntelliJ de Nando** (`Cursos\MoureDev\java\src`, con `package ex1_HelloWorld;`…) **no se toca**: el
+  cambio es solo en la copia de `brain/`. Allí hay un `Inheritance.java` en `ex10_OOP` que falta en `brain/`.
+- **Fotos de las secciones:** en las carpetas de `Cursos\MoureDev\java\src\exN_…` (de la 01 a la 08; POO solo hasta Herencia,
+  que es hasta donde ha llegado Nando: el resto de POO se añade cuando lo vea).
 
-**Contenido:** del curso se toma solo **el orden y los títulos** (es de pago: no se copia su material). La explicación
-y los subpuntos salen de la documentación oficial (Oracle, W3Schools) y del código de Nando en `src/`, nunca inventados.
+**Contenido: documentación oficial, no el curso (requisito de Nando, 2026-11-03).** Del curso de Brais se toma solo
+**el orden y los títulos** (es de pago, y además "hay mucha info"). Para que el tutor pueda **enseñar de verdad** (modo
+profesor / `explain`) no basta con la lista de subpuntos y unos enlaces que no puede abrir: cada sección lleva también
+**apuntes propios** (`sources/apuntes.md` o dentro del `temario.md`) redactados a partir de la **documentación oficial**
+(Oracle Java Tutorials, especificación del lenguaje, API de Java) y referencias libres (W3Schools), **consultadas en
+internet al preparar cada sección**: qué es, para qué sirve, cómo se hace, reglas exactas, errores típicos y ejemplos.
+Con palabras propias, sin copiar páginas. Esto **sustituye** lo decidido en el punto 22 ("el modelo ya sabe Java, no
+necesita páginas"). Ojo con el tamaño: va en el prompt de cada mensaje (Strings tiene 10 puntos), apuntes concisos.
+
+**Prueba en local (2026-11-03):** copia aislada en el scratchpad de la sesión (sin GitHub, progreso a cero, IA real),
+con `ex1_PrimerosPasos` y el `Mouredev.md` adaptado (secciones, ciclo, examen por subpuntos con la cuenta a la vista
+`Subpuntos: 1✅ 2⏳ 3⬜`, `[[DOMINADO]]` solo en el examen global). Comprobado que el tutor recibe todo. **Falta:** que
+Nando la pruebe y los apuntes oficiales.
 
 **Pasos (uno por commit, sin avanzar sin OK):**
-1. **Sección 1:** carpetas nuevas + `temario.md` de cada punto + copia de seguridad del progreso actual y progreso
-   puesto en `ex1_HolaMundo` (empezar de cero, como pide Nando).
-2. **`Mouredev.md`:** el ciclo de arriba como progresión obligatoria, el examen por subpuntos y el examen global. Es
-   solo prompt; comprobar que el `temario.md` llega al tutor (hoy recibe `sources/*.md`).
-3. **Prueba con la IA real** en Hola Mundo y Comentarios, y ajuste.
-4. **Siguientes secciones**, según Nando pase las fotos (con la plantilla hecha, es trabajo de contenido).
+1. Probar la sección 1 en local y ajustar `Mouredev.md` y el temario.
+2. Apuntes de la sección 1 desde la documentación oficial.
+3. Pasarlo al repo: carpetas por sección (sin borrar las viejas sin respaldo), `Mouredev.md`, copia del progreso y
+   progreso a `ex1_PrimerosPasos`. Push = despliegue: comprobar en producción.
+4. Secciones 2–8, una por una (temario + apuntes oficiales).
 5. **Si el modelo se salta subpuntos:** que cuente la app (una marca por subpunto superado y `[[DOMINADO]]` solo con
    todos), como se planteó en el punto 20.
 
-**A decidir con Nando:** los nombres de las carpetas; qué pasa con las carpetas de ahora (`ex1_HelloWorld`…
-`ex10_OOP`): se renombran o reparten, sin borrar nada; y si CS50 y 42 siguen el mismo modelo después.
-Enlaza con los puntos 8, 16, 20, 21 y 22.
+**A decidir después:** si CS50 y 42 siguen el mismo modelo. Enlaza con los puntos 8, 16, 20, 21 y 22.
 
 ## Hecho el 2026-10-14
 
