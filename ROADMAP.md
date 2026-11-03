@@ -641,6 +641,36 @@ POST+JSON repetidos; el logo `🧠 MasterMind` + `<hr>` repetido 4 veces en el l
 `index.html`; `.dash-chip` y `.course-chip` casi iguales; el CSS de `.site-footer` repartido en 3 sitios. **Aparcado:**
 meter la prueba de pantallas (jsdom, ahora fuera del repo) en `trainer/tests/` como dependencia de desarrollo.
 
+## 25. Los exámenes aprueban un trozo del tema, no el tema entero (apuntado 2026-11-03) — PENDIENTE, PRIORITARIO
+
+**Lo que ha pasado (Nando, 2026-11-03):** los exámenes por rondas del punto 20 siguen siendo **genéricos**. En
+`ex10_OOP` el tutor dio el examen por bueno **solo con getters y setters**, y la POO es mucho más: clases, herencia,
+modificadores… Lo mismo puede haber pasado en los temas anteriores: en tipos de datos te examina de una parte (p. ej.
+strings) y apruebas sin haber tocado el resto. **Lo que quiere Nando:** que el examen pase por **todos** los subtemas
+del tema, uno por uno, antes de aprobar. "Si quiero aprender de verdad."
+
+**Por qué pasa:** es lo que ya se avisó en los puntos 20 y 22. El tutor no tiene una lista de lo que abarca cada tema
+(el `temario.md` quedó aparcado), así que "todo el tema" es lo que el modelo decide en ese momento. Y quien cuenta las
+rondas es el modelo, no la app. El punto 22 dejaba la puerta abierta: "si el examen sigue saliendo fácil con las
+reglas nuevas, lo mínimo sería una lista corta de subtemas por tema". **Ya ha salido fácil:** toca desaparcarlo.
+
+**Idea (sugerencia, decide Nando):**
+1. **Lista de subtemas por tema** (`brain/Moure/java/exN_…/sources/temario.md`), corta, contrastada con la documentación
+   oficial y con el código de `src/`, nunca inventada. Empezar por `ex10_OOP` (el tema actual). Borrador para revisar:
+   clases y objetos · constructores (sobrecarga, `this`) · modificadores de acceso (`public`, `private`, `protected`,
+   por defecto) y encapsulación · getters/setters · `static` · herencia (`extends`, `super`, `@Override`) ·
+   polimorfismo · clases abstractas · interfaces · `final` · `toString`/`equals`.
+2. **El examen recorre la lista entera:** al menos una pregunta o ejercicio por subtema, y combinaciones al final.
+   El tutor no da `[[DOMINADO]]` mientras quede un subtema sin tocar.
+3. **Que cuente la app, no el modelo** (lo sólido, punto 20): una marca por subtema superado y la app solo acepta
+   `[[DOMINADO]]` cuando están todos. Sin esto, la lista es otra regla de prompt que el modelo puede saltarse.
+4. **Repasar los temas ya dominados (1–9)** con su lista, por si aprobaron con el mismo hueco (la sala "Repasar" del
+   punto 21 sirve, o `/back` del punto 8 cuando exista).
+
+**Qué tocaría:** contenido tema a tema (`temario.md`), la sección `exam` de `Mouredev.md` (y después `CS50.md` y
+`42malaga.md`), `build_system_prompt` si el `temario.md` necesita llegar aparte (hoy el tutor ya recibe `sources/*.md`,
+sin comprobar si basta) y, para el punto 3, `app.js` + el progreso. Enlaza con los puntos 8, 16, 20, 21 y 22.
+
 ## Hecho el 2026-10-14
 
 - **Login: el campo de contraseña ya declara `name="password"` y `autocomplete="current-password"`**
