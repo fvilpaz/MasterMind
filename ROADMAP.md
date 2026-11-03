@@ -734,9 +734,25 @@ Nando la pruebe y los apuntes oficiales.
 - Pruebas: `test_profile.py` al día con las carpetas nuevas y con 6 comprobaciones de `/progress/point` (control: rota
   la regla de no retroceder, la prueba lo detecta).
 
+**Hecho después (2026-11-03):** desplegado (`f618f0d`, éxito; progreso en producción = `ex01_PrimerosPasos`, sin
+dominados). Apuntes de la sección 1 (`ex01_PrimerosPasos/sources/apuntes.md`, `7b7ab8b`): Oracle Tutorials, JLS 21,
+Formatter y JEP 330; 15 mensajes de error reales de `javac` y salidas ejecutadas (p. ej. en el PC de Nando `%.2f`
+saca `3,14`, con coma). El tutor recibe apuntes + temario (~9.000 tokens por mensaje).
+
+**SIGUIENTE (para arrancar la próxima sesión sin pensar): sección 2 · Operadores**, despacio y con buena letra
+(Nando: "no tengo prisa, ve poco a poco y bien"). Mismo método que la sección 1:
+1. Puntos, en el orden de la foto `02. Operadores.png` (en `Cursos\MoureDev\java\src\ex02_Operadores\`): aritméticos,
+   asignación, comparación, lógicos, unarios (+ examen global). Preguntas de repaso de su `preguntas.png`, con
+   palabras propias (repo público).
+2. `ex02_Operadores/sources/temario.md` (subpuntos de lo práctico a lo teórico) y `apuntes.md` desde la documentación
+   oficial, comprobando cada mensaje de error y cada salida con el Java de IntelliJ
+   (`C:\Program Files\JetBrains\IntelliJ IDEA 2026.2.2\jbr\bin\javac.exe`; el `javac` del sistema es Java 17).
+   Incluir precedencia y combinaciones (`a && b || c`, cortocircuito): fue lo que Nando echó en falta (punto 20).
+3. Enseñárselo a Nando y subir solo con su OK. Avisar por Telegram al terminar.
+
 **Pendiente:**
-1. Comprobar en producción tras el despliegue (panel con Primeros Pasos 0/8, saludo, marca guardada en GitHub).
-2. Apuntes de la sección 1 desde la documentación oficial.
+1. Comprobar en producción con la app de Nando (panel 8 secciones, saludo solo hola + tiempo). Él no lo ha confirmado aún.
+2. ~~Apuntes de la sección 1~~ hecho.
 3. Secciones 2–8, una por una (temario + apuntes oficiales + preguntas de repaso de las fotos).
 4. **Si el modelo se salta subpuntos en el examen:** que cuente la app, como se planteó en el punto 20.
 5. **Ojo en producción:** cada `[[PUNTO]]` que avanza es un commit `update: progress` en `main` (no despliega, pero
