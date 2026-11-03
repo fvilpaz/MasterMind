@@ -101,39 +101,52 @@ try:
         check('course_topics y GET /progress existen', False)
     else:
         ts = mm.course_topics('mouredev')
-        check('course_topics(mouredev): ex1…ex10 en orden de NÚMERO (ex10 al final, no tras ex1)',
-              [t['n'] for t in ts] == list(range(1, 11)) and ts[0]['folder'] == 'ex1_HelloWorld' and ts[-1]['folder'] == 'ex10_OOP')
+        check('course_topics(mouredev): ex01…ex08 (una carpeta por sección) en orden de NÚMERO',
+              [t['n'] for t in ts] == list(range(1, 9)) and ts[0]['folder'] == 'ex01_PrimerosPasos' and ts[-1]['folder'] == 'ex08_POO')
         ts = mm.course_topics('cs50')
         check('course_topics(cs50): week01…week10 en orden', [t['n'] for t in ts] == list(range(1, 11)) and ts[1]['folder'] == 'week02-arrays')
         ts = mm.course_topics('42malaga')
         check('course_topics(42malaga): ex01…ex54 en orden, de first_word a str_maxlenoc',
               [t['n'] for t in ts] == list(range(1, 55)) and ts[0]['folder'] == 'ex01_first_word' and ts[-1]['folder'] == 'ex54_str_maxlenoc')
         check('course_topics: curso sin carpetas → []', mm.course_topics('cursonuevo') == [])
-        (prog / 'mouredev.json').write_text(json.dumps({'current': 'ex2_VariablesAndConstants', 'mastered': ['ex1_HelloWorld']}), encoding='utf-8')
+        (prog / 'mouredev.json').write_text(json.dumps({'current': 'ex02_Operadores', 'mastered': ['ex01_PrimerosPasos']}), encoding='utf-8')
         escribir({**perfil(), 'course': 'mouredev'})
         r = c.get('/progress')
         estados = [t['status'] for t in r.get_json().get('topics', [])] if r.status_code == 200 else []
-        check("GET /progress: ✅ ex1 dominado, 👉 ex2 actual, 🔒 el resto",
-              estados[:3] == ['mastered', 'current', 'locked'] and estados[3:] == ['locked'] * 7)
+        check("GET /progress: ✅ ex01 dominado, 👉 ex02 actual, 🔒 el resto",
+              estados[:3] == ['mastered', 'current', 'locked'] and estados[3:] == ['locked'] * 5)
         check('GET /progress: el invitado no puede (su mundo es otro)', mm.app.test_client().get('/progress').status_code == 403)
 
     # 1e. Guardar la partida: POST /progress/next (solo tras aprobar; de uno en uno)
-    (prog / 'mouredev.json').write_text(json.dumps({'current': 'ex1_HelloWorld', 'mastered': []}), encoding='utf-8')
+    (prog / 'mouredev.json').write_text(json.dumps({'current': 'ex01_PrimerosPasos', 'mastered': [], 'point': '1.7'}), encoding='utf-8')
     (prog / 'cs50.json').write_text(json.dumps({'current': 'week01-c', 'mastered': []}), encoding='utf-8')
     cs50_antes = (prog / 'cs50.json').read_bytes()
     escribir({**perfil(), 'course': 'mouredev'})
     r = c.post('/progress/next', json={})
-    check('POST /progress/next: ex1 → dominado, ex2 → actual',
-          r.status_code == 200 and mm.get_progress('mouredev') == {'current': 'ex2_VariablesAndConstants', 'mastered': ['ex1_HelloWorld']})
+    check('POST /progress/next: ex01 → dominado, ex02 → actual (y el punto de dentro vuelve a empezar)',
+          r.status_code == 200 and mm.get_progress('mouredev') == {'current': 'ex02_Operadores', 'mastered': ['ex01_PrimerosPasos']})
     check('POST /progress/next: responde con el tema nuevo para el botón',
-          (r.get_json() or {}).get('progress', {}).get('topic') == 'Variables And Constants')
-    c.post('/progress/next', json={'to': 'ex9_Funciones'})           # intento de saltar: se ignora
-    check('POST /progress/next: NO se puede saltar (pedir ex9 avanza solo a ex3)',
-          mm.get_progress('mouredev')['current'] == 'ex3_DataTypes')
+          (r.get_json() or {}).get('progress', {}).get('topic') == 'Operadores')
+    c.post('/progress/next', json={'to': 'ex07_Funciones'})          # intento de saltar: se ignora
+    check('POST /progress/next: NO se puede saltar (pedir ex07 avanza solo a ex03)',
+          mm.get_progress('mouredev')['current'] == 'ex03_Strings')
     check('POST /progress/next: CS50 no se toca', (prog / 'cs50.json').read_bytes() == cs50_antes)
-    (prog / 'mouredev.json').write_text(json.dumps({'current': 'ex10_OOP', 'mastered': []}), encoding='utf-8')
-    check('POST /progress/next: en el último ejercicio → 400, no inventa un ex11', c.post('/progress/next', json={}).status_code == 400)
+    (prog / 'mouredev.json').write_text(json.dumps({'current': 'ex08_POO', 'mastered': []}), encoding='utf-8')
+    check('POST /progress/next: en la última sección → 400, no inventa un ex09', c.post('/progress/next', json={}).status_code == 400)
     check('POST /progress/next: el invitado no puede', mm.app.test_client().post('/progress/next', json={}).status_code == 403)
+
+    # 1f. Dónde va dentro de la sección: POST /progress/point (marca [[PUNTO x.y]] del tutor)
+    (prog / 'mouredev.json').write_text(json.dumps({'current': 'ex01_PrimerosPasos', 'mastered': []}), encoding='utf-8')
+    check('POST /progress/point: guarda 1.7', c.post('/progress/point', json={'point': '1.7'}).status_code == 200
+          and mm.get_progress('mouredev').get('point') == '1.7')
+    check('POST /progress/point: valor raro → 400', c.post('/progress/point', json={'point': '../x'}).status_code == 400)
+    c.post('/progress/point', json={'point': '1.0'})
+    check('POST /progress/point: nunca hacia atrás (1.0 tras 1.7 no pisa)', mm.get_progress('mouredev').get('point') == '1.7')
+    c.post('/progress/point', json={'point': '1.ejercicios'})
+    check('POST /progress/point: 1.ejercicios va después de 1.7', mm.get_progress('mouredev').get('point') == '1.ejercicios')
+    check('POST /progress/point: el invitado no puede',
+          mm.app.test_client().post('/progress/point', json={'point': '2.0'}).status_code == 403)
+    check('build_system_prompt: el tutor recibe la marca guardada', '[[PUNTO 1.ejercicios]]' in mm.build_system_prompt(is_admin=True))
 
     # 2. get_admin_profile sin token → lee el archivo local
     escribir({**perfil(), 'current_topic': 'Marca de prueba'})

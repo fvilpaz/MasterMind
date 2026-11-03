@@ -120,7 +120,19 @@ const MASTERED_MARK = '[[DOMINADO]]';
 const EXAM_MARK = '[[EXAM]]';
 let examActive = false;
 // Quita la marca, y también su comienzo si todavía está llegando por trozos ("[[DOMI…").
-const hideMark = t => t.replace(MASTERED_MARK, '').replace(EXAM_MARK, '').replace(/\[\[[A-Z]*\]?$/, '').trimEnd();
+// Dónde va dentro de la sección: el tutor pone [[PUNTO 1.5]] al terminar un subpunto ('1.ejercicios', '1.examen',
+// '2.0' al aprobar un punto). La app la oculta y la guarda en el progreso del servidor: al volver, sigue por ahí.
+const POINT_MARK = /\[\[PUNTO (\d+\.(?:\d+|ejercicios|examen))\]\]/g;
+async function savePoint(reply) {
+  const marcas = [...reply.matchAll(POINT_MARK)];
+  if (!isAdmin || roomActive || !marcas.length) return;
+  try {
+    await fetch('/progress/point', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                                     body: JSON.stringify({ point: marcas[marcas.length - 1][1] }) });
+  } catch {}
+}
+const hideMark = t => t.replace(MASTERED_MARK, '').replace(EXAM_MARK, '').replace(POINT_MARK, '')
+  .replace(/\[\[[A-Z]*( [\w.]*)?\]?$/, '').trimEnd();
 
 // Aprobado el examen, la partida se guarda sola: el tema actual pasa a dominado y el siguiente a actual.
 async function saveProgress() {
@@ -132,7 +144,7 @@ async function saveProgress() {
   loadProfile();                                      // la barra de arriba pasa al tema nuevo
   messages.length = 0;                                // la IA arranca el tema nuevo sin el historial del anterior
   examActive = false;
-  greet();                                            // y da el enunciado del tema nuevo
+  greet(true);                                        // y da el enunciado del tema nuevo (sin volver a preguntar el tiempo)
 }
 
 // ── COMANDOS DEL CHAT (/ls, /back…) ─────────────────────
@@ -203,7 +215,10 @@ async function send() {
   if (roomActive && ROOM_EXIT.test(text)) { addMessage('user', text); return exitRoom(); }
   if (text.startsWith('/')) return runCommand(text);
   document.getElementById('send').disabled = true;
-  messages.push({ role: 'user', content: text });
+  // La respuesta al saludo de la app (el tiempo) lleva la marca de arranque: el servidor la cambia por la instrucción
+  // de empezar la clase. No se ve en el chat.
+  messages.push({ role: 'user', content: awaitingTime ? `${text} __start__` : text });
+  awaitingTime = false;
   addMessage('user', text);
   showTyping();
   try {
@@ -211,6 +226,7 @@ async function send() {
     if (reply) {
       messages.push({ role: 'assistant', content: reply });
       examActive = reply.includes(EXAM_MARK);
+      await savePoint(reply);
       if (isAdmin && !roomActive && reply.includes(MASTERED_MARK)) await saveProgress();   // en la sala de repaso nunca se avanza
     }
   } catch (e) { removeTyping(); addMessage('error', `Error de conexión: ${e.message}`); }
@@ -218,10 +234,59 @@ async function send() {
   input.focus();
 }
 
-async function greet() {
+// Saludo sin plan de pomodoros: lo escribe la APP, no la IA. Solo saluda y pregunta el tiempo; la IA no recibe nada
+// hasta que el estudiante responde (con el modelo de turno, la IA a veces se adelantaba y empezaba la clase).
+// No entra en el historial: el primer mensaje que ve la IA es la respuesta con el tiempo (con la marca de arranque),
+// y es la IA la que entonces presenta el tema, con su toque al azar, y empieza la clase.
+const GREET_OPENINGS = ['¡Hola, {n}!', '¡Buenas, {n}!', '¡Qué bien verte, {n}!', '¡Vamos allá, {n}!'];
+const TIME_QUESTION = '¿Cuánto tiempo tienes para estudiar hoy? 1 hora (2 pomodoros), hora y media (3 pomodoros) o 2 horas (4 pomodoros).';
+let awaitingTime = false;
+// Plan de pomodoros a medias (de esta misma tarde, ver PLAN_TTL): se ofrece seguir con él en vez de preguntar.
+function planPendiente() {
+  const p = isAdmin && planActive() ? planGet() : null;
+  return p ? `Tienes un plan de ${p.total} pomodoros a medias (llevas ${p.done}). ¿Seguimos con él o eliges otro tiempo?` : '';
+}
+// Solo hola + tiempo. Dónde te quedaste lo dice el tutor al arrancar (lo sabe por la marca guardada).
+function localGreeting(sinHola) {
+  const pregunta = planPendiente() || TIME_QUESTION;
+  if (sinHola) return pregunta;                     // ya saludó la sala: no se repite el hola
+  const name = isAdmin ? (document.getElementById('login-name').value.trim() || 'Nando') : 'aprendiz';
+  const opening = GREET_OPENINGS[Math.floor(Math.random() * GREET_OPENINGS.length)].replace('{n}', name);
+  return `${opening} ${pregunta}`;
+}
+// Botón "Seguir con el plan" (solo con un plan a medias): responde al saludo sin cambiar el plan guardado.
+function botonSeguirPlan() {
+  let b = document.getElementById('qr-seguir');
+  if (!b) {
+    b = document.createElement('button');
+    b.id = 'qr-seguir';
+    b.className = 'qr-btn';
+    b.addEventListener('click', () => {
+      const p = planGet();
+      document.getElementById('quick-replies').style.display = 'none';
+      document.getElementById('input').value = `Seguimos con el plan: me quedan ${p.total - p.done} pomodoros`;
+      send();
+    });
+    document.getElementById('quick-replies').prepend(b);
+  }
+  b.textContent = '▶ Seguir con el plan';
+  b.style.display = planPendiente() ? '' : 'none';
+}
+
+// sigueSesion = true solo al pasar de tema tras aprobar (saveProgress). Al ENTRAR en la app siempre se pregunta el
+// tiempo, aunque quede un plan guardado de antes (duraba 4 h y hacía que la IA empezara la clase sin preguntar).
+// sinHola = true cuando se viene de la sala (que ya saludó).
+async function greet(sigueSesion = false, sinHola = false) {
+  const hasPlan = sigueSesion && isAdmin && planActive();   // con plan en marcha no se vuelve a preguntar el tiempo
+  if (!hasPlan) {
+    addMessage('bot', localGreeting(sinHola));
+    botonSeguirPlan();
+    awaitingTime = true;
+    document.getElementById('quick-replies').style.display = 'flex';
+    return;
+  }
   showTyping();
   try {
-    const hasPlan = isAdmin && planActive();      // con plan en marcha no se vuelve a preguntar el tiempo
     const reply = await streamChat([{ role: 'user', content: hasPlan ? '__greet_plan__' : '__greet__' }]);
     if (reply) {
       messages.push({ role: 'assistant', content: reply });
@@ -475,7 +540,7 @@ function mostrarChatUI(visible) {
   CHAT_UI.forEach(([sel, display]) => { document.querySelector(sel).style.display = visible ? display : 'none'; });
 }
 
-async function startApp(room = false) {
+async function startApp(room = false, sinHola = false) {
   document.getElementById('login-overlay').classList.add('hidden');
   document.getElementById('dashboard').style.display = 'none';
   mostrarChatUI(true);
@@ -484,7 +549,7 @@ async function startApp(room = false) {
   }
   await loadProfile();
   if (room) return startRoom();
-  greet();
+  greet(false, sinHola);
 }
 
 // ── SALA DE REPASO (antes del curso) ────────────────────
@@ -514,6 +579,8 @@ async function showRoomStep(listo = Promise.resolve()) {
   try {
     await listo;
     const pr = (await (await fetch('/profile')).json()).progress || {};
+    // Sin nada dominado no hay nada que repasar: la sala sobra y se entra directo al curso (el saludo lo da el chat).
+    if (!(pr.mastered || []).length) return startApp();
     const donde = pr.n ? ` Vas por ${pr.course === 'cs50' ? 'Week' : 'Ej.'} ${pr.n} · ${pr.topic}.` : '';
     document.getElementById('room-greeting').textContent = `¡Hola${name ? ', ' + name : ''}!${donde} ¿Repasamos lo aprendido o seguimos con el curso?`;
   } catch {
@@ -548,11 +615,11 @@ function exitRoom() {
   mostrarChatUI(true);
   messages.length = 0;
   addMessage('bot', '📚 Terminamos el repaso. Vamos con el curso.');
-  greet();
+  greet(false, true);
 }
 
 document.getElementById('room-review-btn').addEventListener('click', () => startApp(true));
-document.getElementById('room-continue-btn').addEventListener('click', () => startApp());
+document.getElementById('room-continue-btn').addEventListener('click', () => startApp(false, true));   // la sala ya saludó
 document.getElementById('room-exit').addEventListener('click', exitRoom);
 
 function showStep2() {
@@ -710,7 +777,7 @@ document.getElementById('save-session-btn').addEventListener('click', async () =
   settingsDropdown.classList.remove('open');
   if (!isAdmin) return;
   if (messages.length === 0) { showToast('No hay conversación que guardar.', true); return; }
-  const sessionText = messages.map(m => `**${m.role === 'user' ? 'Estudiante' : 'Trainer'}:** ${m.content}`).join('\n\n');
+  const sessionText = messages.map(m => `**${m.role === 'user' ? 'Estudiante' : 'Trainer'}:** ${m.content.replace(' __start__', '')}`).join('\n\n');
   const btn = document.getElementById('save-session-btn');
   const btnOriginal = btn.innerHTML;
   btn.textContent = 'Guardando...';

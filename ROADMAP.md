@@ -714,14 +714,33 @@ con `ex1_PrimerosPasos` y el `Mouredev.md` adaptado (secciones, ciclo, examen po
 `Subpuntos: 1✅ 2⏳ 3⬜`, `[[DOMINADO]]` solo en el examen global). Comprobado que el tutor recibe todo. **Falta:** que
 Nando la pruebe y los apuntes oficiales.
 
-**Pasos (uno por commit, sin avanzar sin OK):**
-1. Probar la sección 1 en local y ajustar `Mouredev.md` y el temario.
+**SUBIDO (2026-11-03), probado antes en la copia local por Nando y con pruebas:**
+- `brain/Moure/java/`: 8 carpetas de dos dígitos (`ex01_PrimerosPasos` … `ex08_POO`), las mismas que el proyecto de
+  IntelliJ de Nando (que también se renombró, con su línea `package`). Traslado, no borrado: cada `.java` de lección en
+  su sección, `package` alineado y `Inheritance.java` añadido. Solo `ex01` tiene `temario.md`; las demás, `enlaces.md`.
+- **Progreso de MoureDev a cero** (`ex01_PrimerosPasos`), decidido por Nando ("dejarlo limpio y empezar de 0"). El
+  anterior (`ex10_OOP`, temas 1–9) queda en el historial de git.
+- **Saludo escrito por la app, no por la IA:** solo hola + tiempo (con un plan de pomodoros a medias, ofrece "▶ Seguir
+  con el plan"). La IA no recibe nada hasta la respuesta, que lleva `__start__`; el servidor la cambia por la
+  instrucción de arranque (estilo al azar de `GREET_STYLES`, seguir desde la marca o la sesión guardada). Motivo: con
+  Flash, la IA se saltaba la pregunta del tiempo aunque el prompt lo prohibiera. Al entrar siempre se pregunta el tiempo;
+  el atajo `__greet_plan__` queda solo para el paso de sección dentro de la sesión.
+- **Sala previa solo si hay algo que repasar**; viniendo de ella, el chat no repite el hola.
+- **Dónde va dentro de la sección:** el tutor termina todos sus mensajes con `[[PUNTO p.s]]` (6/6 en la prueba con el
+  recordatorio al final del prompt; 0/1 sin él). La app la oculta y la guarda con `POST /progress/point` en
+  `progress.point`; nunca retrocede; `/progress/next` la borra. Al volver, el tutor la recibe y sigue desde ahí.
+- `Mouredev.md`: secciones y puntos, "cómo se enseña" (de lo concreto a lo abstracto, nunca preguntar lo no explicado),
+  ciclo por punto, examen por subpuntos con la cuenta a la vista, `[[DOMINADO]]` solo en el examen global.
+- Pruebas: `test_profile.py` al día con las carpetas nuevas y con 6 comprobaciones de `/progress/point` (control: rota
+  la regla de no retroceder, la prueba lo detecta).
+
+**Pendiente:**
+1. Comprobar en producción tras el despliegue (panel con Primeros Pasos 0/8, saludo, marca guardada en GitHub).
 2. Apuntes de la sección 1 desde la documentación oficial.
-3. Pasarlo al repo: carpetas por sección (sin borrar las viejas sin respaldo), `Mouredev.md`, copia del progreso y
-   progreso a `ex1_PrimerosPasos`. Push = despliegue: comprobar en producción.
-4. Secciones 2–8, una por una (temario + apuntes oficiales).
-5. **Si el modelo se salta subpuntos:** que cuente la app (una marca por subpunto superado y `[[DOMINADO]]` solo con
-   todos), como se planteó en el punto 20.
+3. Secciones 2–8, una por una (temario + apuntes oficiales + preguntas de repaso de las fotos).
+4. **Si el modelo se salta subpuntos en el examen:** que cuente la app, como se planteó en el punto 20.
+5. **Ojo en producción:** cada `[[PUNTO]]` que avanza es un commit `update: progress` en `main` (no despliega, pero
+   llena el historial). Lo arregla el punto 17 (progreso en un bucket).
 
 **A decidir después:** si CS50 y 42 siguen el mismo modelo. Enlaza con los puntos 8, 16, 20, 21 y 22.
 
@@ -750,6 +769,11 @@ Nando la pruebe y los apuntes oficiales.
 - **Sin comprobar:** que la IA real ponga `[[EXAM]]` en cada mensaje del examen; el modo invitado y el móvil.
 
 ## 💡 Aparcado (2026-10-04)
+
+- (2026-11-03) **Guardar la sesión automáticamente** (hoy es el botón ⚙ → Guardar sesión). Con la marca `[[PUNTO]]` ya no
+  se pierde dónde vas; esto sería para conservar también la conversación. "No es importante ahora mismo" (Nando).
+- (2026-11-03) Usar **Pro solo en los exámenes** (sigue mejor reglas largas como la cuenta de subpuntos) y Flash en la
+  clase normal. Idea, no pedida.
 
 - Plan de pomodoros en el servidor para compartirlo entre PC y móvil (hoy es por navegador).
 - Si se escribe "tengo 1 hora" en vez de pulsar el botón ⏱, no se guarda plan: se podría leer del texto.

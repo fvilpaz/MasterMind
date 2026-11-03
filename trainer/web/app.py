@@ -182,7 +182,8 @@ def build_system_prompt(is_admin=False):
     else:
         mm = Path(os.environ.get('MASTERMIND_PATH', default_mm))
     course_root = COURSE_ROOTS.get(course, course)
-    topic_folder = _topic_folder(course) if is_admin else GUEST_TOPIC_FOLDER
+    prog = get_progress(course) if is_admin else {}    # una sola lectura: carpeta actual y punto de dentro
+    topic_folder = prog.get('current') if is_admin else GUEST_TOPIC_FOLDER
     if mm.exists() and topic_folder:
         sources_dir = mm / course_root / topic_folder / "sources"
         if sources_dir.exists():
@@ -217,11 +218,22 @@ def build_system_prompt(is_admin=False):
         if not has_sessions else
         "## Estado del estudiante\n"
     )
+    point_text = (f"\n\n## Dónde va dentro de la sección\nÚltima marca guardada: `[[PUNTO {prog['point']}]]`. "
+                  "Sigue desde ahí (lo siguiente a esa marca), sin repetir lo ya visto salvo una pregunta rápida de repaso."
+                  if prog.get('point') else "")
+    # Recordatorio AL FINAL (lo último que lee el modelo): sin él, se saltaba la marca. Solo en cursos con temario.
+    con_temario = bool(is_admin and topic_folder and (mm / course_root / topic_folder / 'sources' / 'temario.md').exists())
+    mark_text = ("\n\n## Recordatorio obligatorio: marca de progreso\nTermina SIEMPRE, en todos tus mensajes, con una "
+                 "línea sola `[[PUNTO p.s]]` con lo último YA superado según la regla de arriba (p. ej. `[[PUNTO 1.7]]`), "
+                 "aunque no haya cambiado desde el mensaje anterior. Sin ella, el avance se pierde al cerrar.") \
+        if con_temario else ""
     return (
         f"{claude_md}\n\n"
         f"{student_status}```json\n{json.dumps(profile, indent=2)}\n```"
+        f"{point_text}"
         f"{sources_text}"
         f"{session_log}"
+        f"{mark_text}"
     )
 
 
@@ -270,6 +282,25 @@ def _resolve_greet(messages, is_admin, guest_name_val):
         # Para que el saludo no sea siempre igual: un estilo al azar, AÑADIDO al final
         # (no se toca el texto de GREET_*: el replace de arriba depende de él).
         messages[-1]['content'] += f" Esta vez, arranca {random.choice(GREET_STYLES)}."
+    return _resolve_start(messages)
+
+
+START_MARK = '__start__'   # el navegador lo pega a la respuesta con el tiempo (tras el saludo que escribe la app)
+
+
+def _resolve_start(messages):
+    """Arranque de la clase: la respuesta con el tiempo lleva START_MARK. En el ÚLTIMO mensaje se cambia por la
+    instrucción (con un estilo al azar); en el historial se quita, para no repetir el arranque en cada respuesta."""
+    for i, m in enumerate(messages):
+        if m.get('role') == 'user' and START_MARK in m.get('content', ''):
+            texto = m['content'].replace(START_MARK, '').strip()
+            if i == len(messages) - 1:
+                texto += ("\n\n(Instrucción de la app, el estudiante no la ve: acaba de decirte su tiempo; es el arranque "
+                          "de la clase. Confirma el plan de pomodoros y preséntale en una o dos frases el tema que vais a "
+                          f"trabajar {random.choice(GREET_STYLES)}. Luego sigue DONDE LO DEJÓ: si arriba hay una marca "
+                          "de punto guardada o una sesión registrada, continúa desde ahí (con una pregunta rápida de "
+                          "repaso de lo último), sin repetir lo ya visto; solo si no hay nada, empieza por el primer subpunto.)")
+            messages[i] = {**m, 'content': texto}
     return messages
 
 
@@ -436,7 +467,9 @@ GREET_ADMIN = (
     "Arranca la sesión con energía. Saluda al estudiante por su nombre, "
     "recuérdale exactamente en qué punto quedamos la última sesión (usa el log), "
     "y pregúntale cuánto tiempo tiene hoy: 1 hora (2 pomodoros), hora y media (3 pomodoros) o 2 horas (4 pomodoros). "
-    "Sé motivador y directo, estilo entrenador personal. Máximo 3 frases."
+    "Sé motivador y directo, estilo entrenador personal. Máximo 3 frases. "
+    "La pregunta del tiempo es la ÚNICA pregunta de este mensaje: ni retos, ni ejercicios, ni explicaciones todavía; "
+    "la clase empieza cuando responda."
 )
 
 # Mismo arranque, pero el estudiante ya tiene un plan de pomodoros en marcha: no se le vuelve a preguntar el tiempo.
@@ -450,8 +483,8 @@ GREET_ADMIN_PLAN = (
 GREET_STYLES = [
     "como un entrenador en el vestuario antes del partido",
     "como un compañero de estudio que se alegra de verte",
-    "planteando un mini reto de calentamiento sobre el tema en curso",
-    "con una curiosidad breve de programación relacionada con el tema",
+    "anunciando el reto que os espera en el tema en curso, sin plantearlo todavía",
+    "con una curiosidad breve de programación relacionada con el tema, contada en una frase y sin preguntar nada",
     "con un toque de humor ligero, sin pasarte",
 ]
 
@@ -460,7 +493,8 @@ GREET_GUEST = (
     "No uses su nombre — llámale 'aprendiz'. "
     "Dile que empieza desde cero y que vas a guiarle paso a paso. "
     "Pregúntale cuánto tiempo tiene hoy: 1 hora (2 pomodoros), hora y media (3 pomodoros) o 2 horas (4 pomodoros). "
-    "Máximo 3 frases, con energía."
+    "Máximo 3 frases, con energía. "
+    "La pregunta del tiempo es la ÚNICA pregunta de este mensaje: ni retos ni ejercicios todavía."
 )
 
 @app.route('/chat', methods=['POST'])
@@ -636,8 +670,36 @@ def progress_next():
     if prog['current'] not in mastered:
         mastered.append(prog['current'])
     prog['current'] = folders[i + 1]
+    prog.pop('point', None)                          # sección nueva: se empieza por su punto 1
     save_progress(course, prog)
     return jsonify({'ok': True, 'progress': _progress_view(course, prog)})
+
+
+POINT_RE = re.compile(r'^\d+\.(\d+|ejercicios|examen)$')   # '1.5', '1.ejercicios', '1.examen', '2.0'
+
+
+def _point_key(point):
+    """Orden de las marcas dentro de la sección: 1.2 < 1.10 < 1.ejercicios < 1.examen < 2.0."""
+    p, s = point.split('.')
+    return (int(p), {'ejercicios': 10_000, 'examen': 10_001}.get(s) or int(s))
+
+
+@app.route('/progress/point', methods=['POST'])
+def progress_point():
+    """Dónde va DENTRO de la sección (la marca [[PUNTO x.y]] del tutor): así, al volver, sigue por ahí."""
+    if not session.get('is_admin', False):
+        return jsonify({'error': 'Solo con contraseña'}), 403
+    point = str((request.json or {}).get('point', ''))
+    if not POINT_RE.match(point):
+        return jsonify({'error': 'Punto no válido'}), 400
+    course = get_admin_profile().get('course', '').lower()
+    prog = get_progress(course)
+    old = prog.get('point')
+    if old and POINT_RE.match(old) and _point_key(point) <= _point_key(old):
+        return jsonify({'ok': True, 'point': old})   # nunca hacia atrás (ni guardar lo mismo otra vez)
+    prog['point'] = point
+    save_progress(course, prog)
+    return jsonify({'ok': True, 'point': point})
 
 
 def github_put(repo_path, content_str, commit_msg):
