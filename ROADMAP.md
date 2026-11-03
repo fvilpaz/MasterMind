@@ -654,22 +654,50 @@ del tema, uno por uno, antes de aprobar. "Si quiero aprender de verdad."
 rondas es el modelo, no la app. El punto 22 dejaba la puerta abierta: "si el examen sigue saliendo fácil con las
 reglas nuevas, lo mínimo sería una lista corta de subtemas por tema". **Ya ha salido fácil:** toca desaparcarlo.
 
-**Idea (sugerencia, decide Nando):**
-1. **Lista de subtemas por tema** (`brain/Moure/java/exN_…/sources/temario.md`), corta, contrastada con la documentación
-   oficial y con el código de `src/`, nunca inventada. Empezar por `ex10_OOP` (el tema actual). Borrador para revisar:
-   clases y objetos · constructores (sobrecarga, `this`) · modificadores de acceso (`public`, `private`, `protected`,
-   por defecto) y encapsulación · getters/setters · `static` · herencia (`extends`, `super`, `@Override`) ·
-   polimorfismo · clases abstractas · interfaces · `final` · `toString`/`equals`.
-2. **El examen recorre la lista entera:** al menos una pregunta o ejercicio por subtema, y combinaciones al final.
-   El tutor no da `[[DOMINADO]]` mientras quede un subtema sin tocar.
-3. **Que cuente la app, no el modelo** (lo sólido, punto 20): una marca por subtema superado y la app solo acepta
-   `[[DOMINADO]]` cuando están todos. Sin esto, la lista es otra regla de prompt que el modelo puede saltarse.
-4. **Repasar los temas ya dominados (1–9)** con su lista, por si aprobaron con el mismo hueco (la sala "Repasar" del
-   punto 21 sirve, o `/back` del punto 8 cuando exista).
+### Plan acordado con Nando (2026-11-03): el curso, punto por punto, con examen de cada punto y examen global
 
-**Qué tocaría:** contenido tema a tema (`temario.md`), la sección `exam` de `Mouredev.md` (y después `CS50.md` y
-`42malaga.md`), `build_system_prompt` si el `temario.md` necesita llegar aparte (hoy el tutor ya recibe `sources/*.md`,
-sin comprobar si basta) y, para el punto 3, `app.js` + el progreso. Enlaza con los puntos 8, 16, 20, 21 y 22.
+**Lo que quiere:** rehacer MoureDev Java desde el principio siguiendo **el orden del curso** (Nando pasa las secciones
+por foto, una a una). Cada **punto** (lección) se trabaja entero antes de pasar al siguiente, y cada **sección** termina
+con un **examen global** de todo lo de la sección.
+
+**Ciclo de cada punto** (ejemplo: Comentarios):
+1. **Explicar:** qué es, para qué sirve y cómo se hace.
+2. **Varios ejemplos.**
+3. **Ejercicios** para que los escriba él.
+4. **Preguntas** y los modos que ya tenemos: `socratic`, `debug`, `/kata`, `/read`…
+5. **Examen del punto**, que pasa por **todos** sus subpuntos (la lista del `temario.md`), no por uno.
+6. Aprobado → `[[DOMINADO]]` → siguiente punto (en el ejemplo, Variables y constantes) y vuelta a empezar.
+
+**Al final de la sección:** examen global (todo lo de la sección mezclado y combinado), que hace de "Test de
+conocimientos" del curso. Se aprueba igual, con `[[DOMINADO]]`.
+
+**Sección 1 · Primeros pasos** (foto del 2026-11-03): Hola Mundo · Comentarios · Ejercicios: Primeros pasos · Variables y
+constantes · Tipos de datos primitivos · Ejercicios: Variables y constantes · Test de conocimientos (10 preguntas). Las
+"Ejercicios: …" del curso van dentro del paso 3 de cada punto; el test es nuestro examen global.
+
+**Cómo encaja en la app sin reescribirla (propuesta):** la app ya avanza de carpeta en carpeta (`exN_` en orden,
+`course_topics`, `/progress/next`, panel). Si **cada carpeta es un punto** y **el examen global es una carpeta más** al
+final de la sección, todo lo de hoy sirve tal cual. Sección 1 quedaría: `ex1_HolaMundo`, `ex2_Comentarios`,
+`ex3_VariablesYConstantes`, `ex4_TiposDeDatosPrimitivos`, `ex5_ExamenPrimerosPasos` (nombres por confirmar). Cada
+carpeta con su `sources/temario.md`: la lista de subpuntos que el examen tiene que recorrer (y, en la del examen
+global, qué puntos entran). El `src/` de Nando se mueve a la carpeta del punto que le toque.
+
+**Contenido:** del curso se toma solo **el orden y los títulos** (es de pago: no se copia su material). La explicación
+y los subpuntos salen de la documentación oficial (Oracle, W3Schools) y del código de Nando en `src/`, nunca inventados.
+
+**Pasos (uno por commit, sin avanzar sin OK):**
+1. **Sección 1:** carpetas nuevas + `temario.md` de cada punto + copia de seguridad del progreso actual y progreso
+   puesto en `ex1_HolaMundo` (empezar de cero, como pide Nando).
+2. **`Mouredev.md`:** el ciclo de arriba como progresión obligatoria, el examen por subpuntos y el examen global. Es
+   solo prompt; comprobar que el `temario.md` llega al tutor (hoy recibe `sources/*.md`).
+3. **Prueba con la IA real** en Hola Mundo y Comentarios, y ajuste.
+4. **Siguientes secciones**, según Nando pase las fotos (con la plantilla hecha, es trabajo de contenido).
+5. **Si el modelo se salta subpuntos:** que cuente la app (una marca por subpunto superado y `[[DOMINADO]]` solo con
+   todos), como se planteó en el punto 20.
+
+**A decidir con Nando:** los nombres de las carpetas; qué pasa con las carpetas de ahora (`ex1_HelloWorld`…
+`ex10_OOP`): se renombran o reparten, sin borrar nada; y si CS50 y 42 siguen el mismo modelo después.
+Enlaza con los puntos 8, 16, 20, 21 y 22.
 
 ## Hecho el 2026-10-14
 
