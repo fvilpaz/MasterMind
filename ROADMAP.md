@@ -330,6 +330,38 @@ haría: crear el bucket, el permiso y la variable. Coste prácticamente cero.
 - Antes de que el token estuviera, la app **fingía guardar**: `save_progress` y `/update-profile` se tragan el
   error de GitHub (solo un `[WARN]` en los logs) y devuelven `ok`.
 
+### Incidente 2026-11-16: el chat del admin daba 404 con `gemini-flash-latest` — ARREGLADO (`35848b5`)
+
+- El alias solo existe en la API `v1beta`; el cliente llamaba a `v1`. Arreglo: `api_version='v1beta'` en los dos
+  `genai.Client` de `app.py`. Pendiente aparte: fijar la versión de `google-genai` en `requirements.txt` y añadir un
+  modelo de respaldo (hoy no hay ninguno). Detalle en `MEMORY.md` («Gemini: trampas»).
+- El logout ahora borra `localStorage`/`sessionStorage` y vuelve al inicio con la opción de invitado.
+
+### Aviso: cambios de precio y de modelos de Gemini (apuntado 2026-11-07, comprobado en https://aistudio.google.com/docs/pricing)
+
+- El admin usa Gemini por defecto con el alias `gemini-flash-latest` (`call_gemini` / `stream_gemini` en `app.py`), que
+  **se mueve solo** al modelo nuevo. Gemini 2.5 Flash y Flash-Lite están obsoletos: desde el **2026-12-01** las peticiones a
+  2.5 Flash se redirigen a otro modelo. Los Gemini 3.8 y 3.6 Flash **doblan precio el 2027-01-01** (entrada 0,75 → 1,50 $
+  y salida 3,75 → 7,50 $ por millón de tokens). Si la clave está en el nivel de pago, el coste de este chat puede subir
+  sin tocar nada: **mirar la factura de Google AI Studio en diciembre**.
+- **Corregido el 2026-11-07:** Google AI Pro **sí** incluye 10 $/mes en créditos de Google Cloud, que se activan en «My
+  Benefits» (Google Developer Program) y caducan a los 12 meses (https://developers.google.com/profile/help/benefits).
+  Que valgan para la API de Gemini en AI Studio no está confirmado en la página oficial de AI Studio: comprobarlo en la
+  consola. **El plan actual de Nando es Google AI Plus (2 TB)**, que no lista créditos de Cloud, **pero hasta hace unos dos
+  meses tenía AI Pro**: puede conservar créditos de entonces, sin caducar (12 meses desde cada concesión). Por ver si los
+  activó y si valen tras bajar de plan: mirar «My Benefits». Sigue sin saberse qué nivel tiene la clave de la API (gratis o
+  de pago): comprobarlo en la consola de AI Studio.
+- **A estudiar:** puede que MasterMind no necesite Google. El invitado ya va por Groq (`qwen/qwen3.8-27b`, en *Preview*,
+  puede retirarse sin aviso y sin modelo de respaldo). Opciones: pasar también al admin a Groq u otra API gratuita, y
+  añadir una cadena de respaldo como la de Fervis (`llm/agent.py::_ModelLadder` en `nandis`). Antes de decidir, probar
+  que la calidad de tutor (exámenes por fases, marcas `[[DOMINADO]]`/`[[PUNTO]]`) aguanta con ese modelo, y tener en cuenta
+  que un nivel gratuito suele usar lo enviado para mejorar el servicio y tiene cupos bajos.
+
+### Avisar si un modelo desaparece, y las claves (ideas del 2026-11-07; sin empezar)
+
+- **Aviso cuando un modelo desaparezca.** El invitado depende de `qwen/qwen3.8-27b` (Groq, *Preview*: puede retirarse sin aviso) y, si falla, el alumno ve el error crudo. Opciones: (1) ampliar `core/model_health.py` de `nandis` para que mire también los modelos de MasterMind (solo vigila con el PC encendido); (2) una comprobación diaria en GitHub Actions, en este repo, que pregunte a Groq y a Gemini qué modelos existen y falle (con correo) si falta uno: no depende del PC, pero exige guardar las claves como secretos del repo; (3) capturar el 404 en la app y avisar al admin (avisa después del fallo). Ojo: `gemini-flash-latest` y `gemini-pro-latest` son alias que se mueven solos: no «desaparecen», cambian de modelo y de precio, y eso solo se vigila mirando la página de precios.
+- **Claves en Secret Manager.** Las claves (Groq, Gemini, Anthropic y `GITHUB_TOKEN`) están como variables normales del servicio de Cloud Run, visibles en claro para quien entre al proyecto: moverlas a Secret Manager. La de Anthropic no se usa (`AI_PROVIDER=gemini`): decidir si se revoca.
+
 ## 19. Refactor y pruebas pendientes (apuntado 2026-10-02)
 
 Siguiendo la regla del final: **pruebas antes de refactorizar**, nunca a ciegas.
@@ -807,6 +839,17 @@ saltarla. Falta que Nando diga si pasa sola al chat a los segundos (entonces: "E
   con huella (arriba) no basta; antes, pruebas de caracterización del login.
 - (2026-10-05) Que el tutor recuerde en qué se equivocó Nando la última vez (p. ej. "falló `&&` con `||`") y lo
   retome al volver, guardando los fallos del tema en el progreso. Hoy solo lo sabe si Nando se lo dice.
+- (2026-11-09) **Diseño para la idea de arriba (memoria de fallos), hablado con Claude, sin programar.** Idea: un modelo del
+  alumno por concepto (`{fallos, aciertos, ultimo}`; p. ej. `parametro_vs_argumento`) que decide qué repasar al empezar la
+  sesión: mucho fallo y poco acierto, primero; acierto tras fallar, aún no dominado; acierto estable, se baja la prioridad.
+  **Cómo, sin machacar GitHub:** nada de un commit por respuesta. Los fallos se acumulan en el navegador (`localStorage`;
+  no en el servidor de Cloud Run, que puede reiniciarse o caer en una revisión vieja) y al pulsar **Guardar sesión**
+  (`/save-session`) viajan con el log y se sube **un solo commit** con los dos archivos. **Nombres de concepto:** en vez de
+  un marcador `[[FALLO …]]` en cada respuesta, al guardar el tutor recibe el log y devuelve un resumen estructurado
+  (qué falló, con qué lo confundió, qué repasar) y eso se suma al progreso: una llamada con la sesión entera delante,
+  nombres más consistentes. **Riesgo:** cerrar la pestaña sin guardar pierde esa sesión (`localStorage` lo suaviza).
+  Origen: comparar Fervis con el esquema de seguimiento de otro bot tutor; hoy Fervis cambia de ejemplo y repara fallos
+  repetidos solo *dentro* de la charla (`Mouredev.md` líneas ~98-113), y `topics_mastered`/`notes` existen pero nada los rellena.
 - (2026-10-15) **HECHO el mismo día (en local, sin subir):** `GET /dashboard` ya devuelve los cursos con `last_course`
   primero y el resto en su orden (`app.py`; logros calculados antes de reordenar; pruebas en `test_dashboard.py`, 8b).
   Lo de abajo es el planteamiento original, se deja como contexto.

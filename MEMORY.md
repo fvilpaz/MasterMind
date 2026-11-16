@@ -86,7 +86,17 @@
   sobre una copia temporal).
 - Navegador: MCP `chrome-devtools` (`claude mcp add chrome-devtools -- npx -y chrome-devtools-mcp@latest`),
   un contexto aislado por prueba. Login: nombre → "Tengo contraseña" → contraseña → tarjeta de curso; el
-  nombre se recuerda en `localStorage` (`mm-name`).
+  nombre se recuerda en `localStorage` (`mm-name`). El botón de logout borra todo el `localStorage` y el
+  `sessionStorage` (2026-11-16): sin eso, tras cerrar sesión volvía directo a la contraseña y no había forma de
+  entrar como invitado en ese navegador.
+
+## Gemini: trampas (2026-11-16)
+- **Los alias `gemini-flash-latest` / `-pro-latest` solo existen en la API `v1beta`**; en `v1` dan `404 NOT_FOUND`
+  (comprobado con la clave: `v1` lista solo modelos con número, p. ej. `gemini-3.8-flash`). `app.py` fuerza
+  `api_version='v1beta'` en `call_gemini` y `stream_gemini`. `google-genai` va **sin versión fija** en
+  `trainer/web/requirements.txt`: cada reconstrucción de la imagen puede traer un SDK con otro valor por defecto,
+  y así se rompió sin tocar código. Si vuelve a pasar: probar el alias en `v1` y `v1beta` con la clave antes de culpar al modelo.
+- **No hay modelo de respaldo:** el admin va solo a Gemini y el invitado solo a Groq. Si uno falla, falla el chat entero.
 
 ## Avisos a Nando por Telegram (cuando se va y deja trabajando)
 - Nando pide "avísame por Telegram a través de Fervis" cuando se va. **Todo vive en el repo privado `nando-toolkit`**:
