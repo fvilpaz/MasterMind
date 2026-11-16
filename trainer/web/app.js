@@ -803,6 +803,7 @@ document.getElementById('save-session-btn').addEventListener('click', async () =
 
 document.getElementById('logout-btn').addEventListener('click', async () => {
   await fetch('/logout', { method: 'POST' });
+  try { localStorage.clear(); sessionStorage.clear(); } catch {}   // olvida nombre, plan y pomodoro: vuelve al inicio con la opción de invitado
   location.reload();
 });
 

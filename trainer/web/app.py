@@ -252,7 +252,7 @@ def call_claude(messages, system):
 def call_gemini(messages, system, model_name='gemini-flash-latest'):
     from google import genai
     from google.genai import types
-    client = genai.Client(api_key=os.environ['GEMINI_API_KEY'])
+    client = genai.Client(api_key=os.environ['GEMINI_API_KEY'], http_options=types.HttpOptions(api_version='v1beta'))
     history = [
         types.Content(role=m['role'].replace('assistant', 'model'),
                       parts=[types.Part(text=m['content'])])
@@ -341,7 +341,7 @@ BREVITY_REMINDER = "\n\n(Recuerda: máximo 3 frases. Un concepto. Una pregunta. 
 def stream_gemini(messages, system, model_name='gemini-flash-latest', max_tokens=4096, is_greet=False):
     from google import genai
     from google.genai import types
-    client = genai.Client(api_key=os.environ['GEMINI_API_KEY'])
+    client = genai.Client(api_key=os.environ['GEMINI_API_KEY'], http_options=types.HttpOptions(api_version='v1beta'))
     history = [
         types.Content(role=m['role'].replace('assistant', 'model'),
                       parts=[types.Part(text=m['content'])])
