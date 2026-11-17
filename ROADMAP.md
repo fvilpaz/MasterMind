@@ -333,8 +333,7 @@ haría: crear el bucket, el permiso y la variable. Coste prácticamente cero.
 ### Incidente 2026-11-16: el chat del admin daba 404 con `gemini-flash-latest` — ARREGLADO (`35848b5`)
 
 - El alias solo existe en la API `v1beta`; el cliente llamaba a `v1`. Arreglo: `api_version='v1beta'` en los dos
-  `genai.Client` de `app.py`. Pendiente aparte: fijar la versión de `google-genai` en `requirements.txt` y añadir un
-  modelo de respaldo (hoy no hay ninguno). Detalle en `MEMORY.md` («Gemini: trampas»).
+  `genai.Client` de `app.py`. Pendiente aparte: fijar la versión de `google-genai` en `requirements.txt`. (El modelo de respaldo ya está hecho: ver «Respaldo de modelos (2026-11-17)» abajo.) Detalle en `MEMORY.md` («Gemini: trampas»).
 - El logout ahora borra `localStorage`/`sessionStorage` y vuelve al inicio con la opción de invitado.
 
 ### Aviso: cambios de precio y de modelos de Gemini (apuntado 2026-11-07, comprobado en https://aistudio.google.com/docs/pricing)
@@ -352,10 +351,22 @@ haría: crear el bucket, el permiso y la variable. Coste prácticamente cero.
   activó y si valen tras bajar de plan: mirar «My Benefits». Sigue sin saberse qué nivel tiene la clave de la API (gratis o
   de pago): comprobarlo en la consola de AI Studio.
 - **A estudiar:** puede que MasterMind no necesite Google. El invitado ya va por Groq (`qwen/qwen3.8-27b`, en *Preview*,
-  puede retirarse sin aviso y sin modelo de respaldo). Opciones: pasar también al admin a Groq u otra API gratuita, y
-  añadir una cadena de respaldo como la de Fervis (`llm/agent.py::_ModelLadder` en `nandis`). Antes de decidir, probar
-  que la calidad de tutor (exámenes por fases, marcas `[[DOMINADO]]`/`[[PUNTO]]`) aguanta con ese modelo, y tener en cuenta
-  que un nivel gratuito suele usar lo enviado para mejorar el servicio y tiene cupos bajos.
+  puede retirarse sin aviso). **La cadena de respaldo ya está hecha (2026-11-17, abajo).** Sigue por decidir si pasar también
+  al admin a Groq u otra API gratuita. Antes de decidir, probar que la calidad de tutor (exámenes por fases, marcas
+  `[[DOMINADO]]`/`[[PUNTO]]`) aguanta con ese modelo, y tener en cuenta que un nivel gratuito suele usar lo enviado para
+  mejorar el servicio y tiene cupos bajos.
+
+### Respaldo de modelos y etiqueta del modelo (2026-11-17) — HECHO (`6dd9f16`, `11ee962`)
+
+- **Por qué:** Groq retiró los `llama` (2026-08-16), `qwen3.8-27b` es Preview y de pago (0,80 / 4,00 $ por millón), y el chat
+  no tenía respaldo: si un modelo fallaba, el alumno veía el error crudo. Cerebras no es gratis de verdad (pide tarjeta, 5 $ que
+  caducan a 30 días), Gemini gratis usa los prompts para mejorar productos de Google y NVIDIA NIM no es para producción.
+- **Qué hace:** invitado = `GROQ_MODELS` (`qwen/qwen3.8-27b` → `openai/gpt-oss-120b` → `openai/gpt-oss-20b`); admin = Gemini y,
+  si falla antes de dar texto, esa misma cadena. Detalles y trampas en `MEMORY.md` («Gemini: trampas»).
+- **Etiqueta:** debajo de cada mensaje del tutor sale `proveedor · modelo` con su color y «(respaldo)» si no es el primero.
+- **Pendiente:** comprobar en pantalla la etiqueta en todos los temas; probar con tráfico real que el tutor mantiene las reglas
+  con los `gpt-oss` (son de razonamiento y pueden gastar el tope de 1.024 tokens pensando); mirar en la consola de Groq si la
+  clave es del plan gratis o de pago.
 
 ### Avisar si un modelo desaparece, y las claves (ideas del 2026-11-07; sin empezar)
 

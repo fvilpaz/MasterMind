@@ -96,7 +96,15 @@
   `api_version='v1beta'` en `call_gemini` y `stream_gemini`. `google-genai` va **sin versión fija** en
   `trainer/web/requirements.txt`: cada reconstrucción de la imagen puede traer un SDK con otro valor por defecto,
   y así se rompió sin tocar código. Si vuelve a pasar: probar el alias en `v1` y `v1beta` con la clave antes de culpar al modelo.
-- **No hay modelo de respaldo:** el admin va solo a Gemini y el invitado solo a Groq. Si uno falla, falla el chat entero.
+- **Respaldo de modelos (2026-11-17, `6dd9f16`):** el invitado va por la cadena `GROQ_MODELS` de `app.py` (`qwen/qwen3.8-27b` →
+  `openai/gpt-oss-120b` → `openai/gpt-oss-20b`) y el admin va a Gemini y, si falla ANTES de dar texto, cae a esa misma cadena.
+  Salta con 429, 404, 5xx o respuesta vacía. A mitad de respuesta NO cambia de modelo (repetiría el texto). Sin reintentos del
+  SDK (`max_retries=0`) y con timeout de 30 s. Los `llama` los retiró Groq el 2026-08-16: no volver a ponerlos.
+- **Etiqueta del modelo (2026-11-17, `11ee962`):** el servidor manda un evento SSE `{"model","provider","fallback"}` justo antes del
+  primer texto y `app.js` lo pinta debajo del mensaje con su color (`COLOR_MODELO` en `app.js`, `.modelo.m-*` en `styles.css`).
+  La ven también los invitados. Sin comprobar en pantalla en todos los temas.
+- **Sin comprobar con tráfico real:** que el tutor mantenga las reglas (3 frases, una pregunta, `[[DOMINADO]]`/`[[PUNTO]]`) con los
+  `gpt-oss`; son modelos de razonamiento y con el tope de 1.024 tokens del invitado pueden gastarlo pensando.
 
 ## Avisos a Nando por Telegram (cuando se va y deja trabajando)
 - Nando pide "avísame por Telegram a través de Fervis" cuando se va. **Todo vive en el repo privado `nando-toolkit`**:
