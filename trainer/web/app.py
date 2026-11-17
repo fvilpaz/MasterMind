@@ -323,7 +323,13 @@ def stream_claude(messages, system):
 GROQ_MODELS = ['qwen/qwen3.8-27b', 'openai/gpt-oss-120b', 'openai/gpt-oss-20b']
 
 
-def stream_groq(messages, system, model_name=None, max_tokens=1024):
+def _evento_modelo(proveedor, modelo, respaldo=False):
+    """Evento SSE que dice al navegador qué modelo está respondiendo (la etiqueta de debajo del mensaje).
+    Se manda justo antes del PRIMER texto, nunca antes: así un modelo que falla sin dar texto no deja etiqueta."""
+    return f"data: {json.dumps({'model': modelo, 'provider': proveedor, 'fallback': respaldo})}\n\n"
+
+
+def stream_groq(messages, system, model_name=None, max_tokens=1024, respaldo=False):
     """Responde con Groq y, si un modelo falla ANTES de dar texto (429, 404, 5xx, respuesta vacía),
     prueba el siguiente de GROQ_MODELS. Si falla a mitad de respuesta no cambia de modelo: el alumno
     ya ha visto texto y el siguiente modelo lo repetiría desde cero."""
@@ -351,6 +357,8 @@ def stream_groq(messages, system, model_name=None, max_tokens=1024):
                     continue
                 delta = chunk.choices[0].delta.content
                 if delta:
+                    if not empezo:
+                        yield _evento_modelo('groq', modelo, respaldo or modelo != cadena[0])
                     empezo = True
                     yield f"data: {json.dumps(delta)}\n\n"
             if empezo:
@@ -377,12 +385,17 @@ def stream_gemini(messages, system, model_name='gemini-flash-latest', max_tokens
         for m in messages[:-1]
     ]
     last_content = messages[-1]['content'] if is_greet else messages[-1]['content'] + BREVITY_REMINDER
+    mostrado = False
     for chunk in client.models.generate_content_stream(
         model=model_name,
         contents=history + [types.Content(role='user', parts=[types.Part(text=last_content)])],
         config=types.GenerateContentConfig(system_instruction=system, max_output_tokens=max_tokens)
     ):
         if chunk.text:
+            if not mostrado:
+                mostrado = True
+                # model_version trae el modelo real detrás del alias -latest; si falta, el alias.
+                yield _evento_modelo('gemini', getattr(chunk, 'model_version', None) or model_name)
             yield f"data: {json.dumps(chunk.text)}\n\n"
 
 
@@ -578,7 +591,7 @@ def chat_stream():
                     if empezo:
                         raise
                     print(f"[Gemini] {model} falló ({type(e_gemini).__name__}): respondo con Groq")
-                    yield from stream_groq(messages, system, max_tokens=max_tokens)
+                    yield from stream_groq(messages, system, max_tokens=max_tokens, respaldo=True)
         except Exception as e:
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
         yield "data: [DONE]\n\n"

@@ -162,6 +162,16 @@
   /* Fondo rosa fijo → texto rojo oscuro fijo (con var(--red) de dracula, #ff5555, se quedaba en 2,6:1). */
   .msg-row.error .bubble { background: #fee2e2; border: 1px solid #fca5a5; color: #b91c1c; }
 
+  /* Etiqueta del modelo que respondió (debajo del mensaje del tutor). El color se mezcla con el texto del tema
+     para que se lea en los temas claros y en los oscuros. */
+  .bubble .modelo { display: block; margin-top: 8px; font-size: 11px; font-weight: 600; letter-spacing: .3px;
+                    color: color-mix(in srgb, var(--mc, var(--muted)) 75%, var(--text)); }
+  .bubble .modelo.respaldo { font-weight: 800; }
+  .bubble .modelo.m-azul { --mc: #2563eb; }
+  .bubble .modelo.m-amarillo { --mc: #b7791f; }
+  .bubble .modelo.m-verde { --mc: #0b9f62; }
+  .bubble .modelo.m-turquesa { --mc: #0b968c; }
+
   .bubble.streaming::after { content: '▋'; animation: blink 0.7s step-end infinite; color: var(--primary); margin-left: 1px; }
   @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
 

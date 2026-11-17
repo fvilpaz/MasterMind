@@ -52,6 +52,23 @@ function showTyping() {
 }
 function removeTyping() { document.getElementById('typing')?.remove(); }
 
+// Color de la etiqueta de cada modelo (css: .modelo.m-*). Un modelo que no está aquí sale sin color propio.
+const COLOR_MODELO = {
+  'qwen/qwen3.8-27b': 'azul',
+  'openai/gpt-oss-120b': 'amarillo',
+  'openai/gpt-oss-20b': 'verde',
+};
+
+function crearEtiquetaModelo(info) {
+  const el = document.createElement('small');
+  let color = COLOR_MODELO[info.model];
+  if (!color && info.provider === 'gemini') color = 'turquesa';
+  el.className = 'modelo' + (color ? ' m-' + color : '') + (info.fallback ? ' respaldo' : '');
+  // textContent, no innerHTML: el nombre viene del servidor.
+  el.textContent = `${info.provider} · ${info.model}` + (info.fallback ? ' (respaldo)' : '');
+  return el;
+}
+
 async function streamChat(msgList) {
   const r = await fetch('/chat/stream', {
     method: 'POST',
@@ -77,6 +94,14 @@ async function streamChat(msgList) {
   const decoder = new TextDecoder();
   let fullText = '';
   let buf = '';
+  let etiqueta = null;   // el modelo que responde (lo manda el servidor justo antes del primer texto)
+
+  // Pinta el texto y, debajo, la etiqueta del modelo con su color. Se repinta entera en cada trozo porque
+  // bubble.innerHTML se reemplaza al llegar texto nuevo.
+  const pintar = () => {
+    bubble.innerHTML = renderMarkdown(hideMark(fullText));
+    if (etiqueta) bubble.appendChild(etiqueta);
+  };
 
   try {
     while (true) {
@@ -93,8 +118,10 @@ async function streamChat(msgList) {
           const parsed = JSON.parse(payload);
           if (typeof parsed === 'string') {
             fullText += parsed;
-            bubble.innerHTML = renderMarkdown(hideMark(fullText));
+            pintar();
             row.scrollIntoView({ behavior: 'smooth' });
+          } else if (parsed && parsed.model) {
+            etiqueta = crearEtiquetaModelo(parsed);
           } else if (parsed && parsed.error) {
             bubble.innerHTML = renderMarkdown(`Error: ${parsed.error}`);
             row.className = 'msg-row error';
