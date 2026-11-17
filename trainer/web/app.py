@@ -317,22 +317,51 @@ def stream_claude(messages, system):
             yield f"data: {json.dumps(text)}\n\n"
 
 
-def stream_groq(messages, system, model_name='qwen/qwen3.8-27b'):
+# Cadena de Groq, en orden. Cada modelo tiene su propia cuota en Groq, así que un 429 en uno no
+# bloquea a los demás. qwen3.8 está en Preview (puede retirarse sin aviso: un 404 cae al siguiente);
+# los gpt-oss son de producción. Los llama (3.3-70b, 3.1-8b) los retiró Groq el 2026-08-16.
+GROQ_MODELS = ['qwen/qwen3.8-27b', 'openai/gpt-oss-120b', 'openai/gpt-oss-20b']
+
+
+def stream_groq(messages, system, model_name=None, max_tokens=1024):
+    """Responde con Groq y, si un modelo falla ANTES de dar texto (429, 404, 5xx, respuesta vacía),
+    prueba el siguiente de GROQ_MODELS. Si falla a mitad de respuesta no cambia de modelo: el alumno
+    ya ha visto texto y el siguiente modelo lo repetiría desde cero."""
     from groq import Groq
-    client = Groq(api_key=os.environ['GROQ_API_KEY'])
+    # max_retries=0: el SDK reintenta con espera ante un 429; una cuota agotada no se arregla en
+    # segundos y aquí ya hay respaldo entre modelos.
+    client = Groq(api_key=os.environ['GROQ_API_KEY'], max_retries=0, timeout=30)
     groq_messages = [{"role": "system", "content": system}] + [
         {"role": m['role'], "content": m['content']} for m in messages
     ]
-    stream = client.chat.completions.create(
-        model=model_name,
-        messages=groq_messages,
-        max_tokens=1024,
-        stream=True
-    )
-    for chunk in stream:
-        delta = chunk.choices[0].delta.content
-        if delta:
-            yield f"data: {json.dumps(delta)}\n\n"
+    primero = model_name or GROQ_MODELS[0]
+    cadena = [primero] + [m for m in GROQ_MODELS if m != primero]
+    ultimo_error = None
+    for modelo in cadena:
+        empezo = False
+        try:
+            stream = client.chat.completions.create(
+                model=modelo,
+                messages=groq_messages,
+                max_tokens=max_tokens,
+                stream=True
+            )
+            for chunk in stream:
+                if not chunk.choices:
+                    continue
+                delta = chunk.choices[0].delta.content
+                if delta:
+                    empezo = True
+                    yield f"data: {json.dumps(delta)}\n\n"
+            if empezo:
+                return
+            ultimo_error = RuntimeError(f'{modelo}: respuesta vacía')
+        except Exception as e:
+            if empezo:
+                raise
+            ultimo_error = e
+        print(f"[Groq] {modelo} no disponible ({type(ultimo_error).__name__}): pruebo el siguiente")
+    raise ultimo_error
 
 
 BREVITY_REMINDER = "\n\n(Recuerda: máximo 3 frases. Un concepto. Una pregunta. Sin listas ni subtítulos.)"
@@ -538,7 +567,18 @@ def chat_stream():
             elif provider == 'claude':
                 yield from stream_claude(messages, system)
             else:
-                yield from stream_gemini(messages, system, model, max_tokens, is_greet=is_greet)
+                empezo = False
+                try:
+                    for pieza in stream_gemini(messages, system, model, max_tokens, is_greet=is_greet):
+                        empezo = True
+                        yield pieza
+                except Exception as e_gemini:
+                    # Si Gemini falla antes de dar texto (404, cuota, caída), responde Groq; a mitad
+                    # de respuesta no se cambia de modelo.
+                    if empezo:
+                        raise
+                    print(f"[Gemini] {model} falló ({type(e_gemini).__name__}): respondo con Groq")
+                    yield from stream_groq(messages, system, max_tokens=max_tokens)
         except Exception as e:
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
         yield "data: [DONE]\n\n"
