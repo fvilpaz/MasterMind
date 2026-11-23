@@ -902,6 +902,12 @@ document.getElementById('importar-file').addEventListener('change', async e => {
   }
 });
 
+// ── 🔑 GUÍA "¿CÓMO CONSIGO UNA CLAVE?" ──────────────────
+const guiaPanel = document.getElementById('guia-panel');
+document.getElementById('register-help').addEventListener('click', () => { guiaPanel.hidden = false; });
+document.getElementById('guia-close').addEventListener('click', () => { guiaPanel.hidden = true; });
+guiaPanel.addEventListener('click', e => { if (e.target === guiaPanel) guiaPanel.hidden = true; });
+
 // ── ☕ CAFÉ (apoyo voluntario) ───────────────────────────
 const cafePanel = document.getElementById('cafe-panel');
 document.getElementById('cafe-btn').addEventListener('click', () => { cafePanel.hidden = false; });

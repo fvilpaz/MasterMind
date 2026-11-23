@@ -30,18 +30,19 @@ para la próxima sesión con calma.
 - Avanza de lección al aprobar (`[[DOMINADO]]`) guardando en su navegador, sin tocar el servidor.
 - Exportar/importar JSON en ⚙ → "Tus datos", y aviso al cerrar sesión (borra el `localStorage`).
 - Tests nuevos: `test_perfil_local.py` (19 checks, con los de path traversal) y ampliado `test_groq_key.py`.
+- **Guía "¿Cómo consigo una clave?"** (⚙ → Crear cuenta → ese enlace): panel con Gemini recomendado y
+  Groq como alternativa, cada uno con su captura real (`docs/gemini-create-key.jpg`, `docs/groq-create-key.jpg`,
+  ambas recortadas para no enseñar datos de Nando) y sus pasos tal cual están en cada web (Gemini en
+  español, Groq en inglés — no traducidos a propósito, es lo que el usuario ve de verdad). Nueva ruta
+  `/docs/<archivo>` en `app.py` (antes `docs/` no lo servía nadie). Verificado en Harvard y Barbie.
 
 ### Pendiente para la próxima sesión
-1. **La guía de "¿Cómo consigo una clave?"** del formulario de registro: hoy ese enlace **no hace nada**.
-   Hay una captura real lista en `docs/groq-create-key.jpg` (pantalla "Create API Key" de Groq).
-   Recomendar **Gemini**, no Groq (ver el límite de abajo).
-2. **Curso de chino** y luego **japonés** (Nando tiene apuntes en un Google Doc; pedírselo).
+1. **Curso de chino** y luego **japonés** (Nando tiene apuntes en un Google Doc; pedírselo).
    Receta en `trainer/CLAUDE.md` → "Para añadir un nuevo curso" (`agent/Chino.md` + `brain/chino/exNN_…`
    + color en `window.CURSOS`).
-3. **Repensar el invitado** (ver "💡 Aparcado"): Nando aprobó la idea de dejarle elegir curso con un tope
+2. **Repensar el invitado** (ver "💡 Aparcado"): Nando aprobó la idea de dejarle elegir curso con un tope
    por sesión, en vez de estar fijo en CS50 semana 1.
-4. **Probar en móvil de verdad** todo lo nuevo (solo comprobado simulando 360px de ancho).
-5. **Avisar en la UI** de que con una clave de Groq gratis el tutor responde peor (ver límite abajo).
+3. **Probar en móvil de verdad** todo lo nuevo (solo comprobado simulando 360px de ancho).
 
 ### Límite descubierto el 2026-11-23 (importante)
 **Groq en su capa gratuita topa en 8.000 tokens/minuto** y el prompt entero (tutor + material del tema)

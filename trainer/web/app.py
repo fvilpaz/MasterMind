@@ -547,6 +547,11 @@ def icons(filename):
     return send_from_directory('icons', filename)
 
 
+@app.route('/docs/<path:filename>')
+def docs(filename):
+    return send_from_directory(ROOT.parent / 'docs', filename)
+
+
 @app.route('/login', methods=['POST'])
 def login():
     data = request.json

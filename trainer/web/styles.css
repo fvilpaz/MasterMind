@@ -225,6 +225,16 @@
   .cafe-copy, .cafe-ir { display: inline-block; background: var(--surface); border: 1px solid var(--primary); color: var(--text); border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 600; font-family: inherit; cursor: pointer; text-decoration: none; transition: background 0.15s; }
   .cafe-copy:hover, .cafe-ir:hover { background: var(--border); }
 
+  /* Guía de "cómo consigo una clave": mismo patrón que .cafe-via, con pasos numerados e imagen. */
+  .guia-box { max-width: 480px; }
+  .guia-via { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 12px; }
+  .guia-recomendada { border-color: var(--primary); }
+  .guia-nota { font-size: 12px; color: var(--muted); line-height: 1.4; margin: 6px 0 10px; }
+  .guia-nota code, .guia-pasos code { background: var(--surface); border-radius: 4px; padding: 1px 5px; font-size: 11px; }
+  .guia-pasos { font-size: 13px; color: var(--text); line-height: 1.7; margin: 0 0 10px 18px; }
+  .guia-pasos a { color: var(--primary-on-surface, var(--primary)); }
+  .guia-img { width: 100%; border-radius: 8px; border: 1px solid var(--border); display: block; }
+
   /* Cyberpunk: barra casi negra con borde magenta que brilla; lo que va encima, en cian. */
   [data-theme="cyberpunk"] nav { background: #0a0c10; border-bottom: 2px solid var(--accent);
                                  box-shadow: 0 0 14px rgba(255,42,109,0.55); }

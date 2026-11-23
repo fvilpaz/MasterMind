@@ -148,6 +148,11 @@
   (no romper lo de Nando). Con el material recortado, los modelos pequeños responden mal: recomendar Gemini.
 - **Cerrar sesión borra el `localStorage`**, o sea su progreso: por eso el `confirm()` de aviso y
   ⚙ → "Tus datos" → Exportar/Importar.
+- **`docs/` (raíz del repo) solo se sirve desde la ruta `/docs/<archivo>`** (`app.py`, junto a `/icons/`).
+  No confundir con `trainer/web/icons/`, que es otra carpeta con su propia ruta. La copia de pruebas en
+  `/tmp` necesita su propio `docs/` con las imágenes, si no, el panel de la guía sale con iconos rotos.
+  Las capturas de Groq y Gemini para esa guía están recortadas a mano (solo el modal, sin el fondo con
+  los proyectos y el email reales de Nando) — si se vuelve a capturar, recortar igual antes de commitear.
 - **Cómo probarlo sin tocar nada real:** copia en `/tmp` con `rsync` de `trainer/`, arrancada con
   `GITHUB_TOKEN=''` y `MASTERMIND_PATH` apuntando al `brain/` real. Para simular a un usuario sin tocar la
   UI: `localStorage.setItem('mm-perfil', JSON.stringify({student:'X', course:'mouredev', current:'ex01_PrimerosPasos', mastered:[], point:null}))`.
