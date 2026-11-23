@@ -36,7 +36,7 @@ The router reads the student profile (`config/profile.json`), selects the right 
 | Feature | Details |
 |---|---|
 | 🔀 Streaming responses | Token-by-token via SSE |
-| 🎓 Multi-course agents | Each subject has its own teaching logic |
+| 🎓 Multi-course agents | Each subject has its own teaching logic (CS50, MoureDev/Java, 42 Málaga, Mandarin Chinese, Japanese) |
 | 🎌 Learn by ear | Japanese taught the way it's actually encountered — you hear a phrase in anime, type it as it sounded, the tutor decodes it and explains the grammar it carries. No fixed curriculum: the notebook grows with whatever you bring. It lives in your browser, travels with every message, and the tutor always hands back the full thing (never a summary) so nothing gets lost between sessions |
 | 👤 Two-step login | Name → password (admin) or guest mode. After one successful password login the app remembers your name and only asks for the password |
 | 🗂 Course picker | Admin gets a varied greeting ("¿A qué le atacamos hoy?") and one coloured card per course; the last one used is tagged |

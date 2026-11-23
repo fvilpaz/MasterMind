@@ -10,6 +10,7 @@
     mouredev: { nombre: 'MoureDev', color: '#1a6fc4', icono: '☕' },
     '42malaga': { nombre: '42 Málaga', color: '#0f8b8d', icono: '🧩' },
     japones: { nombre: 'Japonés', color: '#bc002d', icono: '🎌' },
+    chino: { nombre: 'Chino', color: '#de2910', icono: '🏮' },
   };
   window.CURSOS = CURSOS;
   const PALETA = ['#7c4dff', '#e67e22', '#2e9d5b', '#1d8fe1', '#8e8e93'];

@@ -56,13 +56,28 @@ para la próxima sesión con calma.
   - Test nuevo: `test_cuaderno.py` (10 checks).
 
 ### Pendiente para la próxima sesión
-1. **Curso de chino** (sin apuntes previos — a diferencia de japonés, aquí sí hay que decidir una
-   progresión desde cero: pinyin → tonos → caracteres básicos, siguiendo el patrón "sin temario pesado"
-   de MoureDev). Receta en `trainer/CLAUDE.md` → "Para añadir un nuevo curso".
-2. **Repensar el invitado** (ver "💡 Aparcado"): Nando aprobó la idea de dejarle elegir curso con un tope
+- **Curso de Chino — HECHO (2026-11-23), progresión clásica, no cuaderno.** A diferencia de japonés, aquí
+  no había apuntes previos: decidido con Nando en vivo, **Pinyin → Tonos → Caracteres básicos → HSK1**
+  (`agent/Chino.md` + `brain/chino/ex01_Pinyin`…`ex04_HSK1`), mismo patrón "sin temario pesado" que las
+  secciones recientes de MoureDev — solo un `enlaces.md` por tema, con fuentes reales verificadas con
+  `WebFetch` antes de meterlas (3 de Wikipedia: Pinyin, fonología/tonos, radicales; 1 sobre el examen HSK).
+  Modos `explain`/`socratic`/`corrección` (el "debug" de un idioma: encontrar el fallo típico de
+  hispanohablante en tono/orden/carácter) /`exam`, mismas marcas `[[PUNTO]]`/`[[EXAM]]`/`[[DOMINADO]]` que
+  el resto — **ningún código nuevo**, reutiliza el mecanismo de temas de MoureDev/CS50 tal cual.
+  Color en `window.CURSOS`: 🏮 rojo-naranja de la bandera china, distinto del rojo de Japonés.
+  **Verificado en vivo:** registrado un usuario nuevo de cero, apareció en el selector, el tutor explicó
+  Pinyin sin `temario.md` (decidiendo los subpuntos él mismo, como se le pidió) y emitió `[[PUNTO 1.0]]`
+  correctamente — probado por Groq (respuesta correcta pero muy escueta, el matiz ya conocido del modelo
+  pequeño) y por Gemini (respuesta completa, con ejemplo y pregunta socrática).
+  **Antes de este curso** se enseñó en vivo el agujero real que había sin él: eligiendo "chino" a mano sin
+  `agent/Chino.md`, el servidor caía al enrutador genérico (`AGENT.md`) y filtraba texto de plantilla sin
+  rellenar (`Dentro de {mastermind_path}/cs50/...`) — no fallaba limpio, se rompía feo.
+
+### Pendiente para la próxima sesión
+1. **Repensar el invitado** (ver "💡 Aparcado"): Nando aprobó la idea de dejarle elegir curso con un tope
    por sesión, en vez de estar fijo en CS50 semana 1.
-3. **Probar en móvil de verdad** todo lo nuevo (solo comprobado simulando 360px de ancho).
-4. **Probar japonés con clave de Groq de verdad** (no solo sin clave): el recorte ya existe, pero falta
+2. **Probar en móvil de verdad** todo lo nuevo (solo comprobado simulando 360px de ancho).
+3. **Probar japonés con clave de Groq de verdad** (no solo sin clave): el recorte ya existe, pero falta
    ver en vivo si el modelo pequeño de Groq mantiene bien el formato del cuaderno con el material cortado
    (mismo matiz que ya se documentó para MoureDev: puede responder peor, no solo más corto).
 
