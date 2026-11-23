@@ -162,8 +162,43 @@ def _topic_folder(course):
 GUEST_TOPIC_FOLDER = 'week01-c'
 
 
-def build_system_prompt(is_admin=False):
-    profile = get_admin_profile() if is_admin else GUEST_PROFILE
+def perfil_local(datos):
+    """Perfil de un usuario cuyos datos viven en SU navegador (no en el servidor): llega en cada petición.
+
+    Todo lo que viene de aquí es NO CONFIABLE: `current` acaba en una ruta de disco
+    (`brain/<curso>/<carpeta>/sources`), así que curso y carpeta se validan contra lo que existe de verdad
+    —lista blanca, no regex— o un '../..' se saldría de la carpeta del curso. Devuelve None si no cuela."""
+    if not isinstance(datos, dict):
+        return None
+    curso = str(datos.get('course', '')).lower()
+    if curso not in _cursos_disponibles():
+        return None
+    carpeta = datos.get('current')
+    if carpeta is not None and carpeta not in [t['folder'] for t in course_topics(curso)]:
+        return None
+    dominados = datos.get('mastered')
+    dominados = [d for d in dominados if isinstance(d, str)][:200] if isinstance(dominados, list) else []
+    punto = str(datos.get('point', ''))[:10] if datos.get('point') else None
+    # El nombre va dentro del prompt: una línea y corto, para que no reescriba la sección del estudiante.
+    nombre = ' '.join(str(datos.get('student', '')).split())[:40] or 'aprendiz'
+    return {'student': nombre, 'course': curso, 'current': carpeta, 'mastered': dominados, 'point': punto}
+
+
+# Groq en su capa gratuita topa en 8.000 tokens/minuto y el prompt entero (tutor + material del tema) no
+# cabe: medido el 2026-11-23, MoureDev ex01 pedía 9.469 y daba 413. Con el material recortado sí entra, y
+# el tutor sigue sabiendo del tema por sí mismo (decisión de Nando del 2026-10-05: el modelo ya sabe Java).
+TOPE_MATERIAL_GROQ = 4000
+
+
+def build_system_prompt(is_admin=False, local=None, tope_material=None):
+    """`local` = perfil de un usuario con sus datos en su navegador (ya validado por `perfil_local`).
+    Tiene el mismo acceso al material que el admin, pero nada suyo se lee ni se guarda en el servidor.
+    `tope_material` recorta las fuentes para los modelos con poco margen (ver TOPE_MATERIAL_GROQ)."""
+    acceso = is_admin or local is not None      # quién recibe material del curso (el invitado no)
+    if local:
+        profile = {'student': local['student'], 'course': local['course'], 'mode': 'explain', 'language': 'es'}
+    else:
+        profile = get_admin_profile() if is_admin else GUEST_PROFILE
     course = profile.get('course', '').lower()
     agent_dir = ROOT / 'agent'
     course_file = None
@@ -182,8 +217,11 @@ def build_system_prompt(is_admin=False):
     else:
         mm = Path(os.environ.get('MASTERMIND_PATH', default_mm))
     course_root = COURSE_ROOTS.get(course, course)
-    prog = get_progress(course) if is_admin else {}    # una sola lectura: carpeta actual y punto de dentro
-    topic_folder = prog.get('current') if is_admin else GUEST_TOPIC_FOLDER
+    if local:
+        prog = {'current': local['current'], 'mastered': local['mastered'], 'point': local['point']}
+    else:
+        prog = get_progress(course) if is_admin else {}    # una sola lectura: carpeta actual y punto de dentro
+    topic_folder = prog.get('current') if acceso else GUEST_TOPIC_FOLDER
     if mm.exists() and topic_folder:
         sources_dir = mm / course_root / topic_folder / "sources"
         if sources_dir.exists():
@@ -201,15 +239,18 @@ def build_system_prompt(is_admin=False):
                     label = md_file.stem.replace("_", " ")
                 parts.append(f"\n\n## {label}\n{text}")
             sources_text = "".join(parts)
-    if not is_admin:
+    if not acceso:
         sources_text = ""
+    elif tope_material and len(sources_text) > tope_material:
+        sources_text = (sources_text[:tope_material] +
+                        "\n\n(Material recortado por el límite del modelo: continúa con lo que sabes del tema.)")
     session_folder = f"{course_root.replace('/', '_')}_{topic_folder}" if topic_folder else None
     if course == 'cs50' and topic_folder:
         # Compatibilidad exacta con el formato de sesiones ya guardadas de CS50 (trainer/week{N}-c/sessions).
         session_folder = f"week{profile.get('current_week', 1)}-c"
     session_log = get_last_session_log(session_folder) if is_admin and session_folder else ""
     has_sessions = bool(session_log)
-    if is_admin and topic_folder:
+    if acceso and topic_folder:
         # El tema en curso lo manda el progreso: el perfil puede seguir diciendo el ejercicio anterior.
         profile = {**profile, 'current_folder': topic_folder,
                    'current_topic': folder_label(topic_folder).split(' · ')[-1]}
@@ -222,7 +263,7 @@ def build_system_prompt(is_admin=False):
                   "Sigue desde ahí (lo siguiente a esa marca), sin repetir lo ya visto salvo una pregunta rápida de repaso."
                   if prog.get('point') else "")
     # Recordatorio AL FINAL (lo último que lee el modelo): sin él, se saltaba la marca. Solo en cursos con temario.
-    con_temario = bool(is_admin and topic_folder and (mm / course_root / topic_folder / 'sources' / 'temario.md').exists())
+    con_temario = bool(acceso and topic_folder and (mm / course_root / topic_folder / 'sources' / 'temario.md').exists())
     mark_text = ("\n\n## Recordatorio obligatorio: marca de progreso\nTermina SIEMPRE, en todos tus mensajes, con una "
                  "línea sola `[[PUNTO p.s]]` con lo último YA superado según la regla de arriba (p. ej. `[[PUNTO 1.7]]`), "
                  "aunque no haya cambiado desde el mensaje anterior. Sin ella, el avance se pierde al cerrar.") \
@@ -304,16 +345,21 @@ def _resolve_start(messages):
     return messages
 
 
-def stream_claude(messages, system):
+def stream_claude(messages, system, api_key='', max_tokens=4096):
     import anthropic
-    client = anthropic.Anthropic(api_key=os.environ['ANTHROPIC_API_KEY'])
+    modelo = "claude-sonnet-4-6"
+    client = anthropic.Anthropic(api_key=(api_key or '').strip() or os.environ['ANTHROPIC_API_KEY'])
     with client.messages.stream(
-        model="claude-sonnet-4-6",
-        max_tokens=4096,
+        model=modelo,
+        max_tokens=max_tokens,
         system=system,
         messages=messages
     ) as stream:
+        mostrado = False
         for text in stream.text_stream:
+            if not mostrado:
+                mostrado = True
+                yield _evento_modelo('claude', modelo)
             yield f"data: {json.dumps(text)}\n\n"
 
 
@@ -329,14 +375,34 @@ def _evento_modelo(proveedor, modelo, respaldo=False):
     return f"data: {json.dumps({'model': modelo, 'provider': proveedor, 'fallback': respaldo})}\n\n"
 
 
-def stream_groq(messages, system, model_name=None, max_tokens=1024, respaldo=False):
+def _clave_groq(clave_usuario=''):
+    """La clave que trae el usuario manda sobre la del servidor: quien pone la suya gasta SU cuota.
+    Nunca se guarda ni se escribe en ningún archivo (repo público), solo vive en la petición."""
+    return (clave_usuario or '').strip() or os.environ['GROQ_API_KEY']
+
+
+# De qué servicio es una clave, por su prefijo. Groq gratis topa en 8.000 tokens/minuto y el prompt con
+# material no cabe: por eso interesa que el usuario pueda traer también una de Gemini o Claude.
+PREFIJOS_CLAVE = (('gsk_', 'groq'), ('sk-ant-', 'claude'), ('AIza', 'gemini'))
+
+
+def proveedor_de_clave(clave):
+    """'groq' | 'claude' | 'gemini', o None si no se reconoce (mejor avisar que fallar de forma rara)."""
+    clave = (clave or '').strip()
+    for prefijo, proveedor in PREFIJOS_CLAVE:
+        if clave.startswith(prefijo):
+            return proveedor
+    return None
+
+
+def stream_groq(messages, system, model_name=None, max_tokens=1024, respaldo=False, api_key=''):
     """Responde con Groq y, si un modelo falla ANTES de dar texto (429, 404, 5xx, respuesta vacía),
     prueba el siguiente de GROQ_MODELS. Si falla a mitad de respuesta no cambia de modelo: el alumno
     ya ha visto texto y el siguiente modelo lo repetiría desde cero."""
     from groq import Groq
     # max_retries=0: el SDK reintenta con espera ante un 429; una cuota agotada no se arregla en
     # segundos y aquí ya hay respaldo entre modelos.
-    client = Groq(api_key=os.environ['GROQ_API_KEY'], max_retries=0, timeout=30)
+    client = Groq(api_key=_clave_groq(api_key), max_retries=0, timeout=30)
     groq_messages = [{"role": "system", "content": system}] + [
         {"role": m['role'], "content": m['content']} for m in messages
     ]
@@ -375,10 +441,11 @@ def stream_groq(messages, system, model_name=None, max_tokens=1024, respaldo=Fal
 BREVITY_REMINDER = "\n\n(Recuerda: máximo 3 frases. Un concepto. Una pregunta. Sin listas ni subtítulos.)"
 
 
-def stream_gemini(messages, system, model_name='gemini-flash-latest', max_tokens=4096, is_greet=False):
+def stream_gemini(messages, system, model_name='gemini-flash-latest', max_tokens=4096, is_greet=False, api_key=''):
     from google import genai
     from google.genai import types
-    client = genai.Client(api_key=os.environ['GEMINI_API_KEY'], http_options=types.HttpOptions(api_version='v1beta'))
+    client = genai.Client(api_key=(api_key or '').strip() or os.environ['GEMINI_API_KEY'],
+                          http_options=types.HttpOptions(api_version='v1beta'))
     history = [
         types.Content(role=m['role'].replace('assistant', 'model'),
                       parts=[types.Part(text=m['content'])])
@@ -561,10 +628,22 @@ def chat_stream():
     messages = data['messages']
     is_admin = session.get('is_admin', False)
     is_greet = messages and messages[-1]['content'] in GREET_TOKENS
-    system = build_system_prompt(is_admin=is_admin)
-    messages = _resolve_greet(messages, is_admin, session.get('guest_name', ''))
+    # Usuario con sus datos en su navegador: el perfil viaja en la petición, el servidor no guarda nada suyo.
+    local = None if is_admin else perfil_local(data.get('perfil'))
 
-    if not is_admin:
+    # Clave del propio usuario (la pega en ⚙ o al crear su cuenta): no se guarda en el servidor, viaja
+    # en la petición. Puede ser de Groq, Gemini o Claude; el prefijo dice cuál. `groq_key` es el nombre
+    # viejo del campo: se acepta para que un navegador con el JS en caché siga funcionando.
+    clave_usuario = (data.get('ia_key') or data.get('groq_key') or '').strip()
+    proveedor_usuario = proveedor_de_clave(clave_usuario)
+
+    # Hay que saber a qué modelo va ANTES de construir el prompt: a Groq hay que mandarle menos material.
+    destino = proveedor_usuario or ('groq' if not is_admin else os.environ.get('AI_PROVIDER', 'gemini'))
+    system = build_system_prompt(is_admin=is_admin, local=local,
+                                 tope_material=TOPE_MATERIAL_GROQ if destino == 'groq' else None)
+    messages = _resolve_greet(messages, is_admin or local is not None, session.get('guest_name', ''))
+
+    if not is_admin and not clave_usuario:
         model = 'gemini-flash-latest'
         max_tokens = 500 if is_greet else 300
     else:
@@ -575,7 +654,16 @@ def chat_stream():
 
     def generate():
         try:
-            if not is_admin:
+            if clave_usuario and not proveedor_usuario:
+                yield f"data: {json.dumps({'error': 'Esa clave no parece de Groq (gsk_…), Gemini (AIza…) ni Claude (sk-ant-…). Revísala en ⚙.'})}\n\n"
+            elif proveedor_usuario == 'groq':
+                # Quien trae su clave gasta SU cuota: no se toca ninguna clave del servidor.
+                yield from stream_groq(messages, system, max_tokens=max_tokens, api_key=clave_usuario)
+            elif proveedor_usuario == 'gemini':
+                yield from stream_gemini(messages, system, model, max_tokens, is_greet=is_greet, api_key=clave_usuario)
+            elif proveedor_usuario == 'claude':
+                yield from stream_claude(messages, system, api_key=clave_usuario, max_tokens=max_tokens)
+            elif not is_admin:
                 yield from stream_groq(messages, system)
             elif provider == 'claude':
                 yield from stream_claude(messages, system)
@@ -603,17 +691,25 @@ def chat_stream():
     )
 
 
-@app.route('/courses')
-def courses():
-    if not session.get('is_admin', False):
-        return jsonify({'courses': ['cs50']})
-    agent_dir = ROOT / 'agent'
+def _cursos_disponibles():
+    """Cursos reales = un .md por curso en agent/ (AGENT.md es el enrutador, no un curso)."""
     found = []
-    for f in sorted(agent_dir.glob('*.md')):
+    for f in sorted((ROOT / 'agent').glob('*.md')):
         if f.stem.upper() == 'AGENT':
             continue
         found.append(f.stem.lower())
-    return jsonify({'courses': found})
+    return found
+
+
+@app.route('/courses')
+def courses():
+    # ?temas=1: cursos con sus temas, para quien lleva su progreso en el navegador (no hay sesión que
+    # consultar, así que necesita la lista entera de una vez para elegir curso y saber por dónde empezar).
+    if request.args.get('temas'):
+        return jsonify({'courses': [{'course': c, 'topics': course_topics(c)} for c in _cursos_disponibles()]})
+    if not session.get('is_admin', False):
+        return jsonify({'courses': ['cs50']})
+    return jsonify({'courses': _cursos_disponibles()})
 
 
 def _progress_view(course, progress):

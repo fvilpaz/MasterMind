@@ -132,6 +132,31 @@
 - El modelo no puede leer ni escribir archivos: instrucciones tipo "lee `local.json`", "actualiza `progreso.md`" o
   "guarda en `sessions/`" no se cumplen. Quitarlas o pasarlas a la app.
 
+## Usuarios con su cuenta en su dispositivo (2026-11-23, sin subir aún)
+- **Quien no es Nando no existe en el servidor.** Su perfil vive en `localStorage['mm-perfil']`
+  (`{student, course, current, mastered, point}`) y viaja en cada POST a `/chat/stream` dentro de `perfil`.
+  `perfil_local()` (`app.py`) lo valida: **lista blanca contra `course_topics()`**, no regex. Imprescindible,
+  porque `current` acaba formando `brain/<curso>/<carpeta>/sources` — sin eso, un `../..` se sale del curso.
+- `session['is_admin']` sigue siendo la puerta de todo lo del servidor; el usuario local **no la toca**:
+  en `build_system_prompt` la variable que decide quién recibe material es `acceso` (admin **o** local).
+- **La clave de IA vive solo en el navegador** (`localStorage['mm-groq-key']`, campo en ⚙) y viaja como
+  `ia_key` (`groq_key` se sigue aceptando: un navegador con el JS viejo en caché seguiría funcionando).
+  Nunca se guarda en el servidor ni en el JSON de exportar. El prefijo decide el proveedor:
+  `gsk_`→Groq, `AIza`→Gemini, `sk-ant-`→Claude (`PREFIJOS_CLAVE` en `app.py`).
+- **Groq gratis = 8.000 tokens/minuto.** El prompt con material no cabe (MoureDev ex01 = 9.469 → 413).
+  `TOPE_MATERIAL_GROQ` recorta el material solo cuando el destino es Groq; a Gemini se le manda entero
+  (no romper lo de Nando). Con el material recortado, los modelos pequeños responden mal: recomendar Gemini.
+- **Cerrar sesión borra el `localStorage`**, o sea su progreso: por eso el `confirm()` de aviso y
+  ⚙ → "Tus datos" → Exportar/Importar.
+- **Cómo probarlo sin tocar nada real:** copia en `/tmp` con `rsync` de `trainer/`, arrancada con
+  `GITHUB_TOKEN=''` y `MASTERMIND_PATH` apuntando al `brain/` real. Para simular a un usuario sin tocar la
+  UI: `localStorage.setItem('mm-perfil', JSON.stringify({student:'X', course:'mouredev', current:'ex01_PrimerosPasos', mastered:[], point:null}))`.
+  Las carpetas reales de MoureDev son `ex01_PrimerosPasos`, `ex02_Operadores`… (inventarse un nombre hace
+  que la validación lo rechace y caiga al modo invitado, que es lo correcto pero despista al probar).
+- **Al reiniciar el servidor de pruebas**: `pkill -f` con la ruta completa NO lo mata (el proceso se ve como
+  `python app.py`). Si no muere, el viejo sigue en el 8080, el nuevo escribe "Port 8080 is in use" en su log
+  y se prueba el código ANTIGUO sin enterarse. Matar por PID y comprobar el log.
+
 ## Decisiones de Nando (no se deshacen sin hablarlo)
 - (2026-10-05) **Sin temarios ni lectura de páginas por ahora** (aparcado, no descartado): Nando añade el contenido del
   curso a medida que avanza y el tutor genera katas/lecturas/ejercicios/exámenes sobre eso; el modelo ya sabe Java.

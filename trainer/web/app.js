@@ -1,9 +1,23 @@
 const messages = [];
 
+// El perfil local con la forma que espera la barra de arriba (la misma que devuelve /profile).
+function perfilDesdeLocal(local) {
+  const n = (local.current || '').match(/(?:ex|week)(\d+)/);
+  const temas = (typeof temasPorCurso !== 'undefined' && temasPorCurso[local.course]) || [];
+  const tema = temas.find(t => t.folder === local.current);
+  return {
+    student: local.student, course: local.course, mode: 'explain',
+    progress: { course: local.course, current: local.current, mastered: local.mastered || [],
+                n: n ? Number(n[1]) : null, topic: tema ? tema.topic : '' }
+  };
+}
+
 async function loadProfile() {
   try {
-    const r = await fetch('/profile');
-    const p = await r.json();
+    // El perfil local no está en el servidor: la barra se pinta con lo que hay en este navegador.
+    const local = typeof perfilLocal === 'function' ? perfilLocal() : null;
+    if (local && local.course) await asegurarTemas(local.course);   // para poner nombre a la lección tras recargar
+    const p = (local && local.course) ? perfilDesdeLocal(local) : await (await fetch('/profile')).json();
     document.getElementById('nav-brand').textContent = p.course ? `MasterMind · ${p.course}` : 'MasterMind';
     // La lección real, del progreso del curso elegido: CS50 va por semanas, MoureDev por ejercicios.
     const pr = p.progress || {};
@@ -69,11 +83,33 @@ function crearEtiquetaModelo(info) {
   return el;
 }
 
+// La clave de Groq del usuario, si la ha puesto en ⚙. Vacía = se usa la del servidor.
+function claveGroq() {
+  try { return (localStorage.getItem('mm-groq-key') || '').trim(); } catch { return ''; }
+}
+
+// ── PERFIL LOCAL ────────────────────────────────────────
+// Quien no es Nando lleva su cuenta en SU navegador: el servidor no guarda nada suyo. El perfil viaja
+// en cada mensaje del chat y el servidor lo valida (ver `perfil_local` en app.py).
+// Si borra los datos del navegador sin exportar, se pierde: por eso ⚙ tiene exportar/importar.
+function perfilLocal() {
+  try { return JSON.parse(localStorage.getItem('mm-perfil') || 'null'); } catch { return null; }
+}
+
+function guardarPerfilLocal(perfil) {
+  try { localStorage.setItem('mm-perfil', JSON.stringify(perfil)); } catch {}
+}
+
 async function streamChat(msgList) {
   const r = await fetch('/chat/stream', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ messages: msgList, model: document.getElementById('model').value })
+    body: JSON.stringify({
+      messages: msgList,
+      model: document.getElementById('model').value,
+      ia_key: claveGroq(),
+      perfil: perfilLocal()
+    })
   });
 
   removeTyping();
@@ -152,17 +188,51 @@ let examActive = false;
 const POINT_MARK = /\[\[PUNTO (\d+\.(?:\d+|ejercicios|examen))\]\]/g;
 async function savePoint(reply) {
   const marcas = [...reply.matchAll(POINT_MARK)];
-  if (!isAdmin || roomActive || !marcas.length) return;
+  if (roomActive || !marcas.length) return;
+  const punto = marcas[marcas.length - 1][1];
+  const local = perfilLocal();
+  if (local && !isAdmin) return guardarPerfilLocal({ ...local, point: punto });   // su partida vive en su navegador
+  if (!isAdmin) return;
   try {
     await fetch('/progress/point', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-                                     body: JSON.stringify({ point: marcas[marcas.length - 1][1] }) });
+                                     body: JSON.stringify({ point: punto }) });
   } catch {}
 }
 const hideMark = t => t.replace(MASTERED_MARK, '').replace(EXAM_MARK, '').replace(POINT_MARK, '')
   .replace(/\[\[[A-Z]*( [\w.]*)?\]?$/, '').trimEnd();
 
+// Los temas del curso (para avanzar y para poner nombre a la lección). Se piden una vez por sesión.
+let temasPorCurso = {};
+async function asegurarTemas(curso) {
+  if (temasPorCurso[curso]) return temasPorCurso[curso];
+  try {
+    const cursos = (await (await fetch('/courses?temas=1')).json()).courses;
+    temasPorCurso = Object.fromEntries(cursos.map(c => [c.course, c.topics]));
+  } catch {}
+  return temasPorCurso[curso] || [];
+}
+
+// Igual que saveProgress, pero sin servidor: la partida del usuario local vive en SU navegador.
+async function avanzarTemaLocal(local) {
+  const temas = await asegurarTemas(local.course);
+  const i = temas.findIndex(t => t.folder === local.current);
+  const siguiente = i >= 0 ? temas[i + 1] : temas[0];
+  if (!siguiente) {
+    return addMessage('bot', '🎉 ¡Has terminado todos los temas de este curso! No hay siguiente lección.');
+  }
+  guardarPerfilLocal({ ...local, current: siguiente.folder, point: null,
+                       mastered: [...(local.mastered || []), local.current].filter(Boolean) });
+  addMessage('bot', `💾 Partida guardada: ahora estás en ${local.course === 'cs50' ? 'Week' : 'Ej.'} ${siguiente.n} · ${siguiente.topic}.`);
+  loadProfile();
+  messages.length = 0;
+  examActive = false;
+  greet(true);
+}
+
 // Aprobado el examen, la partida se guarda sola: el tema actual pasa a dominado y el siguiente a actual.
 async function saveProgress() {
+  const local = perfilLocal();
+  if (local && !isAdmin) return avanzarTemaLocal(local);
   const r = await fetch('/progress/next', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
   const res = await r.json();
   if (!r.ok) return addMessage('bot', `No se pudo guardar: ${res.error}`);   // p. ej. ya estás en el último tema
@@ -254,7 +324,7 @@ async function send() {
       messages.push({ role: 'assistant', content: reply });
       examActive = reply.includes(EXAM_MARK);
       await savePoint(reply);
-      if (isAdmin && !roomActive && reply.includes(MASTERED_MARK)) await saveProgress();   // en la sala de repaso nunca se avanza
+      if ((isAdmin || perfilLocal()) && !roomActive && reply.includes(MASTERED_MARK)) await saveProgress();   // en la sala de repaso nunca se avanza
     }
   } catch (e) { removeTyping(); addMessage('error', `Error de conexión: ${e.message}`); }
   document.getElementById('send').disabled = false;
@@ -670,10 +740,18 @@ document.getElementById('choice-pw-btn').addEventListener('click', () => {
   document.getElementById('login-password').focus();
 });
 
+// Quien tiene su partida en este navegador vuelve directo a su curso: si no, al recargar acabaría
+// creando la cuenta otra vez y se pisaría su propio progreso.
+const perfilGuardado = perfilLocal();
+if (perfilGuardado && perfilGuardado.course) {
+  document.getElementById('login-name').value = perfilGuardado.student || '';
+  startApp();
+}
+
 // Si ya entraste antes con contraseña, se recuerda tu nombre y solo pide la contraseña.
 try {
   const saved = localStorage.getItem('mm-name');
-  if (saved) {
+  if (saved && !(perfilGuardado && perfilGuardado.course)) {
     document.getElementById('login-name').value = saved;
     showStep2();
     document.getElementById('choice-pw-btn').click();   // directo a la contraseña (sin "¿Tienes cuenta?")
@@ -753,6 +831,13 @@ async function showCourseStep() {
 
 // Elegir un curso (tarjeta pequeña o panel): guarda el curso en el perfil y abre la sala previa.
 async function elegirCurso(course) {
+  const perfil = perfilLocal();
+  if (perfil && !isAdmin) {
+    // Perfil local: empieza por el primer tema del curso y arranca el chat (sin sala: aún no hay nada que repasar).
+    const temas = temasPorCurso[course] || [];
+    guardarPerfilLocal({ ...perfil, course, current: temas.length ? temas[0].folder : null, mastered: [], point: null });
+    return startApp();
+  }
   await showRoomStep(fetch('/update-profile', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -769,6 +854,116 @@ document.getElementById('course-cards').addEventListener('click', async e => {
 document.getElementById('login-password').addEventListener('keydown', e => {
   if (e.key === 'Enter') document.getElementById('login-btn').click();
 });
+
+// ── TU PARTIDA: copia de seguridad y paso a otro dispositivo ────
+// La partida del usuario local vive solo en este navegador: si borra los datos del sitio, se pierde.
+// El archivo NO lleva la clave de IA (decisión de Nando): es la credencial de otro servicio y acabaría
+// en Drive o WhatsApp. Al importarla en el PC, se vuelve a pegar la clave a mano.
+function pintarFilaPartida() {
+  const local = perfilLocal();
+  const fila = document.getElementById('partida-row');
+  if (!local || !local.course) { fila.style.display = 'none'; return; }
+  fila.style.display = 'flex';
+  const n = (local.mastered || []).length;
+  document.getElementById('partida-estado').textContent =
+    `${local.student} · ${local.course} · ${n} tema${n === 1 ? '' : 's'} superado${n === 1 ? '' : 's'}. Solo en este navegador.`;
+}
+
+document.getElementById('exportar-btn').addEventListener('click', () => {
+  const local = perfilLocal();
+  if (!local) return;
+  const datos = { app: 'mastermind', version: 1, exportado: new Date().toISOString(),
+                  student: local.student, course: local.course, current: local.current,
+                  mastered: local.mastered || [], point: local.point || null };
+  const url = URL.createObjectURL(new Blob([JSON.stringify(datos, null, 2)], { type: 'application/json' }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `mastermind-${(local.student || 'partida').toLowerCase().replace(/[^a-z0-9]+/g, '-')}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✓ Datos descargados. Guárdalos donde no los pierdas.');
+});
+
+document.getElementById('importar-btn').addEventListener('click', () => document.getElementById('importar-file').click());
+
+document.getElementById('importar-file').addEventListener('change', async e => {
+  const archivo = e.target.files[0];
+  if (!archivo) return;
+  e.target.value = '';                                   // así re-importar el mismo archivo vuelve a disparar 'change'
+  try {
+    const d = JSON.parse(await archivo.text());
+    if (d.app !== 'mastermind' || !d.course) throw new Error('el archivo no es de MasterMind');
+    guardarPerfilLocal({ student: d.student || 'aprendiz', course: d.course, current: d.current || null,
+                         mastered: Array.isArray(d.mastered) ? d.mastered : [], point: d.point || null });
+    showToast('✓ Datos cargados. Entrando…');
+    setTimeout(() => location.reload(), 900);
+  } catch (err) {
+    showToast(`No se pudo cargar: ${err.message}`, true);
+  }
+});
+
+// ── ☕ CAFÉ (apoyo voluntario) ───────────────────────────
+const cafePanel = document.getElementById('cafe-panel');
+document.getElementById('cafe-btn').addEventListener('click', () => { cafePanel.hidden = false; });
+document.getElementById('cafe-close').addEventListener('click', () => { cafePanel.hidden = true; });
+cafePanel.addEventListener('click', e => { if (e.target === cafePanel) cafePanel.hidden = true; });
+cafePanel.addEventListener('click', async e => {
+  const btn = e.target.closest('.cafe-copy');
+  if (!btn || !btn.dataset.copiar) return;   // PayPal es un enlace, no tiene nada que copiar
+  try {
+    await navigator.clipboard.writeText(btn.dataset.copiar);
+    showToast('✓ Copiado. ¡Gracias! ☕');
+  } catch {
+    showToast('No se pudo copiar: selecciónalo a mano.', true);
+  }
+});
+
+// ── CREAR CUENTA (perfil en este dispositivo) ───────────
+document.getElementById('register-btn').addEventListener('click', () => {
+  document.getElementById('step-password').style.display = 'none';
+  document.getElementById('step-register').style.display = 'flex';
+  const nombre = document.getElementById('login-name').value.trim();
+  if (nombre) document.getElementById('register-name').value = nombre;
+  document.getElementById('register-key').value = claveGroq();
+  document.getElementById('register-name').focus();
+});
+
+document.getElementById('register-back').addEventListener('click', () => {
+  document.getElementById('step-register').style.display = 'none';
+  document.getElementById('step-password').style.display = 'flex';
+});
+
+document.getElementById('register-go').addEventListener('click', async () => {
+  const nombre = document.getElementById('register-name').value.trim();
+  const error = document.getElementById('register-error');
+  if (!nombre) { error.style.display = 'block'; return; }
+  error.style.display = 'none';
+  const clave = document.getElementById('register-key').value.trim();
+  try {
+    if (clave) localStorage.setItem('mm-groq-key', clave);
+  } catch {}
+  guardarPerfilLocal({ student: nombre, course: null, current: null, mastered: [], point: null });
+  await mostrarCursosLocales();
+});
+
+document.getElementById('register-name').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('register-go').click();
+});
+
+// Selector de curso para el perfil local: mismas tarjetas que el plan B del admin, pero sin tocar el
+// servidor — al elegir, el curso y su primer tema se guardan en este navegador.
+async function mostrarCursosLocales() {
+  const perfil = perfilLocal();
+  document.getElementById('step-register').style.display = 'none';
+  const step = document.getElementById('step-course');
+  step.style.display = 'flex';
+  document.getElementById('course-greeting').textContent = `¡Hola, ${perfil.student}! ¿Qué quieres aprender?`;
+  const cursos = (await (await fetch('/courses?temas=1')).json()).courses;
+  temasPorCurso = Object.fromEntries(cursos.map(c => [c.course, c.topics]));
+  document.getElementById('course-cards').innerHTML = cursos.map(({ course: c }) =>
+    `<button class="course-card" data-course="${c}"${(window.CURSOS || {})[c] ? ` style="--course-color:${window.CURSOS[c].color};--course-text:#fff"` : ''}>${COURSE_LABELS[c] || c}</button>`
+  ).join('');
+}
 
 document.getElementById('guest-btn').addEventListener('click', async () => {
   await fetch('/logout', { method: 'POST' });
@@ -788,9 +983,34 @@ const settingsDropdown = document.getElementById('settings-dropdown');
 settingsBtn.addEventListener('click', (e) => {
   e.stopPropagation();
   settingsDropdown.classList.toggle('open');
+  pintarFilaPartida();        // el estado de la partida puede haber cambiado desde la última vez
 });
 document.addEventListener('click', () => settingsDropdown.classList.remove('open'));
 settingsDropdown.addEventListener('click', (e) => e.stopPropagation());
+
+// Clave de Groq propia: solo en este navegador (localStorage), nunca se guarda en el servidor.
+// Viaja en cada petición del chat; si está puesta, responde Groq con la cuota de quien la pone.
+const groqKeyInput = document.getElementById('groq-key');
+const groqKeyState = document.getElementById('groq-key-state');
+
+function pintarEstadoClave() {
+  groqKeyState.textContent = claveGroq()
+    ? '✓ Guardada en este navegador: la IA responde con tu cuota, no la de Nando.'
+    : 'Sin clave: la IA responde con la cuota del servidor.';
+}
+
+groqKeyInput.addEventListener('change', () => {
+  const valor = groqKeyInput.value.trim();
+  try {
+    if (valor) localStorage.setItem('mm-groq-key', valor);
+    else localStorage.removeItem('mm-groq-key');
+  } catch {}
+  pintarEstadoClave();
+  showToast(valor ? '✓ Clave guardada en este navegador' : 'Clave borrada');
+});
+
+try { groqKeyInput.value = localStorage.getItem('mm-groq-key') || ''; } catch {}
+pintarEstadoClave();
 
 function showToast(msg, isError = false) {
   const t = document.getElementById('toast');
@@ -829,6 +1049,14 @@ document.getElementById('save-session-btn').addEventListener('click', async () =
 });
 
 document.getElementById('logout-btn').addEventListener('click', async () => {
+  // Cerrar sesión borra TODO el localStorage, y ahí vive la partida de quien no es admin: avisar antes.
+  const local = perfilLocal();
+  const n = (local && local.mastered || []).length;
+  if (local && local.course && !confirm(
+      `Tus datos (${local.course}, ${n} tema${n === 1 ? '' : 's'} superado${n === 1 ? '' : 's'}) viven solo en este navegador ` +
+      'y se borrarán al cerrar sesión.\n\nSi no los has exportado (⚙ → Tus datos → Exportar), los perderás.\n\n¿Cerrar sesión igualmente?')) {
+    return;
+  }
   await fetch('/logout', { method: 'POST' });
   try { localStorage.clear(); sessionStorage.clear(); } catch {}   // olvida nombre, plan y pomodoro: vuelve al inicio con la opción de invitado
   location.reload();

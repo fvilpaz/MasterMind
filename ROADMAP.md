@@ -3,6 +3,57 @@
 Todo lo de aquí es sobre código que **ya funciona hoy**, no bloquea el uso normal — son mejoras
 para la próxima sesión con calma.
 
+---
+
+## 🔴 EN CURSO (2026-11-23): usuarios con su cuenta en su propio dispositivo
+
+> **Para retomar, empieza leyendo esto.** Objetivo: pasarle la app a un amigo, que use su propia clave
+> de IA (no la cuota de Nando) y que luego entren cursos nuevos (chino, japonés). Nada se ha subido aún:
+> todo está en el working tree, sin commitear.
+
+### Decisiones tomadas (no deshacer sin hablarlo)
+- **Local-first, sin contraseñas.** El progreso de quien no es Nando vive en SU navegador
+  (`localStorage['mm-perfil']`) y viaja al servidor en cada mensaje; el servidor **no guarda nada suyo**.
+  *Por qué:* lo único persistente en producción es este repo de GitHub, que es **público**; guardar ahí
+  contraseñas (aunque fueran con hash) las dejaría expuestas para siempre. Y lo que protegería esa
+  contraseña (en qué lección va) no lo justifica. Nando lo validó el 2026-11-23.
+- **La clave de IA nunca toca el servidor**: solo `localStorage`, viaja en cada petición, y **no se
+  incluye en el JSON de exportar** (si el archivo acaba en Drive o WhatsApp, se filtraría).
+- **Tres proveedores por el prefijo de la clave**: `gsk_`→Groq, `AIza`→Gemini, `sk-ant-`→Claude.
+- **Login con Google / datos en Drive: descartado por ahora** (sobreingeniería). Ver "💡 Aparcado".
+- **El café**: PayPal + USDC. Bizum se quitó a propósito (no publicar el móvil en un repo público).
+
+### Hecho y verificado (navegador real + tests)
+- `perfil_local()` valida lo que manda el navegador contra lista blanca (`course_topics`): un `current`
+  tipo `../secreto` se rechaza. **Es el punto crítico**: ese valor acaba formando una ruta de disco.
+- Crear cuenta → elegir curso (todos) → chat con su progreso; al recargar vuelve directo a su curso.
+- Avanza de lección al aprobar (`[[DOMINADO]]`) guardando en su navegador, sin tocar el servidor.
+- Exportar/importar JSON en ⚙ → "Tus datos", y aviso al cerrar sesión (borra el `localStorage`).
+- Tests nuevos: `test_perfil_local.py` (19 checks, con los de path traversal) y ampliado `test_groq_key.py`.
+
+### Pendiente para la próxima sesión
+1. **La guía de "¿Cómo consigo una clave?"** del formulario de registro: hoy ese enlace **no hace nada**.
+   Hay una captura real lista en `docs/groq-create-key.jpg` (pantalla "Create API Key" de Groq).
+   Recomendar **Gemini**, no Groq (ver el límite de abajo).
+2. **Curso de chino** y luego **japonés** (Nando tiene apuntes en un Google Doc; pedírselo).
+   Receta en `trainer/CLAUDE.md` → "Para añadir un nuevo curso" (`agent/Chino.md` + `brain/chino/exNN_…`
+   + color en `window.CURSOS`).
+3. **Repensar el invitado** (ver "💡 Aparcado"): Nando aprobó la idea de dejarle elegir curso con un tope
+   por sesión, en vez de estar fijo en CS50 semana 1.
+4. **Probar en móvil de verdad** todo lo nuevo (solo comprobado simulando 360px de ancho).
+5. **Avisar en la UI** de que con una clave de Groq gratis el tutor responde peor (ver límite abajo).
+
+### Límite descubierto el 2026-11-23 (importante)
+**Groq en su capa gratuita topa en 8.000 tokens/minuto** y el prompt entero (tutor + material del tema)
+no cabe: MoureDev `ex01` pedía 9.469 → error 413. Ahora `TOPE_MATERIAL_GROQ` (4.000 caracteres) recorta
+el material cuando la respuesta va por Groq, así que ya no revienta — **pero el modelo pequeño responde
+mal con el material cortado** (se lía y se inventa el rol). Con una clave de **Gemini** el mismo caso
+responde perfecto. Conclusión: a un amigo hay que recomendarle Gemini.
+*Pendiente relacionado:* el respaldo Gemini→Groq del admin (`app.py`, en `chat_stream`) reconstruye el
+prompt SIN recortar, así que si Gemini cae puede dar 413. No tocado (fallo pre-existente, otro scope).
+
+---
+
 ## 1. Editor de código en el chat (mejora de comodidad, sobre todo móvil) — HECHO
 
 **Estado (comprobado 2026-10-05):** el editor existe y está en uso: `code-editor.js` en `trainer/web/` y el botón `</>`
@@ -839,6 +890,18 @@ saltarla. Falta que Nando diga si pasa sola al chat a los segundos (entonces: "E
   se pierde dónde vas; esto sería para conservar también la conversación. "No es importante ahora mismo" (Nando).
 - (2026-11-03) Usar **Pro solo en los exámenes** (sigue mejor reglas largas como la cuenta de subpuntos) y Flash en la
   clase normal. Idea, no pedida.
+- (2026-11-23) **Login con Google y datos en el Drive del propio usuario** (mejora futura de los perfiles locales).
+  Hoy el progreso de un usuario que no es Nando vive en su navegador (`localStorage`) y se mueve entre dispositivos
+  exportando/importando un JSON a mano. Con OAuth de Google ese mismo JSON viviría en su Drive y se sincronizaría solo.
+  **Va ENCIMA de los perfiles locales, no en su lugar**: solo cambia dónde se guarda el JSON, y el export/import se queda
+  como plan B. Coste: OAuth en el proyecto de Google Cloud (consentimiento, credenciales, dominios), tokens que caducan,
+  y comprobar qué exige Google para el scope de Drive (`drive.file`) antes de abrirlo a cualquiera — en modo "Testing"
+  se pueden añadir usuarios de prueba sin verificar, pero **sin comprobar en la documentación actual**.
+  Descartado por ahora: sobreingeniería para el caso de hoy (Nando, 2026-11-23).
+- (2026-11-23) **Repensar el invitado**: hoy fijo a CS50 semana 1. Idea sobre la mesa: dejarle elegir cualquier
+  curso (no solo CS50) con un tope por sesión (mensajes o tiempo) en vez de solo el tope de tokens por respuesta
+  de ahora — demo real del tutor en cualquier curso, coste acotado. Decidir junto con el curso de Chino/Japonés
+  (ver nuevo punto de usuarios registrados) antes de tocar `GUEST_TOPIC_FOLDER` / `app.py`.
 
 - Plan de pomodoros en el servidor para compartirlo entre PC y móvil (hoy es por navegador).
 - Si se escribe "tengo 1 hora" en vez de pulsar el botón ⏱, no se guarda plan: se podría leer del texto.

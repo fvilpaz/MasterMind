@@ -48,6 +48,9 @@ The router reads the student profile (`config/profile.json`), selects the right 
 | 🎨 8 themes | Harvard, Dracula, Cyberpunk, Barbie and more — every text and button checked for contrast (≥ 3:1) in all of them |
 | ⌨️ Code editor | CodeMirror panel (`</>`) with syntax colours per category (types, keywords, strings…) for Python, **Java**, **C**, JS, HTML, CSS and Bash; its theme follows the app theme (eclipse on light themes, darcula / dracula / monokai on dark ones) |
 | 🤖 Triple AI provider | Guests → Groq (free, unlimited). Admin → Gemini or Claude |
+| 👥 Your own account, on your own device | "Crear cuenta" asks only for a name: your progress lives in **your browser**, never on the server, and travels with each message so the tutor gets the right material. You pick any course, advance when the tutor passes you, and reloading takes you straight back. ⚙ → **Tus datos** exports it as a JSON (your AI key is deliberately left out) and imports it on another device. Logging out wipes it, so it warns you first |
+| 🔑 Bring your own AI key | Paste your own key in ⚙ and the answers run on **your** quota, not the server's. The prefix picks the provider: `gsk_` Groq, `AIza` Gemini, `sk-ant-` Claude. Free Groq keys cap at 8 000 tokens/min, so course material is trimmed for them — **Gemini is the recommended free option** |
+| ☕ Support | A coffee cup in the footer opens PayPal and USDC (Polygon/Base, Solana) with copy buttons |
 | 📓 Session logs | Markdown logs auto-read on next session |
 | 📱 PWA | Installable on Android/iOS, works offline for the shell |
 
@@ -59,6 +62,7 @@ The router reads the student profile (`config/profile.json`), selects the right 
 |---|---|---|
 | Guest | **Qwen 3.8 27B** via [Groq](https://groq.com) | Free, unlimited, fast. Good enough for most learning tasks. |
 | Admin | **Gemini 2.5 Flash** (default) or **Claude Sonnet** | Full context: transcripts, lecture notes, session logs. Switchable via `AI_PROVIDER` env var. |
+| With your own key | Whatever your key is for | Groq, Gemini or Claude, picked from the key's prefix. Keys stay in your browser and are never stored server-side. Free Groq tiers cap at 8 000 tokens/min, which the full prompt exceeds — material gets trimmed, so answers are weaker there. Gemini handles it comfortably. |
 
 ---
 
