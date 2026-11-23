@@ -164,6 +164,11 @@
   material de curso — sin esto, un cuaderno ya crecido revienta el límite gratuito y la respuesta llega
   cortada, sin cerrar la marca (pasó de verdad probando japonés sin clave propia, cayó al Groq del
   servidor). Con una clave de Gemini, probado dos mensajes seguidos: el cuaderno creció sin perder nada.
+  **Segundo bug distinto (2026-11-23), con clave de Groq REAL y cuaderno por debajo del tope:** el
+  modelo explicaba bien pero se saltaba `[[CUADERNO]]` sin más — no era límite de tokens, era que el
+  recordatorio no sonaba bastante obligatorio para un modelo pequeño. El texto de "Recordatorio
+  obligatorio" se cambió a "ÚLTIMO PASO OBLIGATORIO, SIN EXCEPCIÓN" con el caso explícito de cuándo SÍ se
+  omite. Si un curso-cuaderno nuevo tiene el mismo problema, es aquí donde tocar, no en el tope de tokens.
 - **Cómo probarlo sin tocar nada real:** copia en `/tmp` con `rsync` de `trainer/`, arrancada con
   `GITHUB_TOKEN=''` y `MASTERMIND_PATH` apuntando al `brain/` real. Para simular a un usuario sin tocar la
   UI: `localStorage.setItem('mm-perfil', JSON.stringify({student:'X', course:'mouredev', current:'ex01_PrimerosPasos', mastered:[], point:null}))`.

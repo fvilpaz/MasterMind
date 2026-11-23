@@ -73,13 +73,19 @@ para la próxima sesión con calma.
   `agent/Chino.md`, el servidor caía al enrutador genérico (`AGENT.md`) y filtraba texto de plantilla sin
   rellenar (`Dentro de {mastermind_path}/cs50/...`) — no fallaba limpio, se rompía feo.
 
+### Hecho el 2026-11-23 (cont.) — Groq real con japonés: encontrado y arreglado otro bug
+Probado con una clave de Groq de verdad (no la del servidor) y un cuaderno ya crecido (2.992 caracteres,
+por debajo del tope — no era el 413 de antes): el tutor explicaba bien, pero **se saltaba la marca
+`[[CUADERNO]]`** sin más, perdiendo lo nuevo en silencio. No era un problema de tokens — era que el
+recordatorio no sonaba lo bastante obligatorio para un modelo pequeño. Reforzado el texto en
+`build_system_prompt` ("ÚLTIMO PASO OBLIGATORIO, SIN EXCEPCIÓN", explícito sobre cuándo SÍ se omite).
+**Repetido 3 veces con la clave real tras el cambio: las 3 mantuvieron el cuaderno completo.** Antes,
+sin el refuerzo, había fallado al menos 1 de 1.
+
 ### Pendiente para la próxima sesión
 1. **Repensar el invitado** (ver "💡 Aparcado"): Nando aprobó la idea de dejarle elegir curso con un tope
    por sesión, en vez de estar fijo en CS50 semana 1.
 2. **Probar en móvil de verdad** todo lo nuevo (solo comprobado simulando 360px de ancho).
-3. **Probar japonés con clave de Groq de verdad** (no solo sin clave): el recorte ya existe, pero falta
-   ver en vivo si el modelo pequeño de Groq mantiene bien el formato del cuaderno con el material cortado
-   (mismo matiz que ya se documentó para MoureDev: puede responder peor, no solo más corto).
 
 ### Límite descubierto el 2026-11-23 (importante)
 **Groq en su capa gratuita topa en 8.000 tokens/minuto** y el prompt entero (tutor + material del tema)

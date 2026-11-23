@@ -282,9 +282,13 @@ def build_system_prompt(is_admin=False, local=None, tope_material=None, cuaderno
     tope_cuaderno = tope_material or CUADERNO_TOPE
     cuaderno_text = "" if cuaderno is None else (
         f"\n\n## Tu cuaderno hasta ahora\n{(cuaderno or '(vacío: es la primera entrada)')[:tope_cuaderno]}"
-        "\n\n## Recordatorio obligatorio: el cuaderno\nCuando añadas algo nuevo, termina el mensaje con el cuaderno "
-        "COMPLETO (lo de arriba + lo nuevo, nunca un resumen ni solo lo añadido) entre `[[CUADERNO]]` y "
-        "`[[/CUADERNO]]`. Si no cambia nada en este mensaje, no pongas la marca."
+        "\n\n## ÚLTIMO PASO OBLIGATORIO, SIN EXCEPCIÓN: la marca del cuaderno\nAcabas de explicar o descifrar "
+        "algo en este mensaje. Antes de darlo por terminado, añádelo al cuaderno de arriba y escribe el "
+        "cuaderno COMPLETO (todo lo de arriba + lo nuevo, nunca un resumen, nunca solo la fila añadida) entre "
+        "`[[CUADERNO]]` y `[[/CUADERNO]]`, como última línea del mensaje. Esto no es opcional ni algo que "
+        "hacer 'cuando convenga': es el último paso de CADA respuesta en la que expliques, descifres o "
+        "corrijas algo nuevo. Solo lo omites si tu mensaje no añade nada nuevo al cuaderno (p. ej. solo "
+        "preguntas o saludas)."
     )
     return (
         f"{claude_md}\n\n"
