@@ -23,8 +23,13 @@ async function loadProfile() {
     document.getElementById('nav-brand').textContent = p.course ? `MasterMind · ${p.course}` : 'MasterMind';
     // La lección real, del progreso del curso elegido: CS50 va por semanas, MoureDev por ejercicios.
     const pr = p.progress || {};
-    document.getElementById('b-week').textContent = pr.n ? (pr.course === 'cs50' ? `Week ${pr.n}` : `Ej. ${pr.n}`) : '';
-    document.getElementById('b-topic').textContent = pr.topic || '';
+    // Un curso sin temas lineales (p. ej. Japonés: no avanza por carpetas, es un cuaderno) no tiene
+    // "Ej. N" que enseñar — se ocultan las píldoras en vez de dejarlas vacías y parecer un hueco roto.
+    const bWeek = document.getElementById('b-week'), bTopic = document.getElementById('b-topic');
+    bWeek.style.display = pr.n ? '' : 'none';
+    bWeek.textContent = pr.n ? (pr.course === 'cs50' ? `Week ${pr.n}` : `Ej. ${pr.n}`) : '';
+    bTopic.style.display = pr.topic ? '' : 'none';
+    bTopic.textContent = pr.topic || '';
     document.getElementById('b-mode').textContent = p.mode;
   } catch {}
 }
@@ -329,14 +334,31 @@ async function runCommand(text) {
   addMessage('bot', `Comando no reconocido: ${cmd}. Escribe /help para ver los comandos.`);
 }
 
+// Tope de la demo de invitado: mensajes del ALUMNO en la sesión (se reinicia solo al limpiar el
+// navegador). Quien trae su propia clave de IA paga su cuota, así que no tiene tope.
+const TOPE_MENSAJES_INVITADO = 15;
+function esInvitadoSinClave() {
+  try { return localStorage.getItem('mm-invitado') === '1' && !claveGroq(); } catch { return false; }
+}
+function mensajesInvitado() {
+  try { return Number(localStorage.getItem('mm-invitado-mensajes') || '0'); } catch { return 0; }
+}
+
 async function send() {
   const input = document.getElementById('input');
   const text = input.value.trim();
   if (!text) return;
+  if (esInvitadoSinClave() && mensajesInvitado() >= TOPE_MENSAJES_INVITADO) {
+    addMessage('bot', `🔒 Llegaste al límite de la demo (${TOPE_MENSAJES_INVITADO} mensajes). Para seguir sin ` +
+      'límite, gratis: pega tu propia clave de IA en ⚙ (arriba a la derecha) y sigue justo donde lo dejaste, ' +
+      'sin perder nada de lo avanzado.');
+    return;
+  }
   input.value = '';
   input.style.height = 'auto';
   if (roomActive && ROOM_EXIT.test(text)) { addMessage('user', text); return exitRoom(); }
   if (text.startsWith('/')) return runCommand(text);
+  if (esInvitadoSinClave()) { try { localStorage.setItem('mm-invitado-mensajes', String(mensajesInvitado() + 1)); } catch {} }
   document.getElementById('send').disabled = true;
   // La respuesta al saludo de la app (el tiempo) lleva la marca de arranque: el servidor la cambia por la instrucción
   // de empezar la clase. No se ve en el chat.
@@ -715,7 +737,9 @@ async function showRoomStep(listo = Promise.resolve()) {
 
 // En la sala la barra dice "Entrenamiento" en vez de la lección del curso (que aquí no se está haciendo).
 function roomBadges(on) {
-  document.getElementById('b-week').textContent = on ? 'Entrenamiento' : '';
+  const bWeek = document.getElementById('b-week');
+  bWeek.textContent = on ? 'Entrenamiento' : '';
+  if (on) bWeek.style.display = '';   // por si un curso sin temas (japonés) lo tenía oculto
   ['b-topic', 'b-mode'].forEach(id => document.getElementById(id).style.display = on ? 'none' : '');
   if (!on) loadProfile();                             // devuelve la lección real
 }
@@ -934,6 +958,10 @@ document.getElementById('importar-file').addEventListener('change', async e => {
 // ── 🔑 GUÍA "¿CÓMO CONSIGO UNA CLAVE?" ──────────────────
 const guiaPanel = document.getElementById('guia-panel');
 document.getElementById('register-help').addEventListener('click', () => { guiaPanel.hidden = false; });
+document.getElementById('settings-guia-help').addEventListener('click', () => {
+  settingsDropdown.classList.remove('open');
+  guiaPanel.hidden = false;
+});
 document.getElementById('guia-close').addEventListener('click', () => { guiaPanel.hidden = true; });
 guiaPanel.addEventListener('click', e => { if (e.target === guiaPanel) guiaPanel.hidden = true; });
 
@@ -1000,17 +1028,16 @@ async function mostrarCursosLocales() {
   ).join('');
 }
 
+// El invitado ya no está fijo a CS50 semana 1: elige cualquier curso, igual que "Crear cuenta" (misma
+// pantalla, mismo perfil local). Lo único distinto: un tope de mensajes por sesión (demo acotada, sin
+// tener ni que dar su nombre) en vez del tope de tokens por respuesta de antes. Si trae su propia clave
+// de IA o si se registra de verdad más tarde, el tope deja de aplicar.
 document.getElementById('guest-btn').addEventListener('click', async () => {
   await fetch('/logout', { method: 'POST' });
   const name = document.getElementById('login-name').value.trim();
-  if (name) {
-    await fetch('/guest-name', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name })
-    });
-  }
-  startApp();
+  guardarPerfilLocal({ student: name || 'invitado', course: null, current: null, mastered: [], point: null });
+  try { localStorage.setItem('mm-invitado', '1'); } catch {}
+  await mostrarCursosLocales();
 });
 
 const settingsBtn = document.getElementById('settings-btn');

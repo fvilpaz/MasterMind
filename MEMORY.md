@@ -177,6 +177,17 @@
 - **Al reiniciar el servidor de pruebas**: `pkill -f` con la ruta completa NO lo mata (el proceso se ve como
   `python app.py`). Si no muere, el viejo sigue en el 8080, el nuevo escribe "Port 8080 is in use" en su log
   y se prueba el código ANTIGUO sin enterarse. Matar por PID y comprobar el log.
+- **El invitado (2026-11-23) es, por dentro, un perfil local efímero.** "Entrar como invitado" llama a
+  `guardarPerfilLocal(...)` + `mostrarCursosLocales()` — el MISMO camino que "Crear cuenta" — y solo se
+  distingue por `localStorage['mm-invitado'] = '1'`. El tope de 15 mensajes (`TOPE_MENSAJES_INVITADO`,
+  `app.js`) es cooperativo, no de seguridad: `/courses?temas=1` ya está abierto a cualquiera sin
+  `is_admin`. Si algún día hace falta un control real (que no se pueda saltar borrando `localStorage`),
+  esto no lo cubre — habría que moverlo al servidor.
+- **`/update-profile` inicializa `current` SOLO la primera vez** que se elige un curso (sin
+  `config/progress/<curso>.json` todavía) y solo si el curso tiene carpetas (`course_topics` no vacío).
+  Un curso-cuaderno (Japonés) se queda en `current: None` a propósito — no es un fallo si la barra no
+  muestra "Ej. N" ahí. Si un curso nuevo con carpetas sale con la barra en blanco la primera vez, mirar
+  aquí antes que en el frontend.
 
 ## Decisiones de Nando (no se deshacen sin hablarlo)
 - (2026-10-05) **Sin temarios ni lectura de páginas por ahora** (aparcado, no descartado): Nando añade el contenido del

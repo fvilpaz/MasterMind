@@ -171,6 +171,32 @@ try:
     check('/update-profile: ignora campos no permitidos', 'inventado' not in p)
     check('/update-profile: devuelve el perfil guardado', r.get_json().get('profile', {}).get('course') == 'cs50')
 
+    # 4b. Primera vez que se elige un curso (sin config/progress/<curso>.json todavía): 'current' se
+    # inicializa solo al primer tema, si el curso tiene carpetas — si no, se queda en None a propósito
+    # (encontrado el 2026-11-23: sin esto, la barra salía en blanco la primera vez con un curso nuevo).
+    chino_progress = tmp / 'config' / 'progress' / 'chino.json'
+    check('antes de elegirlo: sin archivo de progreso de chino', not chino_progress.exists())
+    r = cliente.post('/update-profile', json={'course': 'chino'})
+    check('/update-profile (chino, primera vez) → 200', r.status_code == 200)
+    chino_prog = json.loads(chino_progress.read_text(encoding='utf-8')) if chino_progress.exists() else {}
+    check("primera vez con chino: 'current' se inicializa al primer tema", chino_prog.get('current') == 'ex01_Pinyin')
+    check("primera vez con chino: 'mastered' arranca vacío", chino_prog.get('mastered') == [])
+    # Un curso SIN carpetas (p. ej. un cuaderno sin temas lineales): no se inventa ningún 'current'.
+    real_course_topics = mm.course_topics
+    mm.course_topics = lambda curso: []
+    try:
+        cliente.post('/update-profile', json={'course': 'sincarpetas'})
+        prog_vacio = mm.get_progress('sincarpetas')
+        check('curso sin carpetas: current sigue en None (no se inventa nada)', prog_vacio.get('current') is None)
+    finally:
+        mm.course_topics = real_course_topics
+    # Segunda vez eligiendo el MISMO curso con progreso YA AVANZADO (simulado a mano): no se pisa.
+    chino_progress.write_text(json.dumps({'current': 'ex02_Tonos', 'mastered': ['ex01_Pinyin']}), encoding='utf-8')
+    cliente.post('/update-profile', json={'course': 'chino'})
+    chino_prog2 = json.loads(chino_progress.read_text(encoding='utf-8'))
+    check('elegir el mismo curso otra vez: NO reinicia un progreso ya avanzado a ex01',
+          chino_prog2.get('current') == 'ex02_Tonos' and chino_prog2.get('mastered') == ['ex01_Pinyin'])
+
     # 5. PRODUCCIÓN: el perfil de verdad vive en GitHub y la copia local es la de la imagen (vieja).
     #    Elegir curso NO puede devolver la partida a lo que diga la copia vieja.
     escribir({**perfil(), 'course': 'mouredev', 'current_folder': 'ex1_HelloWorld'})      # copia vieja

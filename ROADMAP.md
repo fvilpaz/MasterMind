@@ -82,10 +82,33 @@ recordatorio no sonaba lo bastante obligatorio para un modelo pequeño. Reforzad
 **Repetido 3 veces con la clave real tras el cambio: las 3 mantuvieron el cuaderno completo.** Antes,
 sin el refuerzo, había fallado al menos 1 de 1.
 
+### Hecho el 2026-11-23 (cont.) — invitado repensado + 2 bugs reales encontrados al probarlo
+- **Invitado: elige cualquier curso, con tope de mensajes.** Ya no fijo a CS50 semana 1. "Entrar como
+  invitado" ahora reutiliza el MISMO flujo que "Crear cuenta" (perfil local efímero, `mostrarCursosLocales()`),
+  solo que marcado con `localStorage['mm-invitado']`. Tope de **15 mensajes del alumno por sesión**
+  (`TOPE_MENSAJES_INVITADO`, `app.js`) — puramente de UX, cooperativo, no un control de abuso: la ruta
+  `/courses?temas=1` ya estaba abierta a cualquiera sin `is_admin`, así que el tope es solo el aviso +
+  bloqueo en `send()`. **En cuanto pega su propia clave en ⚙, el tope desaparece al instante** (sin recargar,
+  sin cerrar sesión) — verificado. El enlace "¿Cómo consigo una clave?" ahora vive también en ⚙ (antes
+  solo estaba en el formulario de "Crear cuenta"), reutilizando el mismo panel de la guía.
+  Verificado en vivo: registro de invitado → selector con los 5 cursos → mensajes 1-15 pasan → mensaje 16
+  bloqueado con el aviso correcto → clave pegada → desbloqueado.
+- **Bug encontrado al probar chino en producción (captura de Nando):** la barra de arriba salía con dos
+  huecos vacíos en vez de "Ej. 1 · Pinyin". Causa real: `/update-profile` nunca inicializaba
+  `config/progress/<curso>.json` al elegir un curso por primera vez — CS50/MoureDev/42Málaga nunca lo
+  enseñaron porque ya tenían progreso real de hace meses; chino fue el primer curso elegido de cero desde
+  que existe ese mecanismo. Arreglado: al elegir un curso sin progreso previo, `current` se inicializa solo
+  al primer tema (si el curso tiene carpetas — un curso-cuaderno como Japonés se queda en `None` a
+  propósito). Un curso YA avanzado no se reinicia al elegirlo de nuevo (comprobado con test).
+- **Segundo ajuste de la misma captura:** cuando no hay tema lineal que enseñar (Japonés), la barra ahora
+  **oculta** las píldoras en vez de dejarlas vacías pareciendo un hueco roto. Ojo con la sala de repaso
+  (solo admin): si se entra desde un curso sin temas, `roomBadges` tiene que volver a mostrar la píldora
+  de semana para que se vea "Entrenamiento" — arreglado también.
+- Test nuevo en `test_profile.py` (4 checks: inicializa al primer tema, no se inventa nada en un curso sin
+  carpetas, no pisa un progreso ya avanzado).
+
 ### Pendiente para la próxima sesión
-1. **Repensar el invitado** (ver "💡 Aparcado"): Nando aprobó la idea de dejarle elegir curso con un tope
-   por sesión, en vez de estar fijo en CS50 semana 1.
-2. **Probar en móvil de verdad** todo lo nuevo (solo comprobado simulando 360px de ancho).
+1. **Probar en móvil de verdad** todo lo nuevo (solo comprobado simulando 360px de ancho).
 
 ### Límite descubierto el 2026-11-23 (importante)
 **Groq en su capa gratuita topa en 8.000 tokens/minuto** y el prompt entero (tutor + material del tema)
@@ -942,10 +965,8 @@ saltarla. Falta que Nando diga si pasa sola al chat a los segundos (entonces: "E
   y comprobar qué exige Google para el scope de Drive (`drive.file`) antes de abrirlo a cualquiera — en modo "Testing"
   se pueden añadir usuarios de prueba sin verificar, pero **sin comprobar en la documentación actual**.
   Descartado por ahora: sobreingeniería para el caso de hoy (Nando, 2026-11-23).
-- (2026-11-23) **Repensar el invitado**: hoy fijo a CS50 semana 1. Idea sobre la mesa: dejarle elegir cualquier
-  curso (no solo CS50) con un tope por sesión (mensajes o tiempo) en vez de solo el tope de tokens por respuesta
-  de ahora — demo real del tutor en cualquier curso, coste acotado. Decidir junto con el curso de Chino/Japonés
-  (ver nuevo punto de usuarios registrados) antes de tocar `GUEST_TOPIC_FOLDER` / `app.py`.
+- ~~(2026-11-23) **Repensar el invitado**~~ — HECHO (2026-11-23): ver el bloque "Hecho el 2026-11-23 (cont.)"
+  más arriba. Elige cualquier curso, tope de 15 mensajes por sesión, desbloqueo instantáneo con clave propia.
 
 - Plan de pomodoros en el servidor para compartirlo entre PC y móvil (hoy es por navegador).
 - Si se escribe "tengo 1 hora" en vez de pulsar el botón ⏱, no se guarda plan: se podría leer del texto.

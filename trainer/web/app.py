@@ -954,6 +954,18 @@ def update_profile():
     for key, value in data.items():
         if key in allowed:
             profile[key] = value
+    # Primera vez que se elige ESTE curso: sin progreso, 'current' queda en None y la barra sale en
+    # blanco (visto el 2026-11-23 con chino: primer curso elegido de cero desde que existe este archivo
+    # por curso — CS50/MoureDev/42Málaga ya tenían progreso real, por eso nunca se vio). Un curso sin
+    # temas (p. ej. Japonés, que no avanza por carpetas) se queda en None a propósito: no hay nada que
+    # inicializar ahí.
+    curso_elegido = data.get('course')
+    if curso_elegido:
+        prog = get_progress(curso_elegido)
+        if not prog.get('current'):
+            temas = course_topics(curso_elegido)
+            if temas:
+                save_progress(curso_elegido, {'current': temas[0]['folder'], 'mastered': []})
     profile_path.write_text(json.dumps(profile, indent=2, ensure_ascii=False), encoding='utf-8')
     if os.environ.get('GITHUB_TOKEN', ''):
         try:
