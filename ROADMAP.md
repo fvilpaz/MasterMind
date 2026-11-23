@@ -35,14 +35,36 @@ para la próxima sesión con calma.
   ambas recortadas para no enseñar datos de Nando) y sus pasos tal cual están en cada web (Gemini en
   español, Groq en inglés — no traducidos a propósito, es lo que el usuario ve de verdad). Nueva ruta
   `/docs/<archivo>` en `app.py` (antes `docs/` no lo servía nadie). Verificado en Harvard y Barbie.
+- **Curso de Japonés — "cuaderno que crece", no temario.** Nando aprende viendo anime: oye una frase,
+  la transcribe mal, el tutor la descifra y explica la gramática que aparece EN esa frase (no un plan
+  fijo). Confirmado con su Google Doc real (39 frases con Gemini) — ese mismo método, no un curso con
+  `ex01/ex02`. Las frases de su doc NO se precargan como contenido (el modelo ya conoce estas expresiones
+  comunes de anime): solo quedan 5 de ejemplo en `agent/Japones.md` para fijar el formato/tono, cada
+  alumno construye su propio cuaderno desde cero.
+  - **Pieza nueva de arquitectura:** un curso puede llevar un "cuaderno" que vive en el navegador
+    (`localStorage['mm-cuaderno-<curso>']`, independiente de `mm-perfil`), viaja en cada mensaje, y el
+    tutor lo devuelve ENTERO (nunca resumido) entre `[[CUADERNO]]...[[/CUADERNO]]` cuando cambia — la app
+    lo oculta y lo guarda. `CURSOS_CUADERNO` en `app.js` es la lista de cursos que usan esto (hoy solo
+    `japones`); para un curso nuevo con el mismo método, solo hay que añadir su id ahí.
+  - Sin examen, sin `[[DOMINADO]]`, sin `[[PUNTO]]`: este curso no "avanza", solo crece.
+  - El cuaderno entra también en exportar/importar (⚙ → Tus datos), igual que el progreso.
+  - **Bug real encontrado y arreglado:** yendo por Groq sin clave propia, un cuaderno ya crecido + el
+    prompt del tutor no cabían en el límite gratuito (8.000 tokens/min) y la respuesta llegaba cortada,
+    sin cerrar la marca — se perdía lo nuevo. Arreglado recortando el cuaderno con el mismo
+    `tope_material` que ya recortaba el material de curso. Verificado con Gemini: dos mensajes seguidos,
+    el cuaderno creció de 1 a 2 entradas sin perder la primera.
+  - Test nuevo: `test_cuaderno.py` (10 checks).
 
 ### Pendiente para la próxima sesión
-1. **Curso de chino** y luego **japonés** (Nando tiene apuntes en un Google Doc; pedírselo).
-   Receta en `trainer/CLAUDE.md` → "Para añadir un nuevo curso" (`agent/Chino.md` + `brain/chino/exNN_…`
-   + color en `window.CURSOS`).
+1. **Curso de chino** (sin apuntes previos — a diferencia de japonés, aquí sí hay que decidir una
+   progresión desde cero: pinyin → tonos → caracteres básicos, siguiendo el patrón "sin temario pesado"
+   de MoureDev). Receta en `trainer/CLAUDE.md` → "Para añadir un nuevo curso".
 2. **Repensar el invitado** (ver "💡 Aparcado"): Nando aprobó la idea de dejarle elegir curso con un tope
    por sesión, en vez de estar fijo en CS50 semana 1.
 3. **Probar en móvil de verdad** todo lo nuevo (solo comprobado simulando 360px de ancho).
+4. **Probar japonés con clave de Groq de verdad** (no solo sin clave): el recorte ya existe, pero falta
+   ver en vivo si el modelo pequeño de Groq mantiene bien el formato del cuaderno con el material cortado
+   (mismo matiz que ya se documentó para MoureDev: puede responder peor, no solo más corto).
 
 ### Límite descubierto el 2026-11-23 (importante)
 **Groq en su capa gratuita topa en 8.000 tokens/minuto** y el prompt entero (tutor + material del tema)

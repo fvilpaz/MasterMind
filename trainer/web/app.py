@@ -190,10 +190,15 @@ def perfil_local(datos):
 TOPE_MATERIAL_GROQ = 4000
 
 
-def build_system_prompt(is_admin=False, local=None, tope_material=None):
+CUADERNO_TOPE = 20000  # un cuaderno que no para de crecer, por si alguien lo deja volar varias sesiones
+
+
+def build_system_prompt(is_admin=False, local=None, tope_material=None, cuaderno=''):
     """`local` = perfil de un usuario con sus datos en su navegador (ya validado por `perfil_local`).
     Tiene el mismo acceso al material que el admin, pero nada suyo se lee ni se guarda en el servidor.
-    `tope_material` recorta las fuentes para los modelos con poco margen (ver TOPE_MATERIAL_GROQ)."""
+    `tope_material` recorta las fuentes para los modelos con poco margen (ver TOPE_MATERIAL_GROQ).
+    `cuaderno` = el documento que el tutor va construyendo con el alumno (p. ej. Japonés) y que vive en
+    SU navegador, no en el servidor: viaja en cada petición y vuelve completo en la respuesta."""
     acceso = is_admin or local is not None      # quién recibe material del curso (el invitado no)
     if local:
         profile = {'student': local['student'], 'course': local['course'], 'mode': 'explain', 'language': 'es'}
@@ -268,6 +273,19 @@ def build_system_prompt(is_admin=False, local=None, tope_material=None):
                  "línea sola `[[PUNTO p.s]]` con lo último YA superado según la regla de arriba (p. ej. `[[PUNTO 1.7]]`), "
                  "aunque no haya cambiado desde el mensaje anterior. Sin ella, el avance se pierde al cerrar.") \
         if con_temario else ""
+    # `cuaderno` no None: el curso lleva su documento en el navegador del alumno (ver `agent/Japones.md`).
+    # Viaja completo en cada petición porque el servidor no lo guarda: si el tutor no lo reescribe entero,
+    # la app no tiene de dónde sacar lo que faltó (es justo lo que le pasó a Nando probándolo él mismo).
+    # Con `tope_material` (destino Groq) también se recorta: un cuaderno ya crecido + el prompt del tutor
+    # no cabían en el límite gratuito de Groq y la respuesta llegaba cortada, sin cerrar la marca
+    # (encontrado el 2026-11-23 probando japonés sin clave propia: cayó al Groq del servidor y reventó).
+    tope_cuaderno = tope_material or CUADERNO_TOPE
+    cuaderno_text = "" if cuaderno is None else (
+        f"\n\n## Tu cuaderno hasta ahora\n{(cuaderno or '(vacío: es la primera entrada)')[:tope_cuaderno]}"
+        "\n\n## Recordatorio obligatorio: el cuaderno\nCuando añadas algo nuevo, termina el mensaje con el cuaderno "
+        "COMPLETO (lo de arriba + lo nuevo, nunca un resumen ni solo lo añadido) entre `[[CUADERNO]]` y "
+        "`[[/CUADERNO]]`. Si no cambia nada en este mensaje, no pongas la marca."
+    )
     return (
         f"{claude_md}\n\n"
         f"{student_status}```json\n{json.dumps(profile, indent=2)}\n```"
@@ -275,6 +293,7 @@ def build_system_prompt(is_admin=False, local=None, tope_material=None):
         f"{sources_text}"
         f"{session_log}"
         f"{mark_text}"
+        f"{cuaderno_text}"
     )
 
 
@@ -644,7 +663,14 @@ def chat_stream():
 
     # Hay que saber a qué modelo va ANTES de construir el prompt: a Groq hay que mandarle menos material.
     destino = proveedor_usuario or ('groq' if not is_admin else os.environ.get('AI_PROVIDER', 'gemini'))
-    system = build_system_prompt(is_admin=is_admin, local=local,
+    # Cuaderno del curso (Japonés): solo viaja si el front lo manda (cursos que lo usan). Clave presente
+    # pero vacía = cuaderno recién empezado; clave ausente = este curso no usa cuaderno.
+    cuaderno = data.get('cuaderno')
+    if isinstance(cuaderno, str):
+        cuaderno = cuaderno[:CUADERNO_TOPE]
+    else:
+        cuaderno = None
+    system = build_system_prompt(is_admin=is_admin, local=local, cuaderno=cuaderno,
                                  tope_material=TOPE_MATERIAL_GROQ if destino == 'groq' else None)
     messages = _resolve_greet(messages, is_admin or local is not None, session.get('guest_name', ''))
 

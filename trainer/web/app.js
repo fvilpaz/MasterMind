@@ -1,4 +1,5 @@
 const messages = [];
+let cursoActivo = null;   // id del curso con la sesión abierta ahora mismo; lo fija loadProfile()
 
 // El perfil local con la forma que espera la barra de arriba (la misma que devuelve /profile).
 function perfilDesdeLocal(local) {
@@ -18,6 +19,7 @@ async function loadProfile() {
     const local = typeof perfilLocal === 'function' ? perfilLocal() : null;
     if (local && local.course) await asegurarTemas(local.course);   // para poner nombre a la lección tras recargar
     const p = (local && local.course) ? perfilDesdeLocal(local) : await (await fetch('/profile')).json();
+    cursoActivo = p.course || null;
     document.getElementById('nav-brand').textContent = p.course ? `MasterMind · ${p.course}` : 'MasterMind';
     // La lección real, del progreso del curso elegido: CS50 va por semanas, MoureDev por ejercicios.
     const pr = p.progress || {};
@@ -108,7 +110,8 @@ async function streamChat(msgList) {
       messages: msgList,
       model: document.getElementById('model').value,
       ia_key: claveGroq(),
-      perfil: perfilLocal()
+      perfil: perfilLocal(),
+      ...(cursoActivo && CURSOS_CUADERNO.includes(cursoActivo) ? { cuaderno: leerCuaderno(cursoActivo) } : {})
     })
   });
 
@@ -198,8 +201,31 @@ async function savePoint(reply) {
                                      body: JSON.stringify({ point: punto }) });
   } catch {}
 }
-const hideMark = t => t.replace(MASTERED_MARK, '').replace(EXAM_MARK, '').replace(POINT_MARK, '')
-  .replace(/\[\[[A-Z]*( [\w.]*)?\]?$/, '').trimEnd();
+const hideMark = t => {
+  t = t.replace(MASTERED_MARK, '').replace(EXAM_MARK, '').replace(POINT_MARK, '')
+       .replace(/\[\[[A-Z]*( [\w.]*)?\]?$/, '');
+  // El cuaderno (ver CUADERNO_MARK) puede llegar en varios trozos de texto: mientras no se cierre, no se
+  // enseña nada de él (sería un tablón entero parpadeando mientras se escribe).
+  const abierto = t.indexOf('[[CUADERNO]]');
+  if (abierto !== -1) {
+    const cerrado = t.indexOf('[[/CUADERNO]]', abierto);
+    t = cerrado !== -1 ? t.slice(0, abierto) + t.slice(cerrado + '[[/CUADERNO]]'.length) : t.slice(0, abierto);
+  }
+  return t.trimEnd();
+};
+
+// Cursos cuyo tutor construye un documento que crece con el alumno (ver agent/Japones.md): el cuaderno
+// vive en SU navegador (nunca en el servidor), viaja en cada mensaje y el tutor lo devuelve entero entre
+// [[CUADERNO]]...[[/CUADERNO]] cuando cambia. Un curso nuevo con el mismo método solo añade su id aquí.
+const CURSOS_CUADERNO = ['japones'];
+const CUADERNO_MARK = /\[\[CUADERNO\]\]([\s\S]*?)\[\[\/CUADERNO\]\]/;
+const leerCuaderno = curso => { try { return localStorage.getItem(`mm-cuaderno-${curso}`) || ''; } catch { return ''; } };
+const guardarCuaderno = (curso, texto) => { try { localStorage.setItem(`mm-cuaderno-${curso}`, texto); } catch {} };
+async function saveCuaderno(reply) {
+  if (!cursoActivo || !CURSOS_CUADERNO.includes(cursoActivo)) return;
+  const m = reply.match(CUADERNO_MARK);
+  if (m) guardarCuaderno(cursoActivo, m[1].trim());
+}
 
 // Los temas del curso (para avanzar y para poner nombre a la lección). Se piden una vez por sesión.
 let temasPorCurso = {};
@@ -324,6 +350,7 @@ async function send() {
       messages.push({ role: 'assistant', content: reply });
       examActive = reply.includes(EXAM_MARK);
       await savePoint(reply);
+      await saveCuaderno(reply);
       if ((isAdmin || perfilLocal()) && !roomActive && reply.includes(MASTERED_MARK)) await saveProgress();   // en la sala de repaso nunca se avanza
     }
   } catch (e) { removeTyping(); addMessage('error', `Error de conexión: ${e.message}`); }
@@ -874,7 +901,8 @@ document.getElementById('exportar-btn').addEventListener('click', () => {
   if (!local) return;
   const datos = { app: 'mastermind', version: 1, exportado: new Date().toISOString(),
                   student: local.student, course: local.course, current: local.current,
-                  mastered: local.mastered || [], point: local.point || null };
+                  mastered: local.mastered || [], point: local.point || null,
+                  cuaderno: CURSOS_CUADERNO.includes(local.course) ? leerCuaderno(local.course) : undefined };
   const url = URL.createObjectURL(new Blob([JSON.stringify(datos, null, 2)], { type: 'application/json' }));
   const a = document.createElement('a');
   a.href = url;
@@ -895,6 +923,7 @@ document.getElementById('importar-file').addEventListener('change', async e => {
     if (d.app !== 'mastermind' || !d.course) throw new Error('el archivo no es de MasterMind');
     guardarPerfilLocal({ student: d.student || 'aprendiz', course: d.course, current: d.current || null,
                          mastered: Array.isArray(d.mastered) ? d.mastered : [], point: d.point || null });
+    if (typeof d.cuaderno === 'string') guardarCuaderno(d.course, d.cuaderno);
     showToast('✓ Datos cargados. Entrando…');
     setTimeout(() => location.reload(), 900);
   } catch (err) {

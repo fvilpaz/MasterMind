@@ -153,6 +153,17 @@
   `/tmp` necesita su propio `docs/` con las imágenes, si no, el panel de la guía sale con iconos rotos.
   Las capturas de Groq y Gemini para esa guía están recortadas a mano (solo el modal, sin el fondo con
   los proyectos y el email reales de Nando) — si se vuelve a capturar, recortar igual antes de commitear.
+- **El cuaderno (Japonés y futuros cursos del mismo método):** independiente de `mm-perfil`, vive en
+  `localStorage['mm-cuaderno-<curso>']` y SOLO se manda al servidor si el curso activo está en
+  `CURSOS_CUADERNO` (`app.js`). El backend lo distingue por si la clave `cuaderno` viene en el JSON: si no
+  viene (curso normal), `build_system_prompt` recibe `None` y no añade nada al prompt; si viene vacía
+  (`''`, primera vez de un curso-cuaderno), sí añade la sección. No confundir una cosa con la otra.
+  El marcador `[[CUADERNO]]...[[/CUADERNO]]` puede llegar partido en varios trozos del streaming:
+  `hideMark` (`app.js`) oculta todo desde `[[CUADERNO]]` hasta que llega el cierre, no solo el tag suelto
+  como con `[[PUNTO]]`. **El tope de Groq (`TOPE_MATERIAL_GROQ`) también recorta el cuaderno**, no solo el
+  material de curso — sin esto, un cuaderno ya crecido revienta el límite gratuito y la respuesta llega
+  cortada, sin cerrar la marca (pasó de verdad probando japonés sin clave propia, cayó al Groq del
+  servidor). Con una clave de Gemini, probado dos mensajes seguidos: el cuaderno creció sin perder nada.
 - **Cómo probarlo sin tocar nada real:** copia en `/tmp` con `rsync` de `trainer/`, arrancada con
   `GITHUB_TOKEN=''` y `MASTERMIND_PATH` apuntando al `brain/` real. Para simular a un usuario sin tocar la
   UI: `localStorage.setItem('mm-perfil', JSON.stringify({student:'X', course:'mouredev', current:'ex01_PrimerosPasos', mastered:[], point:null}))`.
