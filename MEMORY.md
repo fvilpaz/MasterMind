@@ -193,6 +193,13 @@
   de todos los demás caminos). Con un curso-cuaderno esto puede cortar la respuesta a mitad de
   `[[CUADERNO]]` y perder el cuaderno entero en silencio (visto el 2026-11-24, probando japonés como
   invitado de verdad). Subido a 2048 **solo para ese camino** — el de admin/Gemini sigue en 4096, no se tocó.
+- **El tope de 2048 por sí solo no basta sin frenar lo que el modelo intenta decir.** `stream_gemini` le
+  mete SIEMPRE `BREVITY_REMINDER` ("máximo 3 frases, un concepto, una pregunta") al último mensaje —
+  `stream_groq` nunca lo tuvo. Un curso sin cuaderno pero con ciclo largo en un turno (Chino: explicar +
+  varios ejemplos + ejercicios, ver `agent/Chino.md`) se cortaba igual aunque no tocara el tope de
+  material ni el de cuaderno (visto el 2026-11-24). `con_brevedad()` (`app.py`) aplica el mismo
+  recordatorio a Groq, con y sin clave propia (no solo al invitado sin clave). Si un curso nuevo se corta
+  a medias con Groq, mirar aquí antes que el tope de tokens: casi seguro es esto, no aquello.
 - **Trampa de tests: no asumir el estado actual de los archivos reales de producción.** `config/profile.json`
   y `config/progress/*.json` cambian con cada cosa que Nando prueba en `fv-mastermind.com` (su `course`
   actual, qué progreso existe). Un test que copia `config/` real y luego **asume** un valor concreto ahí

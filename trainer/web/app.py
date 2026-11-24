@@ -435,6 +435,15 @@ def stream_groq(messages, system, model_name=None, max_tokens=1024, respaldo=Fal
 BREVITY_REMINDER = "\n\n(Recuerda: máximo 3 frases. Un concepto. Una pregunta. Sin listas ni subtítulos.)"
 
 
+def con_brevedad(messages, is_greet):
+    """Mismo recordatorio que `stream_gemini` ya le mete siempre al último mensaje (ver BREVITY_REMINDER),
+    pero para Groq: sin él, un ciclo largo en un solo turno (explicar + varios ejemplos + ejercicios,
+    p. ej. Chino) se come el tope de tokens y se corta a media frase, sin aviso."""
+    if is_greet or not messages:
+        return messages
+    return messages[:-1] + [{**messages[-1], 'content': messages[-1]['content'] + BREVITY_REMINDER}]
+
+
 def stream_gemini(messages, system, model_name='gemini-flash-latest', max_tokens=4096, is_greet=False, api_key=''):
     from google import genai
     from google.genai import types
@@ -652,7 +661,7 @@ def chat_stream():
                 yield f"data: {json.dumps({'error': 'Esa clave no parece de Groq (gsk_…), Gemini (AIza…) ni Claude (sk-ant-…). Revísala en ⚙.'})}\n\n"
             elif proveedor_usuario == 'groq':
                 # Quien trae su clave gasta SU cuota: no se toca ninguna clave del servidor.
-                yield from stream_groq(messages, system, max_tokens=max_tokens, api_key=clave_usuario)
+                yield from stream_groq(con_brevedad(messages, is_greet), system, max_tokens=max_tokens, api_key=clave_usuario)
             elif proveedor_usuario == 'gemini':
                 yield from stream_gemini(messages, system, model, max_tokens, is_greet=is_greet, api_key=clave_usuario)
             elif proveedor_usuario == 'claude':
@@ -661,7 +670,11 @@ def chat_stream():
                 # 2048, no el default (1024): con un curso-cuaderno (Japonés) la respuesta + la marca
                 # [[CUADERNO]] no cabían y se cortaba a mitad de la marca, perdiendo el cuaderno entero
                 # (visto en vivo el 2026-11-23, probando el invitado tal cual lo usaría alguien real).
-                yield from stream_groq(messages, system, max_tokens=2048)
+                # `con_brevedad`: a Gemini SIEMPRE se le pide esto (ver BREVITY_REMINDER) pero a Groq no
+                # se le pedía nunca — un ciclo largo (p. ej. Chino: explicar + varios ejemplos + ejercicios
+                # en un solo turno, ver agent/Chino.md) se comía el tope igual y se cortaba a media frase,
+                # sin aviso (visto el 2026-11-24, probando chino de invitado sin clave).
+                yield from stream_groq(con_brevedad(messages, is_greet), system, max_tokens=2048)
             elif provider == 'claude':
                 yield from stream_claude(messages, system)
             else:

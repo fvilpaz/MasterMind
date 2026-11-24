@@ -129,6 +129,14 @@ sin el refuerzo, había fallado al menos 1 de 1.
   `profile.json` real tenía `course` en `mouredev`/`cs50`/`42malaga` — ahora es `chino`. Los dos se
   arreglaron fijando el estado dentro de la COPIA temporal del test, sin depender de qué estés probando
   tú en producción en ese momento.
+- **4º bug del mismo hilo, esta vez sin cuaderno:** Nando reportó que chino (invitado, sin clave) se
+  quedaba a medias en las explicaciones. No era el tope de material de entrada (`Chino.md` no tiene
+  `temario.md` ni cuaderno, el prompt es pequeño) — era el mismo tope de salida (2.048, el de arriba) sin
+  nada que lo frene: `stream_gemini` le mete SIEMPRE un recordatorio de brevedad a cada mensaje
+  (`BREVITY_REMINDER`, "máximo 3 frases, un concepto, una pregunta") pero `stream_groq` nunca lo tuvo. El
+  ciclo de Chino (explicar + varios ejemplos + ejercicios + describir el tono, todo en un turno) sin ese
+  freno se come el tope igual que el cuaderno. Añadido `con_brevedad()` (`app.py`): mismo recordatorio,
+  aplicado también a Groq (clave propia y la del servidor), no solo a Gemini. Los 8 tests, verdes.
 
 ### Auditoría del 2026-11-24 (pedida por Nando: "analiza, audita, refactoriza, pon tests si faltan")
 Hecha con el grafo de código (`codebase-memory`, indexando el repo) + comprobación a mano de cada hallazgo.
