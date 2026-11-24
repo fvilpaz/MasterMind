@@ -175,7 +175,11 @@ try:
     # inicializa solo al primer tema, si el curso tiene carpetas — si no, se queda en None a propósito
     # (encontrado el 2026-11-23: sin esto, la barra salía en blanco la primera vez con un curso nuevo).
     chino_progress = tmp / 'config' / 'progress' / 'chino.json'
-    check('antes de elegirlo: sin archivo de progreso de chino', not chino_progress.exists())
+    # Se borra en la COPIA temporal (nunca en el repo real) para partir de "primera vez" de verdad: el
+    # repo real ya tiene su propio chino.json (progreso real de Nando probándolo en producción, de antes
+    # de este arreglo — por eso el suyo tiene 'current: null', justo el bug que esto prueba).
+    chino_progress.unlink(missing_ok=True)
+    check('preparado en la copia temporal: sin archivo de progreso de chino', not chino_progress.exists())
     r = cliente.post('/update-profile', json={'course': 'chino'})
     check('/update-profile (chino, primera vez) → 200', r.status_code == 200)
     chino_prog = json.loads(chino_progress.read_text(encoding='utf-8')) if chino_progress.exists() else {}

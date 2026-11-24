@@ -188,6 +188,17 @@
   Un curso-cuaderno (Japonés) se queda en `current: None` a propósito — no es un fallo si la barra no
   muestra "Ej. N" ahí. Si un curso nuevo con carpetas sale con la barra en blanco la primera vez, mirar
   aquí antes que en el frontend.
+- **El invitado sin clave tiene 1.024 tokens por respuesta** (el default de `stream_groq`; el camino
+  `elif not is_admin: yield from stream_groq(...)` en `/chat/stream` no pasaba `max_tokens`, a diferencia
+  de todos los demás caminos). Con un curso-cuaderno esto puede cortar la respuesta a mitad de
+  `[[CUADERNO]]` y perder el cuaderno entero en silencio (visto el 2026-11-24, probando japonés como
+  invitado de verdad). Subido a 2048 **solo para ese camino** — el de admin/Gemini sigue en 4096, no se tocó.
+- **Trampa de tests: no asumir el estado actual de los archivos reales de producción.** `config/profile.json`
+  y `config/progress/*.json` cambian con cada cosa que Nando prueba en `fv-mastermind.com` (su `course`
+  actual, qué progreso existe). Un test que copia `config/` real y luego **asume** un valor concreto ahí
+  (`course == 'cs50'`, "no existe progress/chino.json"...) se rompe en cuanto Nando prueba algo nuevo —
+  pasó dos veces el 2026-11-24. La copia hay que dejarla en el estado que el test necesita, explícitamente
+  (sobrescribir el campo, borrar el archivo en la COPIA), nunca fiarse de lo que haya en ese momento.
 
 ## Decisiones de Nando (no se deshacen sin hablarlo)
 - (2026-10-05) **Sin temarios ni lectura de páginas por ahora** (aparcado, no descartado): Nando añade el contenido del

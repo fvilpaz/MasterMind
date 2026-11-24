@@ -699,7 +699,10 @@ def chat_stream():
             elif proveedor_usuario == 'claude':
                 yield from stream_claude(messages, system, api_key=clave_usuario, max_tokens=max_tokens)
             elif not is_admin:
-                yield from stream_groq(messages, system)
+                # 2048, no el default (1024): con un curso-cuaderno (Japonés) la respuesta + la marca
+                # [[CUADERNO]] no cabían y se cortaba a mitad de la marca, perdiendo el cuaderno entero
+                # (visto en vivo el 2026-11-23, probando el invitado tal cual lo usaría alguien real).
+                yield from stream_groq(messages, system, max_tokens=2048)
             elif provider == 'claude':
                 yield from stream_claude(messages, system)
             else:

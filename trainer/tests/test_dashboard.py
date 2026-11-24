@@ -54,6 +54,13 @@ def escribir(curso, current, mastered):
 escribir('cs50', 'week02-arrays', ['week01-c'])
 escribir('mouredev', 'ex3_DataTypes', ['ex1_HelloWorld', 'ex2_Variables'])      # 42malaga: SIN archivo a propósito
 
+# El 'course' del profile.json copiado es el de Nando en PRODUCCIÓN ahora mismo (cambia según lo que
+# esté probando) — se fija a un valor conocido para que este test no dependa de ese estado real.
+perfil_path = tmp / 'config' / 'profile.json'
+perfil = json.loads(perfil_path.read_text(encoding='utf-8'))
+perfil['course'] = 'mouredev'
+perfil_path.write_text(json.dumps(perfil, ensure_ascii=False), encoding='utf-8')
+
 mm.ROOT = tmp
 invitado = mm.app.test_client()
 admin = mm.app.test_client()
@@ -93,8 +100,8 @@ try:
     check('admin: salen cs50, mouredev y 42malaga (sin AGENT)', {c['course'] for c in d.get('courses', [])} == {'cs50', 'mouredev', '42malaga'})
 
     # 2b. El panel trae también el último curso usado (así el navegador no necesita pedir /profile).
-    check("last_course: el curso del perfil ('mouredev' o 'cs50' según el profile.json de la copia)",
-          d.get('last_course') in ('mouredev', 'cs50', '42malaga'))
+    check("last_course: el curso fijado en el profile.json de la copia (mouredev)",
+          d.get('last_course') == 'mouredev')
 
     # 3. Los números salen del progreso y de las carpetas de temas.
     c = curso(d, 'cs50')

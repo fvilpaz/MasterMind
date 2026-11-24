@@ -1017,7 +1017,10 @@ document.getElementById('register-name').addEventListener('keydown', e => {
 // servidor — al elegir, el curso y su primer tema se guardan en este navegador.
 async function mostrarCursosLocales() {
   const perfil = perfilLocal();
+  // Oculta los dos pasos desde los que se puede llegar aquí: "Crear cuenta" y, desde el 2026-11-23,
+  // también "Entrar como invitado" (directo, sin pasar por step-register).
   document.getElementById('step-register').style.display = 'none';
+  document.getElementById('step-password').style.display = 'none';
   const step = document.getElementById('step-course');
   step.style.display = 'flex';
   document.getElementById('course-greeting').textContent = `¡Hola, ${perfil.student}! ¿Qué quieres aprender?`;

@@ -106,6 +106,29 @@ sin el refuerzo, había fallado al menos 1 de 1.
   de semana para que se vea "Entrenamiento" — arreglado también.
 - Test nuevo en `test_profile.py` (4 checks: inicializa al primer tema, no se inventa nada en un curso sin
   carpetas, no pisa un progreso ya avanzado).
+- **Bug de UI encontrado viéndolo en vivo en Chrome:** "Entrar como invitado" no ocultaba `#step-password`
+  (quedaban las dos tarjetas apiladas) porque solo `showCourseStep`/`register-btn` lo hacían — el invitado
+  llega a `mostrarCursosLocales()` por un camino distinto que nunca lo tocaba. Arreglado ahí mismo
+  (`mostrarCursosLocales` oculta los dos pasos de entrada posibles), verificado con clic real.
+
+### Hecho el 2026-11-24 — simulación en vivo: 3er bug del cuaderno + 2 tests frágiles
+- **Simulado en Chrome con DevTools** (invitado real, clics + `find` por texto, no solo `curl`): chino
+  (Pinyin → los 4 tonos con mā/má/mǎ/mà reales) y japonés ("yamete kudasai" descifrado bien) funcionando
+  con el modelo gratuito de Groq, sin clave. Detalle visto en directo: el modelo pequeño coló una palabra
+  rusa suelta explicando un tono — ya documentado que Gemini no tiene este problema.
+- **3er bug real del cuaderno, distinto a los otros dos:** el invitado sin clave tiene un tope de
+  **1.024 tokens por respuesta** (el valor por defecto de `stream_groq`, nunca se pasaba `max_tokens` en
+  ese camino). Con japonés, una respuesta rica (saludo + explicación + ejercicio + cuaderno) no cabía y se
+  cortaba **a mitad de la marca `[[CUADERNO]]`** (`[[CU` suelto), perdiendo el cuaderno entero en
+  silencio. Subido a 2.048 para ese camino. Repetido el mismo caso tras el cambio: la marca llega
+  completa (respuesta de 4.090 caracteres). *(Nota: no se tocó el tope de Gemini/admin, que ya iba con 4096.)*
+- **2 tests frágiles arreglados** (no relacionados con el bug anterior, aparecieron por usar datos reales
+  de producción en vez de aislar de verdad): `test_profile.py` asumía que `config/progress/chino.json`
+  no existía en el repo real — pero sí existe, porque es tu propio progreso real probando chino en
+  producción (el que tenía `current: null`, el bug de antes de ayer). `test_dashboard.py` asumía que
+  `profile.json` real tenía `course` en `mouredev`/`cs50`/`42malaga` — ahora es `chino`. Los dos se
+  arreglaron fijando el estado dentro de la COPIA temporal del test, sin depender de qué estés probando
+  tú en producción en ese momento.
 
 ### Pendiente para la próxima sesión
 1. **Probar en móvil de verdad** todo lo nuevo (solo comprobado simulando 360px de ancho).
