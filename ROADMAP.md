@@ -22,6 +22,9 @@ para la próxima sesión con calma.
 - **Tres proveedores por el prefijo de la clave**: `gsk_`→Groq, `AIza`→Gemini, `sk-ant-`→Claude.
 - **Login con Google / datos en Drive: descartado por ahora** (sobreingeniería). Ver "💡 Aparcado".
 - **El café**: PayPal + USDC. Bizum se quitó a propósito (no publicar el móvil en un repo público).
+  El botón de PayPal dice solo **«PayPal»** (Nando, 24-nov; antes «Invitar ☕»). Igual en Nextren, David Planner y la landing.
+- **24-nov, ya subido**: un `config/local.json` viejo (solo `mastermind_path`) rompía el chat de admin con
+  `KeyError: 'current'` en `build_system_prompt`; ahora solo usa `current`/`mastered`/`point` si vienen (`41fb65c`).
 
 ### Hecho y verificado (navegador real + tests)
 - `perfil_local()` valida lo que manda el navegador contra lista blanca (`course_topics`): un `current`

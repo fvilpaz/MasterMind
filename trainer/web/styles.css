@@ -206,7 +206,7 @@
   .site-footer-links { display: flex; gap: 12px; }
   .site-footer-links a { color: var(--muted); text-decoration: none; transition: color 0.15s; }
   .site-footer-links a:hover { color: var(--primary); }
-  /* ☕ Café: apoyo voluntario (Bizum / USDC). Mismo tamaño que los enlaces de al lado, no un botón más. */
+  /* ☕ Café: apoyo voluntario (PayPal / USDC). Mismo tamaño que los enlaces de al lado, no un botón más. */
   /* Solo el icono (en móvil un texto apretaría el pie): padding para que el dedo acierte, pese a los 11px del pie. */
   .footer-btn { background: none; border: none; padding: 2px 6px; margin: -2px -2px -2px 0; font-size: 14px; line-height: 1; color: var(--muted); cursor: pointer; opacity: 0.85; transition: opacity 0.15s, transform 0.15s; }
   .footer-btn:hover { opacity: 1; transform: scale(1.15); }
