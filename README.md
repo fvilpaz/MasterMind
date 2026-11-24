@@ -12,7 +12,9 @@ Live → **[fv-mastermind.com](https://fv-mastermind.com)**
 
 MasterMind is a personal AI tutor that adapts to any learning path. Instead of a generic chatbot, it uses a **modular agent architecture** where each subject has its own specialised agent with its own teaching strategy, progression rules, and source material.
 
-Built for personal use — currently running CS50 (Harvard) and MoureDev — but the system scales to any course or student.
+Built for personal use — currently running CS50 (Harvard), MoureDev (Java), 42 Málaga (C), Mandarin
+Chinese and Japanese — but the system scales to any course or student. Anyone can create a free account
+with their own AI key: their progress lives in their browser, never on the server.
 
 ---
 
@@ -24,10 +26,18 @@ AGENT.md  (router)
     ├── CS50.md       ← enforces video → notes → exercises → problem set
     ├── Mouredev.md   ← Brais García method + katas + code reading
     ├── 42malaga.md   ← 42 Exam Rank 02 (C): same hybrid method, adapted to studying on a phone
+    ├── Chino.md      ← Pinyin → tones → characters → HSK1, ear and mouth before sight
+    ├── Japones.md    ← no syllabus: you type what you heard in an anime, it decodes it
     └── YourCourse.md ← add your own
 ```
 
-The router reads the student profile (`config/profile.json`), selects the right agent, and injects the relevant source material into the system prompt. **Mandatory progression** — the agent knows where you left off and picks up from there.
+The router reads the student profile — `config/profile.json` for the admin, or the one the browser sends
+for everyone else — selects the right agent, and injects the relevant source material into the system
+prompt. **Mandatory progression**: the agent knows where you left off and picks up from there.
+
+Two shapes of course: most follow **lessons** (`exNN`/`weekNN` folders, exam before advancing), while a
+*notebook* course like Japanese has no lessons at all — one document that keeps growing with whatever
+the student brings, handed back whole on every change so nothing is ever lost.
 
 ---
 
@@ -84,18 +94,22 @@ MasterMind/
 │   │   ├── AGENT.md        ← router: reads profile, selects course agent
 │   │   ├── CS50.md         ← CS50 teaching strategy + progression rules
 │   │   ├── Mouredev.md     ← MoureDev teaching strategy
-│   │   └── 42malaga.md     ← 42 Exam Rank 02 teaching strategy (C)
+│   │   ├── 42malaga.md     ← 42 Exam Rank 02 teaching strategy (C)
+│   │   ├── Chino.md        ← Mandarin: Pinyin → Tones → Characters → HSK1
+│   │   └── Japones.md      ← Japanese by ear: no syllabus, a notebook that grows
 │   ├── config/
 │   │   ├── profile.json    ← who you are: name, chosen course, mode, language
 │   │   └── progress/       ← one file per course: { "current": lesson folder, "mastered": [...] }
+│   ├── tests/              ← 8 plain scripts, no pytest (see "Tests" below)
 │   └── web/
 │       ├── app.py          ← Flask server + streaming endpoints
 │       ├── app.js          ← frontend logic
 │       ├── styles.css      ← themes + layout
-│       ├── index.html      ← shell (182 lines)
+│       ├── index.html      ← shell: login steps, chat, settings, guide and café panels
 │       ├── manifest.json   ← PWA manifest
 │       └── sw.js           ← service worker
-├── brain/                  ← Obsidian vault with source material (cs50/, Moure/, 42/: one folder per lesson, `exNN_name/sources/`)
+├── docs/                   ← screenshots used by the in-app "how do I get a key?" guide
+├── brain/                  ← Obsidian vault with source material (cs50/, Moure/, 42/, chino/: one folder per lesson, `exNN_name/sources/`)
 └── Dockerfile
 ```
 
@@ -108,10 +122,16 @@ MasterMind/
 3. It shows up on its own as a card in the course picker (admin). Optional: a display name in
    `COURSE_LABELS` (`trainer/web/app.js`) and a colour with
    `.course-card[data-course="yourcourse"] { --course-color: … }` (`trainer/web/styles.css`)
-4. Lessons go in `brain/<root>/exNN_name/sources/` (or `weekNN-name`); map the root folder in `COURSE_ROOTS`
-   (`trainer/web/app.py`) and give the course a starting point in `trainer/config/progress/<course>.json`
+4. Lessons go in `brain/<root>/exNN_name/sources/` (or `weekNN-name`). Map the root folder in `COURSE_ROOTS`
+   (`trainer/web/app.py`) **only if** it differs from the course id. No need to seed
+   `trainer/config/progress/<course>.json`: picking the course the first time sets `current` to the first
+   lesson by itself
 5. Name the agent file so the lookup finds it (`NAME.md`, `Name.md` or `name.md`): case matters on Linux
    (Cloud Run) even if it works on Windows
+6. **Or skip lessons entirely** and make it a *notebook* course, like `Japones.md`: no `exNN` folders, no
+   exam, no `[[DOMINADO]]`. The tutor keeps one document that grows with the student, handed back whole
+   between `[[CUADERNO]]`/`[[/CUADERNO]]` and stored in their browser. Add the course id to
+   `CURSOS_CUADERNO` (`trainer/web/app.js`) and that's it
 
 ---
 
@@ -126,13 +146,19 @@ pip install -r requirements.txt
 
 Create a `.env` file in `trainer/web/` with:
 ```
-ADMIN_PASSWORD=yourpassword
-GEMINI_API_KEY=...       # for admin Gemini mode
-ANTHROPIC_API_KEY=...    # for admin Claude mode
-GROQ_API_KEY=...         # for guest mode
-AI_PROVIDER=gemini       # or: claude
-GITHUB_TOKEN=...         # production only (optional): the app commits progress/profile to the repo
+ADMIN_PASSWORD=yourpassword   # never leave this empty: an empty one lets anyone in as admin
+GEMINI_API_KEY=...            # for admin Gemini mode
+ANTHROPIC_API_KEY=...         # for admin Claude mode
+GROQ_API_KEY=...              # for guests and for anyone who brings no key of their own
+AI_PROVIDER=gemini            # or: claude
+SECRET_KEY=...                # signs the session cookie (defaults to a dev value if unset)
+MASTERMIND_PATH=...           # absolute path to brain/ — without it, courses find no material
+PORT=5000                     # optional (Cloud Run sets its own)
+GITHUB_TOKEN=...              # production only (optional): the app commits progress/profile to the repo
 ```
+
+Users who paste **their own** key in ⚙ never touch the keys above: their requests run on their quota,
+and the key only ever lives in their browser.
 
 ```bash
 python app.py
@@ -141,14 +167,29 @@ python app.py
 
 ### Tests
 
-No dependencies (no pytest needed). From the repo root:
+No dependencies (no pytest needed), 8 plain scripts. From the repo root — `MASTERMIND_PATH` is required
+or the ones reading `brain/` will fail:
 
 ```bash
-python trainer/tests/test_greet.py   # opening greeting: admin/guest, guest name, varied style
-python trainer/tests/test_profile.py # profile + per-course progress: isolation, save/next, /ls, security
+for t in greet profile courses dashboard groq_key perfil_local cuaderno rutas; do
+  printf "%-14s " "$t"; MASTERMIND_PATH=$PWD/brain python trainer/tests/test_$t.py | tail -1
+done
 ```
 
-Exit code `0` = all pass. Each test file includes a **control** check that proves it can fail.
+| File | Covers |
+|---|---|
+| `test_greet` | Opening greeting: admin/guest, guest name, varied style |
+| `test_profile` | Profile + per-course progress: isolation, save/next, `/ls`, first-pick init, security |
+| `test_courses` | `GET /courses`: who sees which courses, ordering, `.md` filtering |
+| `test_dashboard` | Course panel, achievements, and the service worker's cache version |
+| `test_groq_key` | Bring-your-own key: which provider a key belongs to, whose quota is spent |
+| `test_perfil_local` | Browser-side profile: validation against real topics, **path traversal** |
+| `test_cuaderno` | The notebook course: travels whole, trimmed for Groq, never stored server-side |
+| `test_rutas` | `/login`, `/logout`, `/save-session`, `/docs/<file>` + path traversal |
+
+Exit code `0` = all pass. Each file ends with a **control** check that proves it can actually fail —
+a green suite that cannot fail proves nothing. They work on temporary copies and never touch the real
+`profile.json`, progress or session logs; several assert that explicitly at the end.
 
 ---
 
@@ -158,7 +199,9 @@ Every push to `main` triggers an automatic deploy to Cloud Run via GitHub Action
 `trainer/config/progress/**`, `trainer/config/profile.json` or `trainer/sessions/**` (`paths-ignore` in
 `deploy.yml`).
 
-**Where your progress lives.** With `GITHUB_TOKEN` set on the Cloud Run service (project `mastermind-trainer`,
+**Where progress lives.** Only the admin's progress reaches the server at all — everyone else's stays in
+their own browser and travels with each message, so there is nothing of theirs to store, back up or leak
+(see "Your own account, on your own device" above). For the admin: with `GITHUB_TOKEN` set on the Cloud Run service (project `mastermind-trainer`,
 region `europe-west1`), the app saves progress and profile as commits on `main` (`update: progress/…`,
 `update: profile.json`). Without it, it falls back to files on the container's disk, which are lost on every
 restart. So: **`git pull --rebase` before pushing from your PC**, and don't commit those files by hand. On Cloud
