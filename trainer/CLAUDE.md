@@ -39,6 +39,20 @@ invitado depende del texto exacto `llámale 'aprendiz'` de `GREET_GUEST`.
 aislamiento entre cursos, `POST /progress/next` (de uno en uno), `/progress` (`/ls`), path traversal.
 Trabaja sobre una copia temporal: nunca toca el `profile.json` ni el progreso reales.
 
+**Los 8 de golpe** (desde la raíz del repo; `MASTERMIND_PATH` hace falta o fallan los que leen `brain/`):
+
+```bash
+for t in greet profile courses dashboard groq_key perfil_local cuaderno rutas; do
+  printf "%-14s " "$t"; MASTERMIND_PATH=$PWD/brain python trainer/tests/test_$t.py | tail -1
+done
+```
+
+Los otros seis: `test_courses` (`GET /courses`), `test_dashboard` (panel y caché del service worker),
+`test_groq_key` (clave de IA propia y de qué proveedor es), `test_perfil_local` (perfil en el navegador
++ path traversal), `test_cuaderno` (el cuaderno de Japonés) y `test_rutas` (`/login`, `/logout`,
+`/save-session`, `/docs/<archivo>`). **Regla de la casa: un test a la vez si comparten Docker**; aquí no
+hay Docker, pero sí escriben en copias temporales — no los lances en paralelo.
+
 ## Progreso y comandos
 
 - Cada curso guarda su partida en `config/progress/<curso>.json` (`get_progress` / `save_progress`).

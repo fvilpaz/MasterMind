@@ -200,6 +200,21 @@
   pasó dos veces el 2026-11-24. La copia hay que dejarla en el estado que el test necesita, explícitamente
   (sobrescribir el campo, borrar el archivo en la COPIA), nunca fiarse de lo que haya en ese momento.
 
+## Tras la auditoría del 2026-11-24
+- **`/guest-name` y la rama con nombre de `_resolve_greet` están SIN USAR pero a propósito.** Desde que
+  se repensó el invitado (2026-11-23), el nombre viaja en el perfil local (`student`) y nadie llama a esa
+  ruta. No es código muerto que se olvidó: se conserva porque `test_greet.py` prueba esa rama y Nando
+  pidió no perder funcionalidad. Si se quita la ruta, hay que quitar también la rama y sus pruebas.
+- **Ya NO existe la ruta `/chat`** (la no-streaming) ni `call_claude()` / `call_gemini()`: borradas el
+  2026-11-24 por no tener un solo llamante. Si algún día hace falta una respuesta sin streaming, hay que
+  escribirla de nuevo — no buscar las de antes.
+- **`/docs/<archivo>` resuelve contra `ROOT.parent`, no contra `ROOT`.** Un test que mueva `ROOT` a un
+  temporal suelto hará que esa ruta no encuentre nada: la copia tiene que imitar `repo/trainer` +
+  `repo/docs` (así lo hace `test_rutas.py`).
+- **El detector de tests del grafo de código (`codebase-memory`) NO reconoce estos tests** (son scripts
+  sueltos, no pytest): marca `is_test: false` en todos. Para medir cobertura aquí, grep de texto, no el
+  grafo. Lo que sí sirve del grafo: código muerto (`max_degree=0`) y complejidad por función.
+
 ## Decisiones de Nando (no se deshacen sin hablarlo)
 - (2026-10-05) **Sin temarios ni lectura de páginas por ahora** (aparcado, no descartado): Nando añade el contenido del
   curso a medida que avanza y el tutor genera katas/lecturas/ejercicios/exámenes sobre eso; el modelo ya sabe Java.

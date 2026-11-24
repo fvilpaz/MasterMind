@@ -130,6 +130,34 @@ sin el refuerzo, había fallado al menos 1 de 1.
   arreglaron fijando el estado dentro de la COPIA temporal del test, sin depender de qué estés probando
   tú en producción en ese momento.
 
+### Auditoría del 2026-11-24 (pedida por Nando: "analiza, audita, refactoriza, pon tests si faltan")
+Hecha con el grafo de código (`codebase-memory`, indexando el repo) + comprobación a mano de cada hallazgo.
+**Orden seguido: tests primero, borrado después** (la propia regla de refactors de abajo).
+
+**Tests nuevos — `test_rutas.py` (22 checks).** `/login`, `/logout`, `/save-session` y `/docs/<archivo>`
+no tenían NINGUNA prueba; `/login` es la puerta del admin. Incluye path traversal en `/docs/` (3 formas)
+y un CONTROL que avisa de que, con `ADMIN_PASSWORD` vacío, cualquiera entraría como admin (en producción
+siempre está puesta; queda apuntado, no falla el test). Ojo al montarlo: `/docs/` resuelve contra
+`ROOT.parent`, así que la copia temporal tiene que imitar la estructura real (`repo/trainer` + `repo/docs`).
+
+**Código muerto borrado** (cero llamantes, comprobado en el front y en los tests antes de tocar):
+- Ruta `/chat` (la no-streaming): el navegador solo usa `/chat/stream` desde hace tiempo.
+- `call_claude()` y `call_gemini()` (las versiones sin streaming): solo las usaba esa ruta.
+- Verificado en caliente tras borrar: la app arranca, `/chat` da 404 y `/chat/stream` responde igual.
+
+**Lo que NO se tocó, y por qué** (decisiones, no olvidos):
+- `/guest-name` y la rama con nombre de `_resolve_greet`: sin usar desde que se repensó el invitado, pero
+  **con pruebas en `test_greet.py`** — borrarlas sería tirar comportamiento que funciona, justo lo que
+  Nando pidió no hacer. Se quedan, con un comentario en la ruta explicando que está sin usar.
+- `GUEST_PROFILE` / `GUEST_TOPIC_FOLDER`: siguen siendo un respaldo alcanzable (petición sin `perfil`, o
+  perfil local que no pasa la validación). No son código muerto.
+- `build_system_prompt` (complejidad 14) y `chat_stream` (14): son las más complejas del backend, pero
+  también las más cubiertas (`test_perfil_local`, `test_cuaderno`, `test_groq_key`) y las recién
+  verificadas en vivo. Partirlas ahora es riesgo de regresión sin ganancia clara; si algún día se tocan,
+  primero ampliar sus pruebas de caracterización.
+- Sin código muerto en el JS: el grafo solo marcó 3 funciones con grado 0 y las tres son falsos positivos
+  (callbacks de CodeMirror y de `requestAnimationFrame`, llamados de forma indirecta).
+
 ### Pendiente para la próxima sesión
 1. **Probar en móvil de verdad** todo lo nuevo (solo comprobado simulando 360px de ancho).
 

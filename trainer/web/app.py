@@ -301,35 +301,6 @@ def build_system_prompt(is_admin=False, local=None, tope_material=None, cuaderno
     )
 
 
-def call_claude(messages, system):
-    import anthropic
-    client = anthropic.Anthropic(api_key=os.environ['ANTHROPIC_API_KEY'])
-    response = client.messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=4096,
-        system=system,
-        messages=messages
-    )
-    return response.content[0].text
-
-
-def call_gemini(messages, system, model_name='gemini-flash-latest'):
-    from google import genai
-    from google.genai import types
-    client = genai.Client(api_key=os.environ['GEMINI_API_KEY'], http_options=types.HttpOptions(api_version='v1beta'))
-    history = [
-        types.Content(role=m['role'].replace('assistant', 'model'),
-                      parts=[types.Part(text=m['content'])])
-        for m in messages[:-1]
-    ]
-    response = client.models.generate_content(
-        model=model_name,
-        contents=history + [types.Content(role='user', parts=[types.Part(text=messages[-1]['content'])])],
-        config=types.GenerateContentConfig(system_instruction=system, max_output_tokens=4096)
-    )
-    return response.text
-
-
 GREET_TOKENS = ('__greet__', '__greet_plan__')   # lo que manda el navegador; '_plan' = ya hay un plan de pomodoros en marcha
 
 
@@ -594,6 +565,10 @@ def logout():
 
 @app.route('/guest-name', methods=['POST'])
 def guest_name():
+    """SIN USAR desde el 2026-11-23: el invitado ahora lleva su nombre en su perfil local (`student`) y
+    recibe el saludo con nombre por esa vía. Se conserva porque es la única forma de alimentar la rama
+    con nombre de `_resolve_greet` (probada en `test_greet.py`): borrarla sería tirar comportamiento que
+    funciona. Si algún día se quita, hay que quitar también esa rama y sus pruebas."""
     name = request.json.get('name', '').strip()
     if name:
         session['guest_name'] = name
@@ -633,22 +608,6 @@ GREET_GUEST = (
     "Máximo 3 frases, con energía. "
     "La pregunta del tiempo es la ÚNICA pregunta de este mensaje: ni retos ni ejercicios todavía."
 )
-
-@app.route('/chat', methods=['POST'])
-def chat():
-    data = request.json
-    messages = data['messages']
-    model = data.get('model', 'gemini-flash-latest')
-    provider = os.environ.get('AI_PROVIDER', 'gemini')
-    is_admin = session.get('is_admin', False)
-    system = build_system_prompt(is_admin=is_admin)
-    messages = _resolve_greet(messages, is_admin, session.get('guest_name', ''))
-    try:
-        reply = call_claude(messages, system) if provider == 'claude' else call_gemini(messages, system, model)
-        return jsonify({'reply': reply})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
 
 @app.route('/chat/stream', methods=['POST'])
 def chat_stream():
