@@ -222,7 +222,7 @@ def build_system_prompt(is_admin=False, local=None, tope_material=None, cuaderno
     else:
         mm = Path(os.environ.get('MASTERMIND_PATH', default_mm))
     course_root = COURSE_ROOTS.get(course, course)
-    if local:
+    if local and 'current' in local:
         prog = {'current': local['current'], 'mastered': local['mastered'], 'point': local['point']}
     else:
         prog = get_progress(course) if is_admin else {}    # una sola lectura: carpeta actual y punto de dentro
